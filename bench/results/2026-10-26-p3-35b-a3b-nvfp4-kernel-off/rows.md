@@ -11,7 +11,7 @@
 | gpu | NVIDIA GeForce RTX 5090 |
 | clocks_sm_mhz | 2857 clocks_mem_mhz=14001 max_sm_mhz=3090 power_limit_w=575.00 temp_c=62 |
 | clocks_locked | no   # owner runs: sudo nvidia-smi -lgc 3090,3090 -lmc 14001; set CLOCKS_LOCKED=yes |
-| model | 35b-a3b-nvfp4 path=/home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf |
+| model | 35b-a3b-nvfp4 path=~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf |
 | model_sha256 | 777564174a7ccf01a2e9d171ac73206ec3da6b6f6b0124e71a9628ac19f61aa9 |
 | kv | f16 |
 | ctx | 8192 |

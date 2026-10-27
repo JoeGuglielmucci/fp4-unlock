@@ -1,4 +1,0 @@
-label,concurrency,n_predict,runs,tok_s_median,acc_rate,mean_len,power_w,timed_s
-none,0,512,3,53.05,0.0000,nan,499.1,182.2
-extmtp-n3,0,512,3,115.82,0.5729,2.630,544.4,83.5
-np8-none,8,300,3,280.01,0.0000,nan,537.5,25.6

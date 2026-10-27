@@ -1,10 +1,10 @@
-cmd: /home/crockettgugg/fp4-unlock/build-p3/bin/llama-server -m /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7 --spec-type draft-mtp --spec-draft-n-max 8 --spec-draft-backend-sampling --spec-synth-len 8
+cmd: ./build-p3/bin/llama-server -m ~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7 --spec-type draft-mtp --spec-draft-n-max 8 --spec-draft-backend-sampling --spec-synth-len 8
 0.00.138.914 I srv  llama_server: initializing ...
 0.00.138.925 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
 0.00.139.192 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
-0.00.141.546 I srv    load_model: loading model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.00.141.546 I srv    load_model: loading model '~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
 0.01.444.590 I cmn          init: llama threadpool init, n_threads = 16
-0.01.487.963 I common_speculative_init_result: creating MTP draft context against the target model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.01.487.963 I common_speculative_init_result: creating MTP draft context against the target model '~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
 0.01.496.167 I srv    load_model: initializing, n_slots = 4, n_ctx_slot = 8192, kv_unified = 'true'
 0.01.496.310 W spec common_specu: synthetic speculative acceptance is enabled for benchmarking; generated output is not valid
 0.01.496.320 I spec common_specu: synthetic acceptance: n_max = 8, mean length = 8.000000, rates = [0.970246, 0.941377, 0.913368, 0.886191, 0.859824, 0.83424, 0.809418, 0.785335]

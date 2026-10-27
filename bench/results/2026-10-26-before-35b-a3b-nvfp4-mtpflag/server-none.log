@@ -1,2 +1,2 @@
-cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-server -m /home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7
+cmd: ./build-before/bin/llama-server -m ~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7
 error: invalid argument: --mtp

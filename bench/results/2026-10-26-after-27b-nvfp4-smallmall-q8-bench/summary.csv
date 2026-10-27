@@ -1,5 +1,0 @@
-label,concurrency,n_predict,runs,tok_s_median,acc_rate,mean_len,power_w,timed_s
-none,0,512,3,75.42,0.0000,nan,501.6,129.0
-mtp-n3,0,512,3,136.32,0.5774,2.640,505.5,71.8
-mtp-n7,0,512,3,131.24,0.3467,3.013,478.9,74.1
-mtp-n8,0,512,3,125.66,0.3142,3.047,493.7,77.9

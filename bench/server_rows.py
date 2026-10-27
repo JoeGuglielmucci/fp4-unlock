@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Drive a running llama-server through PRD rows 4-7 and 10.
+"""Drive a running llama-server through the server rows (4-7 and 10) of the results table.
 
 Per prompt: one untimed warm-up, then N timed runs (default 3). Greedy, cache_prompt off, so every run
 re-prefills and decodes from scratch. Timings come from the server's own `timings` object; acceptance from

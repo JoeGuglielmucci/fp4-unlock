@@ -1,0 +1,63 @@
+results -> bench/results/2026-10-27-ab-before-q8
+date=2026-10-27T10:59:08-04:00
+tree=before
+llama_cpp_commit=63b4b303b
+fork_branch=HEAD
+fork_describe=v0.7.0-241-g63b4b303b-dirty
+repo_commit=99e35f4
+driver=595.99.02
+gpu=NVIDIA GeForce RTX 5090
+cuda=release 13.2
+clocks_sm_mhz=2880 clocks_mem_mhz=14001 max_sm_mhz=3090 power_limit_w=575.00 temp_c=70
+clocks_locked=no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes
+model=27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
+model_sha256=15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007
+env GGML_CUDA_MMQ_PREC= LLAMA_SPEC_CHAIN= GGML_CUDA_GRAPH_OPT= FP4_UNLOCK_SMALLM=
+kv=q8_0
+ctx=8192
+n_predict=512
+runs=3
+dry=0
+rows=4,5
+dflash2_sha256=1a25c56858e1ebe93f2718ac1d49d1151f9323325c1bbfd6209370f4db131ebd
+cmdline=bench/bench.sh before 27b-nvfp4 4,5
+gpu temp at start: 58 C
+[dflash-n7] code-1: median 257.41 tok/s over 3 runs, acc 1251/1956
+[dflash-n7] code-2: median 199.30 tok/s over 3 runs, acc 2415/4491
+[dflash-n7] code-3: median 200.82 tok/s over 3 runs, acc 3588/6957
+[dflash-n7] prose-1: median 145.48 tok/s over 3 runs, acc 4614/10470
+[dflash-n7] prose-2: median 151.74 tok/s over 3 runs, acc 5661/13839
+[dflash-n7] prose-3: median 168.71 tok/s over 3 runs, acc 6759/16863
+[dflash-n7] SUMMARY tok/s=184.01 acc=6759/16863 mean_len=3.52 power=502W
+# 2026-10-27-ab-before-q8
+
+| key | value |
+|---|---|
+| date | 2026-10-27T10:59:08-04:00 |
+| tree | before |
+| llama_cpp_commit | 63b4b303b |
+| fork_describe | v0.7.0-241-g63b4b303b-dirty |
+| driver | 595.99.02 |
+| cuda | release 13.2 |
+| gpu | NVIDIA GeForce RTX 5090 |
+| clocks_sm_mhz | 2880 clocks_mem_mhz=14001 max_sm_mhz=3090 power_limit_w=575.00 temp_c=70 |
+| clocks_locked | no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes |
+| model | 27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
+| model_sha256 | 15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007 |
+| kv | q8_0 |
+| ctx | 8192 |
+| n_predict | 512 |
+| runs | 3 |
+
+## Rows 4-7, 10: llama-server (greedy, cache_prompt off, median of 3 timed runs after 1 warm-up)
+
+| config | slots | n_predict | tok/s | acceptance | mean accepted len | avg power W |
+|---|---|---|---|---|---|---|
+| dflash-n7 | 0 | 512 | 184.01 | 0.4008 | 3.520 | 501.9 |
+
+### Per-prompt median tok/s
+
+| config | code-1 | code-2 | code-3 | prose-1 | prose-2 | prose-3 |
+|---|---|---|---|---|---|---|
+| dflash-n7 | 257.4 | 199.3 | 200.8 | 145.5 | 151.7 | 168.7 |
+rendered bench/results/2026-10-27-ab-before-q8/rows.md

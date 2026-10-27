@@ -1,0 +1,66 @@
+results -> bench/results/2026-10-27-final-before-np8
+date=2026-10-27T12:37:05-04:00
+tree=before
+llama_cpp_commit=63b4b303b
+fork_branch=HEAD
+fork_describe=v0.7.0-241-g63b4b303b-dirty
+repo_commit=99e35f4
+driver=595.99.02
+gpu=NVIDIA GeForce RTX 5090
+cuda=release 13.2
+clocks_sm_mhz=2790 clocks_mem_mhz=14001 max_sm_mhz=3090 power_limit_w=575.00 temp_c=70
+clocks_locked=no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes
+model=27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
+model_sha256=15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007
+env GGML_CUDA_MMQ_PREC= LLAMA_SPEC_CHAIN= GGML_CUDA_GRAPH_OPT= FP4_UNLOCK_SMALLM=
+kv=f16
+ctx=8192
+n_predict=512
+runs=3
+dry=0
+rows=7
+dflash2_sha256=1a25c56858e1ebe93f2718ac1d49d1151f9323325c1bbfd6209370f4db131ebd
+cmdline=bench/bench.sh before 27b-nvfp4 7
+gpu temp at start: 59 C
+[np8-none] batch 1: 2400 tokens in 6.84s = 351.0 tok/s aggregate
+[np8-none] batch 2: 2400 tokens in 6.96s = 344.8 tok/s aggregate
+[np8-none] batch 3: 2400 tokens in 6.42s = 374.1 tok/s aggregate
+[np8-none] SUMMARY tok/s=350.99 acc=0/0 mean_len=nan power=502W
+gpu temp at start: 58 C
+[np8-mtp-n3] batch 1: 2400 tokens in 6.05s = 396.5 tok/s aggregate
+[np8-mtp-n3] batch 2: 2400 tokens in 6.12s = 392.1 tok/s aggregate
+[np8-mtp-n3] batch 3: 2400 tokens in 5.62s = 427.1 tok/s aggregate
+[np8-mtp-n3] SUMMARY tok/s=396.54 acc=4739/7235 mean_len=3.01 power=402W
+gpu temp at start: 58 C
+[np8-mtp-n7] batch 1: 2400 tokens in 7.37s = 325.5 tok/s aggregate
+[np8-mtp-n7] batch 2: 2400 tokens in 7.34s = 327.1 tok/s aggregate
+[np8-mtp-n7] batch 3: 2400 tokens in 7.31s = 328.1 tok/s aggregate
+[np8-mtp-n7] SUMMARY tok/s=327.14 acc=5283/13045 mean_len=3.99 power=414W
+# 2026-10-27-final-before-np8
+
+| key | value |
+|---|---|
+| date | 2026-10-27T12:37:05-04:00 |
+| tree | before |
+| llama_cpp_commit | 63b4b303b |
+| fork_describe | v0.7.0-241-g63b4b303b-dirty |
+| driver | 595.99.02 |
+| cuda | release 13.2 |
+| gpu | NVIDIA GeForce RTX 5090 |
+| clocks_sm_mhz | 2790 clocks_mem_mhz=14001 max_sm_mhz=3090 power_limit_w=575.00 temp_c=70 |
+| clocks_locked | no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes |
+| model | 27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
+| model_sha256 | 15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007 |
+| kv | f16 |
+| ctx | 8192 |
+| n_predict | 512 |
+| runs | 3 |
+
+## Rows 4-7, 10: llama-server (greedy, cache_prompt off, median of 3 timed runs after 1 warm-up)
+
+| config | slots | n_predict | tok/s | acceptance | mean accepted len | avg power W |
+|---|---|---|---|---|---|---|
+| np8-none | 8 | 300 | 350.99 | 0.0000 | nan | 501.6 |
+| np8-mtp-n3 | 8 | 300 | 396.54 | 0.6550 | 3.010 | 402.1 |
+| np8-mtp-n7 | 8 | 300 | 327.14 | 0.4050 | 3.990 | 414.4 |
+rendered bench/results/2026-10-27-final-before-np8/rows.md

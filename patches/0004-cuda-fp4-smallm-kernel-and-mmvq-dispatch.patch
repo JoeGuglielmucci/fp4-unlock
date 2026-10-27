@@ -1,6 +1,6 @@
 diff --git a/ggml/src/ggml-cuda/fp4-smallm.cu b/ggml/src/ggml-cuda/fp4-smallm.cu
 new file mode 100644
-index 000000000..2eb91ddf9
+index 000000000..a84f23677
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/fp4-smallm.cu
 @@ -0,0 +1,1702 @@
@@ -99,7 +99,7 @@ index 000000000..2eb91ddf9
 +
 +// Prefetch depth: blocks per warp whose loads are issued back to back before the first is consumed. The first
 +// build (PF = 1) consumed each block right after loading it, so every warp was a serial chain of L2 round trips:
-+// 24.5 us at M = 1 on the 17408x5120 FFN shape against 15.6 us for MMVQ (FINDINGS "chain8 outputs"). The compute
++// 24.5 us at M = 1 on the 17408x5120 FFN shape against 15.6 us for MMVQ (measured on the RTX 5090). The compute
 +// order per warp (k ascending in steps of nwarps) does not depend on PF, so results are bitwise the PF = 1 ones.
 +#ifndef FP4_SMALLM_PF
 +#define FP4_SMALLM_PF 4
@@ -359,7 +359,7 @@ index 000000000..2eb91ddf9
 +// Why: in the fragment layout each 4-byte weight load of a warp touches 8 rows, i.e. 8 different 128-byte lines, and a
 +// 64-wide block costs 10 such loads per lane: ~80 L1 wavefronts per 576 bytes of weights. MMVQ reads 8 consecutive
 +// blocks of one row per warp instruction (3 lines). The direct kernels (v1, v2) were therefore bound by L1 transaction
-+// throughput at ~2 TB/s against 3.2 TB/s from L2 for MMVQ (FINDINGS "chain11 outputs"), independent of how many loads
++// throughput at ~2 TB/s against 3.2 TB/s from L2 for MMVQ (measured), independent of how many loads
 +// were in flight. Here a warp copies a chunk of 4 consecutive blocks (144 bytes, 16-byte aligned) of all its 16 rows
 +// into shared memory with 4.5 cp.async instructions per lane (~5 lines each), then reads the fragments from shared
 +// memory, where the 36-word row stride makes the 8-row fragment reads bank-conflict free. FP4_SMALLM_STAGES chunks
@@ -654,10 +654,10 @@ index 000000000..2eb91ddf9
 +}
 +
 +// =====================================================================================================================
-+// v4: block-scaled FP4 tensor-core path (W4A4 x T residual terms). FINDINGS "Phase 3 kernel v4".
++// v4: block-scaled FP4 tensor-core path (W4A4 x T residual terms). This is the shipped kernel (FP4_UNLOCK_KERNEL=1).
 +//
 +// The int8 kernels above are issue bound at M = 1: the no-compute floor of the same copy pipeline is 15.6 us on the
-+// 17408x5120 FFN shape, the int8 kernel 27 us (ablation table in FINDINGS). v4 therefore moves the arithmetic to the
++// 17408x5120 FFN shape, the int8 kernel 27 us (ablation on the RTX 5090). v4 therefore moves the arithmetic to the
 +// Blackwell block-scaled MMA (mma.m16n8k64 kind::mxf4nvf4, e2m1 x e2m1, ue4m3 scales, fp32 accumulate), one
 +// instruction per 16 rows x 64 k per activation term, on the raw NVFP4 weight words staged by cp.async.
 +//
@@ -1189,7 +1189,7 @@ index 000000000..2eb91ddf9
 +#define FP4_SMALLM_V5_THREADS       (FP4_SMALLM_V4_WARPS * WARP_SIZE)
 +#define FP4_SMALLM_V5_MAX_COUNTERS  (1 << 16)
 +#ifndef FP4_SMALLM_V5_NSEARCH
-+#define FP4_SMALLM_V5_NSEARCH 5   // 1 disables the scale offset search (diagnostic; see FINDINGS)
++#define FP4_SMALLM_V5_NSEARCH 5   // 1 disables the scale offset search (diagnostic)
 +#endif
 +static_assert(FP4_SMALLM_V5_THREADS == FP4_SMALLM_CHUNK * 4 * 8, "fp4-smallm v5: one 16-element group per thread per chunk");
 +static_assert(FP4_SMALLM_V5_BBUF_WORDS(1) % 4 == 0, "fp4-smallm v5: B buffers stay 16-byte aligned");
@@ -1655,7 +1655,7 @@ index 000000000..2eb91ddf9
 +    const int ksplit = fp4_smallm_v4_ksplit(ncols_x, nrows_x, T);
 +
 +    if (ggml_cuda_fp4_smallm_mode() == 3) {
-+        // v5 (mode 3, A/B only: slower than v4, see FINDINGS): in-block quantization, persistent counters, partials from the pool.
++        // v5 (mode 3, A/B only: slower than v4, kept for A/B): in-block quantization, persistent counters, partials from the pool.
 +        constexpr int NSTREAMS_MAX = 2;
 +        const size_t nrg = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
 +        GGML_ASSERT(nrg <= FP4_SMALLM_V5_MAX_COUNTERS);
@@ -1708,11 +1708,11 @@ index 000000000..2eb91ddf9
 +}
 diff --git a/ggml/src/ggml-cuda/fp4-smallm.cuh b/ggml/src/ggml-cuda/fp4-smallm.cuh
 new file mode 100644
-index 000000000..f9b0dfc3f
+index 000000000..48e79eb44
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/fp4-smallm.cuh
 @@ -0,0 +1,45 @@
-+// fp4-unlock Phase 3: dedicated small-M (ncols_dst 1..8) GEMM for NVFP4 weights on Blackwell tensor cores.
++// fp4-unlock: dedicated small-M (ncols_dst 1..8) GEMM for NVFP4 weights on Blackwell tensor cores.
 +//
 +// One kernel instantiation serves every ncols_dst in 1..8; the K loop, the split-K combine and the term combine
 +// depend only on the weight shape, and each output column is computed by its own MMA lanes. The arithmetic for a
@@ -1758,7 +1758,7 @@ index 000000000..f9b0dfc3f
 +        float * dst, int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst,
 +        int stream_no, cudaStream_t stream);
 diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
-index 930f1adc4..c2533bf44 100644
+index 930f1adc4..d8de81f8e 100644
 --- a/ggml/src/ggml-cuda/mmvq.cu
 +++ b/ggml/src/ggml-cuda/mmvq.cu
 @@ -1,9 +1,13 @@
@@ -1779,7 +1779,7 @@ index 930f1adc4..c2533bf44 100644
      return MMVQ_MAX_BATCH_SIZE;
  }
  
-+// fp4-unlock Phase 1.5 experiment: smallest ne11 at which NVFP4/MXFP4 leave MMVQ (int8 dp4a) for MMQ (FP4 tensor
++// fp4-unlock routing experiment (FP4_UNLOCK_SMALLM): smallest ne11 at which NVFP4/MXFP4 leave MMVQ (int8 dp4a) for MMQ (FP4 tensor
 +// core MMA with a J=8 tile) on Blackwell. Unset or 0 keeps upstream behaviour (MMVQ for ne11 <= MMVQ_MAX_BATCH_SIZE).
 +// FP4_UNLOCK_SMALLM=1 routes ne11 >= 2 to MMQ; FP4_UNLOCK_SMALLM=N (N >= 2) routes ne11 >= N; FP4_UNLOCK_SMALLM=all
 +// routes everything including ne11 == 1 (batch-invariance diagnostic, slow).
@@ -1802,11 +1802,11 @@ index 930f1adc4..c2533bf44 100644
      if (!ggml_is_quantized(type)) {
          return false;
      }
-+    // fp4-unlock Phase 2 (chain7 finding): the per-type tuned thresholds below move k-quants to MMQ inside the 1..8
++    // fp4-unlock invariant mode: the per-type tuned thresholds below move k-quants to MMQ inside the 1..8
 +    // range (Blackwell: Q4_K at 6, Q5_K at 7, Q6_K at 8), so an M = 8 verify batch sums the attention/GDN projections
 +    // in a different order than M = 1 decode. In invariant mode every quantized type stays on MMVQ up to 8 columns
 +    // (whose k split is pinned by FP4_UNLOCK_INVARIANT_MMVQ); the FP4 types keep their own rule below so the
-+    // FP4_UNLOCK_SMALLM experiment knob and the Phase 3 kernel dispatch are unchanged.
++    // FP4_UNLOCK_SMALLM experiment knob and the small-M kernel dispatch are unchanged.
 +    if (fp4_unlock_invariant_enabled() && type != GGML_TYPE_NVFP4 && type != GGML_TYPE_MXFP4) {
 +        return ne11 <= MMVQ_MAX_BATCH_SIZE;
 +    }
@@ -1818,7 +1818,7 @@ index 930f1adc4..c2533bf44 100644
              case GGML_TYPE_Q6_K:
                  return ne11 <= 7;
 +            case GGML_TYPE_NVFP4:
-+                // fp4-unlock Phase 3: the dedicated small-M kernel (fp4-smallm.cu) owns every dense NVFP4 matmul
++                // fp4-unlock: the dedicated small-M kernel (fp4-smallm.cu) owns every dense NVFP4 matmul
 +                // with ne11 <= 8 when enabled, so MMVQ must claim that range for ggml_cuda_mul_mat_vec_q to run.
 +                if (ggml_cuda_fp4_smallm_enabled()) {
 +                    return ne11 <= MMVQ_MAX_BATCH_SIZE;
@@ -1846,7 +1846,7 @@ index 930f1adc4..c2533bf44 100644
          }
      }
  
-+    // fp4-unlock Phase 3: dense NVFP4 with min_m <= ncols_dst <= 8 goes to the batch-invariant tensor-core kernel
++    // fp4-unlock: dense NVFP4 with min_m <= ncols_dst <= 8 goes to the batch-invariant tensor-core kernel
 +    // (min_m = 5 by default, 1 in invariant mode; see ggml_cuda_fp4_smallm_min_m). The v4
 +    // (FP4 MMA) kernel quantizes the f32 activations itself, so it is dispatched before the q8_1 quantization below;
 +    // the v3 (int8) kernel consumes the q8_1 buffer and is dispatched after it.

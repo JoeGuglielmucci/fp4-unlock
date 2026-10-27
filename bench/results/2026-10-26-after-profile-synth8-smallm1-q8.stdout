@@ -1,58 +1,0 @@
-WARNING: The version of the system or its configuration does not allow enabling CPU profiling:
-- CPU IP/backtrace sampling will be disabled.
-- CPU context switch tracing will be disabled.
-Try the 'nsys status --environment' command to learn more.
-
-
-
-Loading model... |-\|/-\|/-\|/-\| 
-
-▄▄ ▄▄
-██ ██
-██ ██  ▀▀█▄ ███▄███▄  ▀▀█▄    ▄████ ████▄ ████▄
-██ ██ ▄█▀██ ██ ██ ██ ▄█▀██    ██    ██ ██ ██ ██
-██ ██ ▀█▄██ ██ ██ ██ ▀█▄██ ██ ▀████ ████▀ ████▀
-                                    ██    ██
-                                    ▀▀    ▀▀
-
-build      : b11911-e15eef193
-model      : /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
-ftype      : NVFP4
-modalities : text
-using custom system prompt
-
-available commands:
-  /exit or Ctrl+C     stop or exit
-  /regen              regenerate the last response
-  /clear              clear the chat history
-  /read <file>        add a text file
-  /glob <pattern>     add text files using globbing pattern
-
-
-
-> Implement a thread-safe LRU cache in C++17 as a header-only class template `LruCache<Key, Value>` with a fixed capacity given at construction. It must support `std::optional<Value> get(const Key&)`, `void put(const Key&, const Value&)`, `bool erase(const Key&)`, `size_t size() const`, and O(1) average time for get and put. Use a std::list and std::unordered_map, protect every public method with a std::mutex, and include a small main() that exercises eviction order with capacity 3. Explain the ev ... (truncated)
-
-[Start thinking]
-
-We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::get, put, erase, bool erase, size_t const, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
-
-Need produce final answer. Need ensure code complete. Let's think about design.
-
-C++17. Header-only class template. Need include std::mutex, std::optional, std::list, std::unordered_map, std::unordered_map, std::size_t, std::unordered_map, std::size_t, std::size_t.
-
-Need thread-safe. Use std::mutex.
-
-Class template <typename Key, Value> LruCache {
-public:
-    size_t capacity() const? no
-    explicit LRU::LruCache(size_t
-
-[ Prompt: 1009.5 t/s | Generation: 264.1 t/s ]
-
-
-Exiting...
-Collecting data...
-Generating '/tmp/nsys-report-f552.qdstrm'
-[1/1] [0%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [0%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [9%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [11%                         ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [12%                         ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [10%                         ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [9%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [8%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [7%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [6%                          ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [11%                         ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [10%                         ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [=15%                        ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [==20%                       ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [===24%                      ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [=====29%                    ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [======33%                   ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [=======38%                  ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [=========43%                ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [==========47%               ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [===========50%              ] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [========================100%] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep[1/1] [========================100%] 2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep
-Generated:
-	/home/crockettgugg/fp4-unlock/bench/results/2026-10-26-after-profile-synth8-smallm1-q8.nsys-rep

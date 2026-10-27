@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bucket an `nsys stats --report cuda_gpu_kern_sum --format csv` report into the PRD 1.4 categories and print
+"""Bucket an `nsys stats --report cuda_gpu_kern_sum --format csv` report into kernel categories (mmq, mmvq, fp4-smallm, flash-attn, gdn, quantize, norm/rope/other) and print
 percentages of GPU kernel time. Usage: profile_split.py kern_sum.csv [--label L] [--out split.csv]
 Buckets: mmvq (int8 dp4a GEMV, the kernel the project replaces), mmq (FP4/int8 tensor-core GEMM), quantize (src1 -> q8_1
 for both), fa (flash attention), gdn (gated delta net / ssm), norm-rope-other (elementwise, norm, rope, copies, embeddings),

@@ -1,0 +1,4 @@
+label,concurrency,n_predict,runs,tok_s_median,acc_rate,mean_len,power_w,timed_s
+np8-none,8,300,3,365.17,0.0000,nan,414.3,19.4
+np8-mtp-n3,8,300,3,406.22,0.6370,2.962,390.1,17.5
+np8-mtp-n7,8,300,3,369.75,0.4279,4.166,392.4,19.1

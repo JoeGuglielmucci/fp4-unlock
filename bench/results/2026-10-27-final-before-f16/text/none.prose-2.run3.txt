@@ -1,0 +1,13 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter around 350 words. Need ensure placeholders only names and dates. Maybe [Company Name]? User says placeholders only for names and dates. So can use [Your Name], [Vendor Name], [Date], [GPU Name]? GPU name is not name? It's product name maybe okay? But "only for names and dates" suggests avoid placeholders for company? But need from small software company to hardware vendor. Could use [Company Name] as name placeholder? It's a name. [Vendor Name] name. [GPU Name] maybe product name, not a person? Could be considered name. But to be safe, use [GPU Name] as placeholder for name? They said placeholders only for names and dates, so product name is a name. But maybe they want no other placeholders like [address]. We can include letterhead? Avoid address placeholders. Use date placeholder. Salutation: Dear [Vendor Name], maybe program manager? Could be Dear [Vendor Name] Team? But placeholder for name. Maybe "Dear [Vendor Name]:"? Formal letter usually Dear [Name],. If vendor is company, maybe "Dear [Vendor Name]:" acceptable. Need about 350 words. Let's draft and count. Need no preamble. Just letter.
+
+Draft:
+
+[Date]
+
+Dear [Vendor Name],
+
+I am writing on behalf of [Company Name], a small software company developing an open-source inference engine for machine-learning workloads. Our engine is designed to run large language models and vision models efficiently on consumer and workstation hardware, with a focus on transparent performance, reproducible results, and broad compatibility across accelerator architectures.
+
+We are requesting early access to your developer program for the new [GPU Name]. Access before public launch would allow our team to evaluate the hardware, optimize our runtime and compiler paths, and identify integration issues while there is still time to address them. Because our project is open source, early findings can be shared in a structured way, and our users benefit from improved support for your platform from the beginning.
+
+Early access matters to us for three reasons. First, our

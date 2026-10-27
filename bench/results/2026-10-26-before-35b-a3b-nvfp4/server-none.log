@@ -1,8 +1,8 @@
-cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-server -m /home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7
+cmd: ./build-before/bin/llama-server -m ~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf -ngl 99 --fit off -c 8192 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7
 0.00.057.901 I srv  llama_server: initializing ...
 0.00.057.911 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
 0.00.058.136 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
-0.00.060.259 I srv    load_model: loading model '/home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
+0.00.060.259 I srv    load_model: loading model '~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
 0.00.240.111 W model has unused tensor blk.40.attn_norm.weight (size = 8192 bytes) -- ignoring
 0.00.240.116 W model has unused tensor blk.40.post_attention_norm.weight (size = 8192 bytes) -- ignoring
 0.00.240.121 W model has unused tensor blk.40.attn_q.weight (size = 9437184 bytes) -- ignoring
@@ -25,7 +25,7 @@ cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-server -m /home/crocke
 0.00.240.156 W model has unused tensor blk.40.nextn.shared_head_norm.weight (size = 8192 bytes) -- ignoring
 0.00.262.407 E llama_model_load: error loading model: done_getting_tensors: wrong number of tensors; expected 1101, got 1079
 0.00.262.431 E llama_model_load_from_file_impl: failed to load model
-0.00.262.437 E cmn  common_init_: failed to load model '/home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
-0.00.262.442 E srv    load_model: failed to load model, '/home/crockettgugg/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
+0.00.262.437 E cmn  common_init_: failed to load model '~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
+0.00.262.442 E srv    load_model: failed to load model, '~/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf'
 0.00.262.445 I srv    operator(): operator(): cleaning up before exit...
 0.00.263.071 E srv  server_run_i: exiting due to model loading error

@@ -139,12 +139,13 @@ index 1515572fe..ee9d89830 100644
          }
 diff --git a/ggml/src/ggml-cuda/fp4-unlock.cuh b/ggml/src/ggml-cuda/fp4-unlock.cuh
 new file mode 100644
-index 000000000..03e0f7dd1
+index 000000000..1b58425da
 --- /dev/null
 +++ b/ggml/src/ggml-cuda/fp4-unlock.cuh
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,25 @@
 +#pragma once
 +// fp4-unlock: runtime switches shared by the CUDA kernels of the fork (mmvq.cu routing, fattn-common.cuh tile pins).
++#include <cstdio>
 +#include <cstdlib>
 +
 +#ifndef FP4_UNLOCK_INVARIANT_ENABLED_DEFINED
@@ -154,7 +155,15 @@ index 000000000..03e0f7dd1
 +static inline bool fp4_unlock_invariant_enabled() {
 +    static const bool enabled = [] {
 +        const char * e = getenv("FP4_UNLOCK_INVARIANT");
-+        return e != nullptr && e[0] != '0';
++        const bool on = e != nullptr && e[0] != '0';
++#ifndef FP4_UNLOCK_INVARIANT_MMVQ
++        if (on) {
++            fprintf(stderr, "fp4-unlock: FP4_UNLOCK_INVARIANT=1 but this build has no pinned MMVQ k split "
++                            "(not compiled with -DFP4_UNLOCK_INVARIANT_MMVQ); batch invariance is partial, "
++                            "use the 'invariant' build target\n");
++        }
++#endif // FP4_UNLOCK_INVARIANT_MMVQ
++        return on;
 +    }();
 +    return enabled;
 +}

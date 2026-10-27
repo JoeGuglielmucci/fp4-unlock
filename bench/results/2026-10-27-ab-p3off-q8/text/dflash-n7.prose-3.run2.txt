@@ -1,0 +1,14 @@
+We need to answer user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final about 400 words. Need likely exactly around 400? "about 400 words". Need ensure no preamble. Need one concrete analogy, simple worked example with made-up plausible numbers, finish explaining engineers do about it.
+
+Let's draft ~400 words. Need count. Let's craft.
+
+Draft:
+Imagine a graphics card as a very fast kitchen. The GPU is the chef, and the memory is the pantry. The chef can chop, mix, and plate dishes extremely quickly, but if the pantry is far away and the delivery cart can only carry a few ingredients at a time, the chef spends most of the time waiting for ingredients. That waiting is memory bandwidth: the rate at which data can move between memory and the GPU.
+
+A game needs lots of data: textures, vertex positions, colors, depth values, and so on. The GPU may be able to do trillions of tiny calculations per second, but if it must fetch too much data for each calculation, the calculations sit idle. This is called being memory-bound.
+
+Here is a simple made-up example. Suppose a GPU can perform 100 trillion floating-point operations per second (100 TFLOPS). A particular effect needs 10 operations for every byte of data it reads. If the memory can deliver 500 gigabytes per second (500 GB/s), then the GPU can only usefully process 500 GB/s × 10 operations/byte = 5,000 trillion operations per second? Wait that's too high. Need plausible: If 10 ops per byte, 500 GB/s = 500e9 bytes/s *10 = 5e12 ops/s = 5 TFLOPS, far below 100 TFLOPS. So memory limits to 5 TFLOPS. But 500 GB/s and 100 TFLOPS plausible? Maybe high-end GPU 100 TFLOPS and 500 GB/s. Yes.
+
+Need maybe simpler: GPU can do 10

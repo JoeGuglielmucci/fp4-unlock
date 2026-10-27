@@ -11,7 +11,7 @@
 | gpu | NVIDIA GeForce RTX 5090 |
 | clocks_sm_mhz | 2865 clocks_mem_mhz=13801 max_sm_mhz=3090 power_limit_w=575.00 temp_c=64 |
 | clocks_locked | no   # owner runs: sudo nvidia-smi -lgc 3090,3090 -lmc 14001; set CLOCKS_LOCKED=yes |
-| model | 27b-nvfp4 path=/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
+| model | 27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
 | model_sha256 | 15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007 |
 | kv | f16 |
 | ctx | 8192 |

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PRD 1.7: reproduce issue #27329 (Qwen3.8-27B decode hang, CPU spin, no GPU work) on this card and the pinned commit.
+# Reproduce llama.cpp issue #27329 (Qwen3.8-27B decode hang, CPU spin, no GPU work) on this card and the pinned commit.
 # The issue's config: llama-server, ctx 262144, K/V cache iq4_nl, batch/ubatch 512, 12 threads, -fa auto, no spec.
 # Usage: bench/stall_repro.sh [before|after] [model-key=27b-nvfp4] [reps=3]   env: KVT=iq4_nl CTX=262144 NPRED=2000
 source "$(dirname "$0")/lib.sh"
@@ -38,7 +38,7 @@ PY
     echo "   STALL: no server log progress for 180 s. Capturing gdb backtrace of all threads and nvidia-smi."
     nvidia-smi --query-gpu=utilization.gpu,clocks.sm,power.draw --format=csv > "$OUT/stall-$i-gpu.txt"
     top -b -n 1 -H -p "$SERVER_PID" | head -20 > "$OUT/stall-$i-threads.txt"
-    gdb -p "$SERVER_PID" -batch -ex "thread apply all bt 12" > "$OUT/stall-$i-gdb.txt" 2>&1 || echo "   gdb failed (ptrace scope? owner: sudo sysctl kernel.yama.ptrace_scope=0)"
+    gdb -p "$SERVER_PID" -batch -ex "thread apply all bt 12" > "$OUT/stall-$i-gdb.txt" 2>&1 || echo "   gdb failed (ptrace scope? on the host: sudo sysctl kernel.yama.ptrace_scope=0)"
     kill "$cpid" 2>/dev/null; break
   fi
   wait "$cpid"

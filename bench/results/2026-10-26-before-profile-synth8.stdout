@@ -16,7 +16,7 @@ Loading model... |-\|/-\|/-\|/-\| 
                                     ▀▀    ▀▀
 
 build      : b11910-63b4b303b
-model      : /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
+model      : ~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
 ftype      : NVFP4
 modalities : text
 using custom system prompt
@@ -56,4 +56,4 @@ Collecting data...
 Generating '/tmp/nsys-report-55d6.qdstrm'
 [1/1] [0%                          ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [0%                          ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [8%                          ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [7%                          ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [6%                          ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [11%                         ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [=15%                        ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [==20%                       ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [====25%                     ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [=====30%                    ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [======35%                   ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [=======39%                  ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [=========44%                ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [==========49%               ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [===========50%              ] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [========================100%] 2026-10-26-before-profile-synth8.nsys-rep[1/1] [========================100%] 2026-10-26-before-profile-synth8.nsys-rep
 Generated:
-	/home/crockettgugg/fp4-unlock/bench/results/2026-10-26-before-profile-synth8.nsys-rep
+	./bench/results/2026-10-26-before-profile-synth8.nsys-rep

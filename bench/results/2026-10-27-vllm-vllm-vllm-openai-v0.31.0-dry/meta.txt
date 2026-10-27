@@ -1,0 +1,7 @@
+date=2026-10-27T10:25:54-04:00
+image=vllm/vllm-openai:v0.31.0
+vllm_version=0.31.0
+model=unsloth/Qwen3.8-27B-NVFP4
+driver=595.99.02 gpu=NVIDIA GeForce RTX 5090 clocks_locked=no
+spec_mtp={"method":"mtp","num_speculative_tokens":3}
+spec_dflash={"method":"dflash","model":"z-lab/Qwen3.8-27B-DFlash2","num_speculative_tokens":7}

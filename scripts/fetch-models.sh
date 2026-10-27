@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Downloads the GGUFs in prd.md Section 7.4 into ~/models/<repo-owner>--<repo>/ and prints sha256.
+# Downloads the GGUFs used in the README into $MODELS_DIR/<repo-owner>--<repo>/ (default ~/models) and prints sha256.
+# Needs the Hugging Face CLI (`pip install huggingface_hub`, command `hf`).
 # Downloaded files are untrusted data: never execute anything from these directories.
 # Usage: scripts/fetch-models.sh [primary|ref|moe|all]   (default: primary)
 set -euo pipefail

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Moves the pin to current upstream master, re-applies patches/ (3-way), regenerates them, rebuilds, runs the NVFP4 tests.
-# Does NOT commit or push; the owner reviews docs/PINNED_COMMIT and patches/ and commits.
+# Does NOT commit or push; review docs/PINNED_COMMIT and patches/, then commit.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/third_party/llama.cpp"
@@ -15,5 +15,5 @@ git stash drop -q
 echo "$NEW" > "$ROOT/docs/PINNED_COMMIT"
 "$ROOT/scripts/regen-patches.sh"
 echo "pinned $NEW"
-"$ROOT/scripts/build.sh" p3
-"$ROOT/build-p3/bin/test-backend-ops" test -b CUDA0 -o MUL_MAT -p "nvfp4" | tail -3
+"$ROOT/scripts/build.sh" after
+"$ROOT/build/bin/test-backend-ops" test -b CUDA0 -o MUL_MAT -p "nvfp4" | tail -3

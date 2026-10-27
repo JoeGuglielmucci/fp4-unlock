@@ -1,0 +1,1 @@
+docker: 7874af96b0751c2e4ee15e7563720698f374be5621895974b2359b2d5da8da2d  args: unsloth/Qwen3.8-27B-NVFP4 --max-model-len 4096 --gpu-memory-utilization 0.95 --max-num-seqs 4 --speculative-config {"method":"dflash","model":"z-lab/Qwen3.8-27B-DFlash2","num_speculative_tokens":7}

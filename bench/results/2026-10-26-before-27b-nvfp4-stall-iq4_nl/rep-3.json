@@ -1,1 +1,0 @@
-{"tokens": 2001, "wall_s": 42.07826900482178, "timings": {"cache_n": 0, "prompt_n": 131, "prompt_ms": 158.308, "prompt_per_token_ms": 1.2084580152671756, "prompt_per_second": 827.500821184021, "predicted_n": 2000, "predicted_ms": 41905.69, "predicted_per_token_ms": 20.963326663331667, "predicted_per_second": 47.70235259221361}}

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# PRD 1.4: nsys capture of a fixed 200-token synthetic-drafter run (MTP head drafts n_max 8, random accept at mean
+# nsys capture of a fixed 200-token synthetic-drafter run (MTP head drafts n_max 8, random accept at mean
 # len L), one-shot via llama-cli -st so the process exits and nsys finalises. Then a kernel-time summary CSV.
-# Usage: scripts/profile.sh [before|after|dev|p3] [synth_len] [out_prefix]      needs nsys (cuda-nsight-systems-13-2)
+# Usage: scripts/profile.sh [before|after|invariant] [synth_len] [out_prefix]      needs nsys (cuda-nsight-systems-13-2)
 set -euo pipefail
-export PATH="/usr/local/cuda-13.2/bin:$PATH"
+CUDA_HOME="${CUDA_HOME:-$(ls -d /usr/local/cuda-13.* /usr/local/cuda 2>/dev/null | head -1)}"; export PATH="$CUDA_HOME/bin:$PATH"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 tree="${1:-after}"; len="${2:-8}"; out="${3:-$ROOT/bench/results/$(date +%F)-$tree-profile-synth$len}"
-case "$tree" in before) BIN="$ROOT/build-before/bin";; dev) BIN="$ROOT/build-dev/bin";; p3) BIN="$ROOT/build-p3/bin";; *) BIN="$ROOT/build/bin";; esac
-M="$HOME/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf"
+case "$tree" in before) BIN="$ROOT/build-before/bin";; invariant) BIN="$ROOT/build-invariant/bin";; *) BIN="$ROOT/build/bin";; esac
+M="${MODELS_DIR:-$HOME/models}/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf"
 CMD=("$BIN/llama-cli" -m "$M" -ngl 99 --fit off -c 8192 -fa on --temp 0 --top-k 1 --seed 7 -n 200 -st
      --spec-type draft-mtp --spec-draft-n-max 8 --spec-draft-backend-sampling --spec-synth-len "$len"
      -sys "$(cat "$ROOT/bench/prompts/system.txt")" -p "$(cat "$ROOT/bench/prompts/code-1.txt")")

@@ -1,8 +1,0 @@
-== KV f16: reference (spec off), two runs
-  code-1: identical (512 tokens)
-  code-2: identical (512 tokens)
-  code-3: identical (512 tokens)
-  prose-1: identical (512 tokens)
-  prose-2: identical (512 tokens)
-  prose-3: identical (512 tokens)
-  divergence rate 0/6 (none-f16-B vs none-f16-A)

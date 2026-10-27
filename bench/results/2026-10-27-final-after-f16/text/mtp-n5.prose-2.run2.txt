@@ -1,0 +1,17 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter only, no preamble. Need about 350 words. Need ensure placeholders only for names and dates. Could include [Company Name]? User says placeholders only for names and dates. So use [Name] for names, [Date] for dates. Maybe company name is a name? It says from a small software company to hardware vendor. Placeholders only for names and dates. We can use [Company Name], [Vendor Name], [Recipient Name], [Sender Name], [Date]. Are those names? Yes. Need no other placeholders. Need about 350 words. Let's draft around 350. Count words. Need formal letter.
+
+Draft:
+
+[Date]
+
+[Recipient Name]
+[Vendor Name]
+[Address?] Wait address is not name/date. User says placeholders only for names and dates. So avoid address placeholder. Could omit address. Formal letter can have date, recipient name, vendor name. Maybe no address.
+
+Dear [Recipient Name],
+
+I am writing on behalf of [Company Name], a small software company developing an open-source inference engine for machine-learning workloads. Our engine is designed to run large language models and other neural networks efficiently on consumer and workstation hardware, with a focus on transparent performance, reproducible results, and broad compatibility across GPU architectures.
+
+We are requesting early access to [Vendor Name]'s developer program for the new GPU. Access before launch would allow our team to evaluate the hardware, optimize our runtime and compiler paths, and identify integration issues while the product is still in a pre-release state. Because our engine is open source, early findings can be shared with the broader developer community in a structured way, helping users prepare for the new GPU and reducing post-launch support burden for both parties.
+
+Early access matters to us because inference performance is highly sensitive to driver behavior, memory allocation patterns, kernel scheduling, and low-level API support. Without pre-launch access, we would be forced to rely on public information and post-release testing, which would delay meaningful optimization and limit our ability to provide reliable guidance to users. We are particularly interested in

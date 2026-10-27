@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render one results directory (from bench.sh) into rows.md, the PRD Section 7 table for that tree x model."""
+"""Render one results directory (from bench.sh) into rows.md, the results table for that tree x model."""
 import csv, json, os, sys, statistics
 d = sys.argv[1]; L = []
 meta = dict(l.split("=", 1) for l in open(os.path.join(d, "meta.txt")) if "=" in l and not l.startswith("env")) if os.path.exists(os.path.join(d, "meta.txt")) else {}

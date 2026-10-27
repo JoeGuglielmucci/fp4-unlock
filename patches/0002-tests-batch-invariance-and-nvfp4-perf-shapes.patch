@@ -1,5 +1,5 @@
 diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
-index 011b74613..7336cce3a 100644
+index 011b74613..a88c125f8 100644
 --- a/tests/test-backend-ops.cpp
 +++ b/tests/test-backend-ops.cpp
 @@ -21,6 +21,7 @@
@@ -23,11 +23,11 @@ index 011b74613..7336cce3a 100644
      }
  };
  
-+// fp4-unlock (PRD 2.1 regression test, pattern from ggml-org/llama.cpp#28488 MMVQ_BATCH / FA_BATCH):
++// fp4-unlock (batch-invariance regression test, pattern from ggml-org/llama.cpp#28488 MMVQ_BATCH / FA_BATCH):
 +// batch invariance = column 0 of a MUL_MAT with ne11 = n (n = 2..n_max) must be bitwise equal to the ne11 = 1 result.
 +// Compares backend1 against itself (not against CPU); the CPU result is used as a harness sanity check only.
 +// Fails on stock CUDA for n >= 5 (MMVQ 4-to-2 warp switch) and n >= 9 (MMQ); passes with FP4_UNLOCK_INVARIANT=1
-+// (Phase 2 pins) or with the small-M kernel (FP4_UNLOCK_KERNEL=1) for NVFP4/MXFP4 n <= 8.
++// (invariant mode pins) or with the small-M kernel (FP4_UNLOCK_KERNEL=1) for NVFP4/MXFP4 n <= 8.
 +static bool fp4_unlock_batch_filter_matches(const std::string & op_name, const char * op_names_filter) {
 +    if (op_names_filter == nullptr) {
 +        return true;
@@ -121,7 +121,7 @@ index 011b74613..7336cce3a 100644
 +            }
 +        }
 +        // backend1 against itself: the question is whether this backend's ne11 = n result equals its own ne11 = 1 result.
-+        // (No CPU reference: the CPU backend is itself not invariant for k-quants at n = 8, see docs/FINDINGS.md.)
++        // (No CPU reference: the CPU backend is itself not invariant for k-quants at n = 8.)
 +        std::vector<float> c1, cn;
 +        bool ok = run_one(backend1, 1, c1);
 +        std::string detail = ok ? "" : "alloc/compute failed";
@@ -156,9 +156,9 @@ index 011b74613..7336cce3a 100644
  };
  
  // large Q values, so the online softmax has to rescale the partial results
-+// fp4-unlock (PRD 2.1): FLASH_ATTN_EXT batch invariance. Query batch 0 of an FA with nb = n (n = 2..n_max) must be bitwise
++// fp4-unlock: FLASH_ATTN_EXT batch invariance. Query batch 0 of an FA with nb = n (n = 2..n_max) must be bitwise
 +// the nb = 1 result for the same q row / mask row / K / V. Stock CUDA fails from nb = 3 (kernel family, tile and
-+// stream-k split depend on nb); FP4_UNLOCK_INVARIANT=1 pins them (docs/FINDINGS.md "chain5" / "chain7").
++// stream-k split depend on nb); FP4_UNLOCK_INVARIANT=1 pins them.
 +struct test_fa_batch : public test_case {
 +    const int64_t hsk, hsv, nh, kv, n_max;
 +    const std::array<int64_t, 2> nr23;
@@ -280,7 +280,7 @@ index 011b74613..7336cce3a 100644
      test_cases.emplace_back(new test_mul_mat_id_w4a4(GGML_TYPE_NVFP4, GGML_TYPE_F32, 4, 2, true,  64, 16, 256));
      test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_MXFP4, GGML_TYPE_F32, 32, 32, 256));
 +
-+    // fp4-unlock PRD 2.1: batch invariance of column 0 for ne11 = 1..8 (fails on stock CUDA from n = 5; see docs/FINDINGS.md "chain5")
++    // fp4-unlock: batch invariance of column 0 for ne11 = 1..8 (fails on stock CUDA from n = 5)
 +    for (ggml_type t : {GGML_TYPE_NVFP4, GGML_TYPE_MXFP4, GGML_TYPE_Q8_0, GGML_TYPE_Q4_0, GGML_TYPE_Q4_K, GGML_TYPE_Q5_K, GGML_TYPE_Q6_K}) {
 +        test_cases.emplace_back(new test_mul_mat_batch(t, 256, 1024, 8));
 +        test_cases.emplace_back(new test_mul_mat_batch(t, 512, 5120, 8));
@@ -299,7 +299,7 @@ index 011b74613..7336cce3a 100644
          test_cases.emplace_back(new test_mul_mat(type_a,    GGML_TYPE_F32, 16,  8, 16*256, { 1,  1}, {1, 1}));
      }
  
-+    // fp4-unlock Phase 3.1: NVFP4/MXFP4 at every decode / verify batch size M in [1, 8] at the Qwen3.8-27B FFN shapes
++    // fp4-unlock perf shapes: NVFP4/MXFP4 at every decode / verify batch size M in [1, 8] at the Qwen3.8-27B FFN shapes
 +    // (gate/up [5120 -> 17408] and down [17408 -> 5120], K reduced to one quarter to keep the CPU reference fast),
 +    // plus the explicit W4A8 / W4A4 MMQ variants, so a small-M kernel is tested on both precisions before it exists.
 +    for (ggml_type type_a : { GGML_TYPE_NVFP4, GGML_TYPE_MXFP4 }) {
@@ -310,7 +310,7 @@ index 011b74613..7336cce3a 100644
 +            test_cases.emplace_back(new test_mul_mat_w4a4(type_a, GGML_TYPE_F32, 512, n, 1280));
 +        }
 +    }
-+    // fp4-unlock Phase 3.3 edge cases for the small-M NVFP4 kernel: m not a multiple of 16 (row clamp on load, mask on
++    // fp4-unlock edge cases for the small-M NVFP4 kernel: m not a multiple of 16 (row clamp on load, mask on
 +    // store), k = 64 (single K block), 6160 / 32776 rows (the nwarps 8 / 4 tiers).
 +    for (int n : { 2, 3, 5, 7, 8 }) {
 +        test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_NVFP4, GGML_TYPE_F32, 40, n, 320));
@@ -336,7 +336,7 @@ index 011b74613..7336cce3a 100644
 +                test_cases.emplace_back(new test_mul_mat(ta, GGML_TYPE_F32,  5120, n, 17408, {1, 1}, {1, 1}));
 +            }
 +        }
-+        // fp4-unlock Phase 2: Qwen3.8-27B attention (D=256, 24 q heads / 4 kv heads) at decode and verify-step
++        // fp4-unlock perf shapes: Qwen3.8-27B attention (D=256, 24 q heads / 4 kv heads) at decode and verify-step
 +        // batch sizes, f16 and q8_0 KV, for the batch-invariant FA split cost measurement.
 +        for (ggml_type tkv : {GGML_TYPE_F16, GGML_TYPE_Q8_0}) {
 +            for (int64_t kv : {8192, 65536}) {

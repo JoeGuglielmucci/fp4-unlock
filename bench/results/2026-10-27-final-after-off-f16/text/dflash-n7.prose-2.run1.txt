@@ -1,0 +1,15 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter around 350 words. Need ensure placeholders only for names and dates. Maybe [Company Name], [Vendor Name], [New GPU], [Date], [Name], [Title], [Address], [Email], [Phone]? User says placeholders only for names and dates. That might mean only placeholders for names and dates, not other details? But letter needs company name, vendor name, GPU name? Could use generic? "our company" and "your new GPU" maybe avoid placeholders except names/dates. But formal letter needs sender name, recipient name, date. Could include [Your Name], [Vendor Contact Name], [Date]. Maybe company name? If placeholder only for names and dates, company name is a name? Could use [Company Name] as name placeholder. Hardware vendor name [Vendor Name]. GPU name maybe [GPU Name] is a name? It says placeholders only for names and dates, so [GPU Name] acceptable? It's a product name. But maybe avoid too many placeholders. Need about 350 words. Let's draft around 350. Count words. Need no preamble. Final only letter.
+
+Draft:
+
+[Date]
+
+[Vendor Contact Name]
+[Vendor Name]
+[Address]
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for deploying machine-learning models on high-performance hardware. Our engine is designed to provide a portable, low-level runtime for model execution, with particular focus on memory management, kernel scheduling, and efficient use of accelerator resources. We are preparing a public release that will support a range of GPU architectures, and we would like to request early access to your developer program for the new GPU.
+
+Early access before launch is important to us because our software stack must be validated against real silicon, not only against documentation or emulated environments. We need to understand the GPU’s memory hierarchy, instruction behavior, driver interfaces, and performance characteristics while we finalize our runtime and compiler paths. Access at this stage would allow us to identify compatibility issues early

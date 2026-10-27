@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The single table (PRD Section 7): rows 1-7 and 10 for one tree x one model.
-# Usage: bench/bench.sh <before|after> <model-key> [rows]      rows default "1,2,3,4,5,6,7"
+# The results table: rows 1-7 and 10 for one tree x one model.
+# Usage: bench/bench.sh <before|after|invariant> <model-key> [rows]      rows default "1,2,3,4,5,6,7"
 # Env:   DRY=1 (n_predict 16, 1 run, first prompt only, short scaling list)   KV=f16|q8_0 (default f16)
 #        CTX=8192   SPECS="none mtp-n3 mtp-n7 mtp-n8 dflash-n3 dflash-n7 synth4 synth8"   SLOTS="8 16"
 #        OUT=<dir> to override the results directory.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""vLLM column client (PRD 1.3). Streams /v1/completions so decode tok/s excludes prefill:
+"""vLLM comparison client. Streams /v1/chat/completions so decode tok/s excludes prefill:
 decode_tps = (completion_tokens - 1) / (t_last_token - t_first_token). Concurrency K sends K prompts at once;
 aggregate = sum(completion_tokens) / wall. Acceptance comes from /metrics deltas (spec_decode counters).
 Usage: vllm_client.py --url http://127.0.0.1:8000 --model NAME --label L --prompts ... [--system S] [--n-predict 512]
@@ -9,6 +9,7 @@ import argparse, csv, json, os, statistics, sys, threading, time, urllib.request
 from datetime import datetime
 
 def metrics(url):
+    time.sleep(2)  # Prometheus counters are updated by the engine's stat logger, not per request
     try:
         with urllib.request.urlopen(url + "/metrics", timeout=30) as r: txt = r.read().decode()
     except Exception: return {}
@@ -20,9 +21,14 @@ def metrics(url):
     return out
 
 def stream_completion(url, model, prompt, n, ignore_eos):
-    body = {"model": model, "prompt": prompt, "max_tokens": n, "temperature": 0, "seed": 7, "stream": True,
+    # prompt = (system, user). /v1/chat/completions applies the model's chat template server-side, the same thing
+    # server_rows.py does for llama.cpp via /apply-template. A raw /v1/completions prompt made the instruct model stop
+    # after one token (dry run 2026-10-27).
+    system, user = prompt
+    msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
+    body = {"model": model, "messages": msgs, "max_tokens": n, "temperature": 0, "seed": 7, "stream": True,
             "stream_options": {"include_usage": True}, "ignore_eos": ignore_eos}
-    req = urllib.request.Request(url + "/v1/completions", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url + "/v1/chat/completions", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
     t0 = time.perf_counter(); t_first = None; t_last = None; n_tok = None; text = []
     with urllib.request.urlopen(req, timeout=3600) as r:
         for raw in r:
@@ -33,8 +39,9 @@ def stream_completion(url, model, prompt, n, ignore_eos):
             d = json.loads(payload)
             if d.get("usage"): n_tok = d["usage"].get("completion_tokens")
             ch = d.get("choices") or []
-            if ch and ch[0].get("text"):
-                now = time.perf_counter(); text.append(ch[0]["text"])
+            piece = (ch[0].get("delta") or {}).get("content") if ch else None
+            if piece:
+                now = time.perf_counter(); text.append(piece)
                 if t_first is None: t_first = now
                 t_last = now
     wall = time.perf_counter() - t0
@@ -62,9 +69,7 @@ def main():
     ap.add_argument("--concurrency", type=int, default=0); ap.add_argument("--ignore-eos", action="store_true")
     a = ap.parse_args()
     system = open(a.system).read().strip() if a.system else ""
-    # vLLM's /v1/completions takes raw text; apply the chat template client-side via /tokenize is not available, so use
-    # the server's chat endpoint instead when a system prompt is given? Keep it simple and comparable: prompt = system + user.
-    prompts = [(os.path.splitext(os.path.basename(p))[0], (system + "\n\n" if system else "") + open(p).read()) for p in a.prompts]
+    prompts = [(os.path.splitext(os.path.basename(p))[0], (system, open(p).read())) for p in a.prompts]
     rows_new = not os.path.exists(a.rows); rw = csv.writer(open(a.rows, "a", newline=""))
     if rows_new: rw.writerow(["label", "prompt", "run", "completion_tokens", "ttft_s", "decode_tok_s", "wall_s"])
     m0 = metrics(a.url); t_start = None; agg = []; per = []

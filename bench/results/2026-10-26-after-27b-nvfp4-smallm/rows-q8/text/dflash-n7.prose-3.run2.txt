@@ -1,9 +1,0 @@
-We need to answer user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
-
-Need produce final about 400 words. Need no preamble. Need likely around 400 words. Let's draft. Need concrete analogy, worked example plausible numbers, finish engineers do about it.
-
-Need ensure high-school student. Maybe analogy: kitchen with fast chef but slow pantry delivery. GPU compute = chef, memory bandwidth = conveyor from pantry. If chef can chop 1000 onions/min but pantry only delivers 200 onions/min, chef waits.
-
-Worked example: GPU can do 100 trillion operations/sec, but each pixel needs 16 bytes from memory? Let's make plausible. Suppose rendering 1080p frame: 1920x1080 = 2,073,600 pixels. Each pixel maybe 8 bytes color + 8 bytes depth? 16 bytes. Frame data = 33 MB. At 60 fps = 2 GB/s. Modern GPU memory bandwidth maybe 500 GB/s, so not limited. Need example where limited: high-res 4K with many samples, textures. 4K 3840x2160=8.3M pixels. 16 bytes = 132 MB/frame. 120 fps = 15.8 GB/s. Still below 500. Need more plausible: textures and geometry. Maybe game needs 10 GB/s? Hmm.
-
-Need show compute vs memory. Use made-up numbers: GPU can do 100 trillion math ops/sec. A shader needs 10 ops per pixel. 4K 120 fps: 8.3M*120=1B pixels/sec *10=10T ops/sec, compute fine. But each pixel needs 100 bytes from memory (textures, depth, color). 1B*100=100 GB/s. If memory bandwidth only 50 GB/s, memory limits. But 50 GB/s is low for modern but plausible for older/mobile? Could say "imagine a modest

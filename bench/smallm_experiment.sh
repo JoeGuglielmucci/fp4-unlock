@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PRD 1.5: the one-line experiment. On the fork build, FP4_UNLOCK_SMALLM=1 routes NVFP4/MXFP4 mul_mat with 2 <= M <= 8
+# The one-line routing experiment that preceded the kernel. On the fork build, FP4_UNLOCK_SMALLM=1 routes NVFP4/MXFP4 mul_mat with 2 <= M <= 8
 # to MMQ (FP4 tensor-core MMA, J=8 tile) instead of MMVQ (int8 dp4a). Kernel-only (test-backend-ops perf on the 27B
 # shapes) under MMQ precision auto/q8/q4, then the speculative rows 4-6 end to end. Usage: bench/smallm_experiment.sh [rows]
 source "$(dirname "$0")/lib.sh"
@@ -29,6 +29,6 @@ PY
 if [[ "$rows" != "kernel" ]]; then
   echo "== end to end: rows $rows on the fork build, FP4_UNLOCK_SMALLM=1 GGML_CUDA_MMQ_PREC=q8 (lossless column, W4A8)"
   FP4_UNLOCK_SMALLM=1 GGML_CUDA_MMQ_PREC=q8 OUT="$OUT/rows-q8" "$HERE/bench.sh" after 27b-nvfp4 "$rows"
-  echo "== end to end with GGML_CUDA_MMQ_PREC=q4 (fast column, native W4A4 FP4 MMA, +43% KL in Phase 1.3)"
+  echo "== end to end with GGML_CUDA_MMQ_PREC=q4 (fast column, native W4A4 FP4 MMA, +43% KL)"
   FP4_UNLOCK_SMALLM=1 GGML_CUDA_MMQ_PREC=q4 OUT="$OUT/rows-q4" "$HERE/bench.sh" after 27b-nvfp4 "$rows"
 fi

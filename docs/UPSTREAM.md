@@ -1,25 +1,23 @@
 # Upstream status
 
-Pinned upstream commit: `docs/PINNED_COMMIT` (ggml-org/llama.cpp master 63b4b303, 2026-10-26).
-Patch series: `patches/` against that commit (see `patches/README.md`). No fork or submodule is needed;
-`scripts/fetch-llama.sh` clones upstream at the pin and applies the patches into a gitignored `third_party/`.
+Pinned upstream commit: `docs/PINNED_COMMIT` (ggml-org/llama.cpp master `63b4b303`, 2026-10-26). The patch series
+in `patches/` applies to that commit (see `patches/README.md`). No fork or submodule is needed:
+`scripts/fetch-llama.sh` clones upstream at the pin and applies the patches into a gitignored `third_party/`, and
+`scripts/sync-upstream.sh` moves the pin to current upstream master, re-applies the patches three-way, regenerates
+them, rebuilds the default tree and runs the NVFP4 tests (it does not commit).
 
-Policy (CONTRIBUTING.md / AGENTS.md, binding): every PR description, commit message, issue and review reply is
-written by the owner in their own words; AI-assisted code is disclosed in the PR template; the submitter understands
-every line; bug fixes carry a reproducible issue and a regression test; features are preceded by an issue to gauge
-interest. Nothing in this table is opened until the owner has done that.
+Nothing has been submitted upstream yet. llama.cpp's contribution policy applies to anything that is: an issue
+before a feature PR to gauge interest, a reproducible issue and a regression test with a bug fix, AI-assisted code
+disclosed in the PR template, and PR text written by the submitter.
 
-| PR | Topic | Files | Status |
-|---|---|---|---|
-| (not opened) | llama-model: skip NextN scale tensors when MTP is off (35B-A3B NVFP4-MTP fails to load without `--mtp`) | patches/0001 | ready; needs an issue with the repro (`llama-bench` on michaelw9999 HQ GGUF, pinned commit: "expected 1101, got 1079") |
-| (not opened) | tests: MUL_MAT_BATCH / FA_BATCH batch-invariance cases | patches/0002 | overlaps #28488 (Ankk98, open); coordinate there rather than duplicate |
-| (not opened) | CUDA: batch-invariant small-M NVFP4 GEMM on Blackwell tensor cores | patches/0004 (+0003 for the invariant mode) | design note `docs/DESIGN-draft.md`; numbers in README; open an issue first (maintainer asked #30788 why a new path instead of MMVQ fusion: the answer here is the FP4 MMA + batch invariance, see DESIGN-draft "Dispatch rule") |
+| patch | topic | status |
+|---|---|---|
+| 0001 | `llama-model`: skip the NextN (MTP head) scale tensors when MTP is off, so an MTP GGUF loads without `--mtp` | ready; needs an issue with the repro (`llama-bench` on the Qwen3.6-35B-A3B NVFP4-MTP GGUF at the pinned commit: "expected 1101, got 1079") |
+| 0002 | `tests`: `MUL_MAT_BATCH` / `FA_BATCH` batch-invariance cases, NVFP4 perf shapes | overlaps #28488 (open); coordinate there rather than duplicate |
+| 0003 | CUDA: invariant mode, flash-attention pins | not submitted; an alternative quantized-FA stabilization patch that changes the kernel family instead of pinning the tile was measured here and halves batch-1 decode at 64K context with q8_0 KV, so the tile pin was kept |
+| 0004 | CUDA: small-M NVFP4 GEMM on the Blackwell FP4 tensor cores, dispatch from MMVQ | open an issue first; a maintainer asked on #30788 why a new path instead of MMVQ fusion, and the answer is the FP4 MMA plus a batch-invariant reduction order (`docs/DESIGN.md`) |
 
-Related upstream work tracked: #25618 (batch invariance, the user-facing symptom), #27329 (Qwen3.8 decode stall; not
-reproduced here, `bench/stall_repro.sh`), #28488 / #28489 (invariance tests, Vulkan MMVQ selection), #30788
-(lane-packed small-K NVFP4 MMVQ), #26048 (NVFP4 MMQ epilogue scale fusion), #27173 (spec draft perf), #26704 (SM120
-CUTLASS MoE, stalled), #31188 (MoE gate/up + GLU fusion in MMQ), Apoze 6263445 (quantized-FA stabilization; measured
-in `bench/results/2026-10-26-apoze-*`, -50 % on the n7 rows, not adopted).
-
-Sync procedure: `scripts/sync-upstream.sh` (moves the pin to upstream master, re-applies the patches 3-way,
-regenerates patches/, rebuilds p3, runs the NVFP4 tests; does not commit).
+Related upstream work: #25618 (batch invariance, the user-facing symptom), #27329 (Qwen3.8 decode stall; not
+reproduced on this card, `bench/stall_repro.sh`), #28488 / #28489 (invariance tests, Vulkan MMVQ selection), #30788
+(lane-packed small-K NVFP4 MMVQ), #26048 (NVFP4 MMQ epilogue scale fusion), #27173 (speculative draft performance),
+#26704 (SM120 CUTLASS MoE, stalled), #31188 (MoE gate/up + GLU fusion in MMQ).

@@ -1,0 +1,73 @@
+results -> bench/results/2026-10-27-ab-p3-2-f16
+date=2026-10-27T11:05:40-04:00
+tree=p3
+llama_cpp_commit=63b4b303b
+fork_branch=HEAD
+fork_describe=v0.7.0-241-g63b4b303b-dirty
+repo_commit=99e35f4
+driver=595.99.02
+gpu=NVIDIA GeForce RTX 5090
+cuda=release 13.2
+clocks_sm_mhz=2767 clocks_mem_mhz=13801 max_sm_mhz=3090 power_limit_w=575.00 temp_c=69
+clocks_locked=no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes
+model=27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
+model_sha256=15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007
+env GGML_CUDA_MMQ_PREC= LLAMA_SPEC_CHAIN= GGML_CUDA_GRAPH_OPT= FP4_UNLOCK_SMALLM=
+kv=f16
+ctx=8192
+n_predict=512
+runs=3
+dry=0
+rows=4,5
+dflash2_sha256=1a25c56858e1ebe93f2718ac1d49d1151f9323325c1bbfd6209370f4db131ebd
+cmdline=bench/bench.sh p3 27b-nvfp4 4,5
+gpu temp at start: 58 C
+[mtp-n7] code-1: median 109.72 tok/s over 3 runs, acc 970/3905
+[mtp-n7] code-2: median 136.97 tok/s over 3 runs, acc 2051/7060
+[mtp-n7] code-3: median 160.85 tok/s over 3 runs, acc 3202/9707
+[mtp-n7] prose-1: median 121.23 tok/s over 3 runs, acc 4225/13247
+[mtp-n7] prose-2: median 121.47 tok/s over 3 runs, acc 5250/16794
+[mtp-n7] prose-3: median 131.83 tok/s over 3 runs, acc 6317/20050
+[mtp-n7] SUMMARY tok/s=126.65 acc=6317/20050 mean_len=3.29 power=465W
+gpu temp at start: 57 C
+[dflash-n7] code-1: median 152.22 tok/s over 3 runs, acc 1035/3441
+[dflash-n7] code-2: median 194.71 tok/s over 3 runs, acc 2181/6141
+[dflash-n7] code-3: median 221.35 tok/s over 3 runs, acc 3375/8487
+[dflash-n7] prose-1: median 162.12 tok/s over 3 runs, acc 4440/11736
+[dflash-n7] prose-2: median 165.09 tok/s over 3 runs, acc 5514/14928
+[dflash-n7] prose-3: median 172.80 tok/s over 3 runs, acc 6609/17988
+[dflash-n7] SUMMARY tok/s=168.94 acc=6609/17988 mean_len=3.50 power=443W
+# 2026-10-27-ab-p3-2-f16
+
+| key | value |
+|---|---|
+| date | 2026-10-27T11:05:40-04:00 |
+| tree | p3 |
+| llama_cpp_commit | 63b4b303b |
+| fork_describe | v0.7.0-241-g63b4b303b-dirty |
+| driver | 595.99.02 |
+| cuda | release 13.2 |
+| gpu | NVIDIA GeForce RTX 5090 |
+| clocks_sm_mhz | 2767 clocks_mem_mhz=13801 max_sm_mhz=3090 power_limit_w=575.00 temp_c=69 |
+| clocks_locked | no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes |
+| model | 27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
+| model_sha256 | 15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007 |
+| kv | f16 |
+| ctx | 8192 |
+| n_predict | 512 |
+| runs | 3 |
+
+## Rows 4-7, 10: llama-server (greedy, cache_prompt off, median of 3 timed runs after 1 warm-up)
+
+| config | slots | n_predict | tok/s | acceptance | mean accepted len | avg power W |
+|---|---|---|---|---|---|---|
+| mtp-n7 | 0 | 512 | 126.65 | 0.3151 | 3.293 | 464.6 |
+| dflash-n7 | 0 | 512 | 168.94 | 0.3674 | 3.500 | 442.9 |
+
+### Per-prompt median tok/s
+
+| config | code-1 | code-2 | code-3 | prose-1 | prose-2 | prose-3 |
+|---|---|---|---|---|---|---|
+| mtp-n7 | 109.7 | 137.0 | 160.8 | 121.2 | 121.5 | 131.8 |
+| dflash-n7 | 152.2 | 194.7 | 221.3 | 162.1 | 165.1 | 172.8 |
+rendered bench/results/2026-10-27-ab-p3-2-f16/rows.md

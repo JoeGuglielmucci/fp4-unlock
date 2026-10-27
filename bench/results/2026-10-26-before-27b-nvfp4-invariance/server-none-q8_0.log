@@ -1,8 +1,8 @@
-cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-server -m /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -c 8192 -fa on -ctk q8_0 -ctv q8_0 --temp 0 --top-k 1 --seed 7
+cmd: ./build-before/bin/llama-server -m ~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -c 8192 -fa on -ctk q8_0 -ctv q8_0 --temp 0 --top-k 1 --seed 7
 0.00.054.489 I srv  llama_server: initializing ...
 0.00.054.501 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
 0.00.054.730 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
-0.00.056.820 I srv    load_model: loading model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.00.056.820 I srv    load_model: loading model '~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
 0.00.236.836 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
 0.00.236.841 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
 0.00.236.844 W model has unused tensor blk.64.attn_q.weight (size = 35389440 bytes) -- ignoring

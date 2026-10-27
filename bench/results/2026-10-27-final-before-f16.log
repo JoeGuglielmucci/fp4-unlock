@@ -1,0 +1,123 @@
+results -> bench/results/2026-10-27-final-before-f16
+date=2026-10-27T11:21:09-04:00
+tree=before
+llama_cpp_commit=63b4b303b
+fork_branch=HEAD
+fork_describe=v0.7.0-241-g63b4b303b-dirty
+repo_commit=99e35f4
+driver=595.99.02
+gpu=NVIDIA GeForce RTX 5090
+cuda=release 13.2
+clocks_sm_mhz=2482 clocks_mem_mhz=13801 max_sm_mhz=3090 power_limit_w=575.00 temp_c=39
+clocks_locked=no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes
+model=27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf
+model_sha256=15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007
+env GGML_CUDA_MMQ_PREC= LLAMA_SPEC_CHAIN= GGML_CUDA_GRAPH_OPT= FP4_UNLOCK_SMALLM=
+kv=f16
+ctx=8192
+n_predict=512
+runs=3
+dry=0
+rows=4,5
+dflash2_sha256=1a25c56858e1ebe93f2718ac1d49d1151f9323325c1bbfd6209370f4db131ebd
+cmdline=bench/bench.sh before 27b-nvfp4 4,5
+gpu temp at start: 39 C
+[none] code-1: median 82.18 tok/s over 3 runs, acc 0/0
+[none] code-2: median 82.14 tok/s over 3 runs, acc 0/0
+[none] code-3: median 82.07 tok/s over 3 runs, acc 0/0
+[none] prose-1: median 82.12 tok/s over 3 runs, acc 0/0
+[none] prose-2: median 82.07 tok/s over 3 runs, acc 0/0
+[none] prose-3: median 82.08 tok/s over 3 runs, acc 0/0
+[none] SUMMARY tok/s=82.10 acc=0/0 mean_len=nan power=519W
+gpu temp at start: 57 C
+[mtp-n3] code-1: median 138.48 tok/s over 3 runs, acc 902/1884
+[mtp-n3] code-2: median 169.89 tok/s over 3 runs, acc 1923/3411
+[mtp-n3] code-3: median 182.61 tok/s over 3 runs, acc 2982/4833
+[mtp-n3] prose-1: median 144.87 tok/s over 3 runs, acc 3911/6642
+[mtp-n3] prose-2: median 152.31 tok/s over 3 runs, acc 4871/8355
+[mtp-n3] prose-3: median 145.28 tok/s over 3 runs, acc 5810/10128
+[mtp-n3] SUMMARY tok/s=148.79 acc=5810/10128 mean_len=2.59 power=544W
+gpu temp at start: 58 C
+[mtp-n5] code-1: median 132.02 tok/s over 3 runs, acc 996/2682
+[mtp-n5] code-2: median 158.56 tok/s over 3 runs, acc 2079/4902
+[mtp-n5] code-3: median 181.90 tok/s over 3 runs, acc 3221/6824
+[mtp-n5] prose-1: median 128.50 tok/s over 3 runs, acc 4199/9587
+[mtp-n5] prose-2: median 131.69 tok/s over 3 runs, acc 5193/12252
+[mtp-n5] prose-3: median 143.91 tok/s over 3 runs, acc 6235/14692
+[mtp-n5] SUMMARY tok/s=137.96 acc=6235/14692 mean_len=3.12 power=549W
+gpu temp at start: 59 C
+[mtp-n7] code-1: median 116.39 tok/s over 3 runs, acc 1020/3570
+[mtp-n7] code-2: median 143.21 tok/s over 3 runs, acc 2133/6474
+[mtp-n7] code-3: median 169.66 tok/s over 3 runs, acc 3315/8883
+[mtp-n7] prose-1: median 114.21 tok/s over 3 runs, acc 4325/12514
+[mtp-n7] prose-2: median 123.27 tok/s over 3 runs, acc 5370/15897
+[mtp-n7] prose-3: median 120.37 tok/s over 3 runs, acc 6404/19342
+[mtp-n7] SUMMARY tok/s=121.82 acc=6404/19342 mean_len=3.07 power=529W
+gpu temp at start: 57 C
+[dflash-n3] code-1: median 161.71 tok/s over 3 runs, acc 957/1725
+[dflash-n3] code-2: median 188.52 tok/s over 3 runs, acc 1998/3198
+[dflash-n3] code-3: median 193.58 tok/s over 3 runs, acc 3054/4614
+[dflash-n3] prose-1: median 160.51 tok/s over 3 runs, acc 4011/6336
+[dflash-n3] prose-2: median 170.32 tok/s over 3 runs, acc 5004/7950
+[dflash-n3] prose-3: median 160.13 tok/s over 3 runs, acc 5958/9684
+[dflash-n3] SUMMARY tok/s=166.02 acc=5958/9684 mean_len=2.65 power=542W
+gpu temp at start: 59 C
+[dflash-n5] code-1: median 174.58 tok/s over 3 runs, acc 1059/2352
+[dflash-n5] code-2: median 203.52 tok/s over 3 runs, acc 2187/4365
+[dflash-n5] code-3: median 225.08 tok/s over 3 runs, acc 3357/6147
+[dflash-n5] prose-1: median 160.09 tok/s over 3 runs, acc 4377/8700
+[dflash-n5] prose-2: median 164.26 tok/s over 3 runs, acc 5412/11160
+[dflash-n5] prose-3: median 174.45 tok/s over 3 runs, acc 6477/13482
+[dflash-n5] SUMMARY tok/s=174.52 acc=6477/13482 mean_len=3.28 power=538W
+gpu temp at start: 59 C
+[dflash-n7] code-1: median 148.99 tok/s over 3 runs, acc 1035/3450
+[dflash-n7] code-2: median 199.45 tok/s over 3 runs, acc 2199/6018
+[dflash-n7] code-3: median 226.00 tok/s over 3 runs, acc 3408/8241
+[dflash-n7] prose-1: median 157.30 tok/s over 3 runs, acc 4473/11517
+[dflash-n7] prose-2: median 166.67 tok/s over 3 runs, acc 5559/14613
+[dflash-n7] prose-3: median 160.29 tok/s over 3 runs, acc 6627/17826
+[dflash-n7] SUMMARY tok/s=163.48 acc=6627/17826 mean_len=3.30 power=505W
+# 2026-10-27-final-before-f16
+
+| key | value |
+|---|---|
+| date | 2026-10-27T11:21:09-04:00 |
+| tree | before |
+| llama_cpp_commit | 63b4b303b |
+| fork_describe | v0.7.0-241-g63b4b303b-dirty |
+| driver | 595.99.02 |
+| cuda | release 13.2 |
+| gpu | NVIDIA GeForce RTX 5090 |
+| clocks_sm_mhz | 2482 clocks_mem_mhz=13801 max_sm_mhz=3090 power_limit_w=575.00 temp_c=39 |
+| clocks_locked | no   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes |
+| model | 27b-nvfp4 path=~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf |
+| model_sha256 | 15b6bb8d0eb15cb6b081c562f8daea86330ec64174cb0f9e1655f3d467484007 |
+| kv | f16 |
+| ctx | 8192 |
+| n_predict | 512 |
+| runs | 3 |
+
+## Rows 4-7, 10: llama-server (greedy, cache_prompt off, median of 3 timed runs after 1 warm-up)
+
+| config | slots | n_predict | tok/s | acceptance | mean accepted len | avg power W |
+|---|---|---|---|---|---|---|
+| none | 0 | 512 | 82.10 | 0.0000 | nan | 518.8 |
+| mtp-n3 | 0 | 512 | 148.79 | 0.5737 | 2.590 | 543.6 |
+| mtp-n5 | 0 | 512 | 137.96 | 0.4244 | 3.123 | 548.5 |
+| mtp-n7 | 0 | 512 | 121.82 | 0.3311 | 3.073 | 529.0 |
+| dflash-n3 | 0 | 512 | 166.02 | 0.6152 | 2.650 | 541.9 |
+| dflash-n5 | 0 | 512 | 174.52 | 0.4804 | 3.280 | 538.2 |
+| dflash-n7 | 0 | 512 | 163.48 | 0.3718 | 3.300 | 505.5 |
+
+### Per-prompt median tok/s
+
+| config | code-1 | code-2 | code-3 | prose-1 | prose-2 | prose-3 |
+|---|---|---|---|---|---|---|
+| none | 82.2 | 82.1 | 82.1 | 82.1 | 82.1 | 82.1 |
+| mtp-n3 | 138.5 | 169.9 | 182.6 | 144.9 | 152.3 | 145.3 |
+| mtp-n5 | 132.0 | 158.6 | 181.9 | 128.5 | 131.7 | 143.9 |
+| mtp-n7 | 116.4 | 143.2 | 169.7 | 114.2 | 123.3 | 120.4 |
+| dflash-n3 | 161.7 | 188.5 | 193.6 | 160.5 | 170.3 | 160.1 |
+| dflash-n5 | 174.6 | 203.5 | 225.1 | 160.1 | 164.3 | 174.4 |
+| dflash-n7 | 149.0 | 199.4 | 226.0 | 157.3 | 166.7 | 160.3 |
+rendered bench/results/2026-10-27-final-before-f16/rows.md

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Row 8: speculative decoding must not change greedy output. For each KV type: generate the spec-off reference
 # twice (run-to-run control), then each drafter x n_max once, and diff tokens against the reference.
-# Usage: bench/invariance.sh <before|after> <model-key>
+# Usage: bench/invariance.sh <before|after|invariant> <model-key>
 # Env: KVS="f16 q8_0"  DRAFTERS="mtp-n3 mtp-n7 dflash-n3 dflash-n7"  CTX=8192  NPRED=512  OUT=<dir>  DRY=1
 source "$(dirname "$0")/lib.sh"
 tree="${1:?tree}"; mk="${2:?model key}"

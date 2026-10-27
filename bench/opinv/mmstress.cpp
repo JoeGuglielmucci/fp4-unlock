@@ -1,9 +1,9 @@
-// mmstress: stress probe for the Phase 3 small-M NVFP4 kernel. For a MUL_MAT NVFP4 [K, R] x [K, n] it
+// mmstress: stress probe for the small-M NVFP4 kernel. For a MUL_MAT NVFP4 [K, R] x [K, n] it
 //  (1) recomputes the same graph REPEAT times (a large scratch op between runs dirties registers / shared memory)
 //      and reports every run whose output is not bitwise identical to run 0 (race or uninitialised read), and
 //  (2) over SEEDS random inputs compares the CUDA result with the CPU backend (NMSE) and reports outliers
 //      (data-dependent bug).
-// Build: bench/opinv/build.sh p3 mmstress     Run: build-p3/bin/mmstress [--k 256] [--r 32] [--n 8] [--repeat 500] [--seeds 50]
+// Build: bench/opinv/build.sh after mmstress     Run: build/bin/mmstress [--k 256] [--r 32] [--n 8] [--repeat 500] [--seeds 50]
 #include "ggml.h"
 #include "ggml-alloc.h"
 #include "ggml-backend.h"

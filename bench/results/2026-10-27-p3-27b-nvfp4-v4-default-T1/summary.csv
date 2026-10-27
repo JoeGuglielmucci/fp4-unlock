@@ -1,5 +1,0 @@
-label,concurrency,n_predict,runs,tok_s_median,acc_rate,mean_len,power_w,timed_s
-none,0,512,3,81.97,0.0000,nan,532.5,118.3
-mtp-n3,0,512,3,152.05,0.6001,2.810,476.5,64.2
-dflash-n7,0,512,3,186.93,0.4042,3.340,437.1,52.5
-synth8,0,512,3,282.77,0.8593,7.860,417.0,37.2

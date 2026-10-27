@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PRD 1.3: the vLLM column. vllm/vllm-openai:v0.31.0 serving unsloth/Qwen3.8-27B-NVFP4 (NVFP4 safetensors; a different
+# vLLM comparison (context only, see README). vllm/vllm-openai:v0.31.0 serving unsloth/Qwen3.8-27B-NVFP4 (NVFP4 safetensors; a different
 # quantization recipe from cdiamond's iMatrix GGUF, footnoted in the table). JIT caches are mounted so the first request
 # is not a FlashInfer build; one warm-up per config anyway.
 # Usage: bench/vllm_compare.sh [configs]   configs default "none mtp dflash"; env DRY=1, SLOTS="8 16", OUT=<dir>
@@ -21,9 +21,9 @@ vstart() { # $1 = label, rest = extra vllm args
   CID=$(docker run -d --gpus all --ipc=host -p "127.0.0.1:$VPORT:8000" \
       -v "$HOME/.cache/huggingface:/root/.cache/huggingface" -v "$HOME/.cache/vllm:/root/.cache/vllm" -v "$HOME/.cache/flashinfer:/root/.cache/flashinfer" \
       -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-      "$IMAGE" --model "$VMODEL" --max-model-len "${VCTX:-8192}" --gpu-memory-utilization "${VUTIL:-0.90}" --max-num-seqs "${VSEQS:-16}" \
-      --max-num-batched-tokens 2048 --seed 7 --disable-log-requests "$@")
-  echo "docker: $CID  args: --model $VMODEL --max-model-len ${VCTX:-8192} --gpu-memory-utilization ${VUTIL:-0.90} --max-num-seqs ${VSEQS:-16} $*" > "$OUT/vllm-$label.log"
+      "$IMAGE" "$VMODEL" --max-model-len "${VCTX:-8192}" --gpu-memory-utilization "${VUTIL:-0.90}" --max-num-seqs "${VSEQS:-16}" \
+      --max-num-batched-tokens 2048 --seed 7 "$@")
+  echo "docker: $CID  args: $VMODEL --max-model-len ${VCTX:-8192} --gpu-memory-utilization ${VUTIL:-0.90} --max-num-seqs ${VSEQS:-16} $*" > "$OUT/vllm-$label.log"
   local i; for i in $(seq 1 1200); do
     curl -sf "http://127.0.0.1:$VPORT/health" >/dev/null 2>&1 && return 0
     docker ps -q --no-trunc | grep -q "$CID" || { echo "vllm container exited; log:"; docker logs "$CID" 2>&1 | tail -40; docker logs "$CID" > "$OUT/vllm-$label-crash.log" 2>&1; docker rm "$CID" >/dev/null 2>&1; CID=""; return 1; }

@@ -1,9 +1,0 @@
-We need answer user's request: explain to curious high-school student, about 400 words, why GPU limited by memory bandwidth rather than compute. Use one concrete analogy, simple worked example with made-up plausible numbers, finish by explaining what engineers do about it. Need likely around 400 words. Need no preamble? User asks explain. We can just provide explanation. Need ensure about 400 words. Let's draft ~400 words. Need concrete analogy: kitchen? GPU as many chefs, memory bandwidth as hallway/pantry. Compute fast but ingredients slow. Worked example: GPU can do 100 trillion operations/sec, each pixel needs 10 operations, so 10 trillion pixels/sec compute. But memory bandwidth 500 GB/s, each pixel needs 100 bytes from memory, so 5 billion pixels/sec memory. Thus memory limits. Need plausible numbers: modern GPU maybe 30 TFLOPS? Let's make simple: 100 TFLOPS, 500 GB/s. 10 ops/pixel, 100 bytes/pixel. Compute: 100e12 ops/s /10 =10e12 pixels/s. Memory: 500e9 bytes/s /100 =5e9 pixels/s. So memory 2000x slower. But maybe 100 bytes per pixel plausible? For high-res textures, yes. Need explain engineers: cache, compression, tiling, local memory, reduce data movement, better memory hierarchy, HBM, GDDR, compute more per byte, etc. Need high-school tone. About 400 words. Let's count. Draft:
-
-"Imagine a huge kitchen with 10,000 chefs..." Need one analogy. Let's write.
-
-Word count target 400. Let's draft and count.
-
-Imagine a huge kitchen with 10,000 chefs. Each chef can chop, stir, and plate dishes incredibly fast. But all the ingredients are in a pantry across the room, and only one narrow hallway connects the pantry to the kitchen. If the chefs are faster than the hallway can deliver ingredients, the kitchen’s output is limited by the hallway, not by the chefs. That hallway is memory bandwidth.
-
-A graphics card has thousands of tiny processors that can do math very quickly. But to draw a picture, they need data: colors, textures

@@ -1,3 +1,0 @@
-tree,model,path,batch,env,Mean    KLD,Median  KLD,99.9%   KLD,99.0%   KLD,Maximum KLD,Mean ln(PPL(Q)/PPL(base)),Same top p
-after,27b-nvfp4,smallm,-b 8 -ub 8,FP4_UNLOCK_SMALLM=1 GGML_CUDA_MMQ_PREC=q8,0.043883,0.002224,2.674627,0.737916,9.161402,0.035456,95.173
-after,27b-nvfp4,smallm-q4,-b 8 -ub 8,FP4_UNLOCK_SMALLM=1 GGML_CUDA_MMQ_PREC=q4,0.061691,0.002868,6.074470,1.086264,9.699873,0.043830,94.389

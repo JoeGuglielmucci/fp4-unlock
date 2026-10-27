@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
-# Shared helpers for the fp4-unlock benchmark harness (PRD Section 7). Source this file; do not run it.
-# Conventions: tree = before|after (build-before/ or build/), model keys below, results under bench/results/.
+# Shared helpers for the fp4-unlock benchmark harness. Source this file; do not run it.
+# Conventions: tree = before|after|invariant (build-before/, build/, build-invariant/), model keys below, results under bench/results/.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # bench/ directory (scripts)
 ROOT="${FP4_ROOT:-$(cd "$HERE/.." && pwd)}"             # repo root (builds, prompts, results); FP4_ROOT overrides
 export PATH="/usr/local/cuda-13.2/bin:$PATH"
 PY="$ROOT/.venv/bin/python"; [[ -x "$PY" ]] || PY=python3
 
-# ---- models (PRD 7.4) -------------------------------------------------------------------------
+# ---- models (MODELS_DIR, default ~/models; see scripts/fetch-models.sh) -------------------------------------------------------------------------
 declare -A MODEL=(
-  [27b-nvfp4]="$HOME/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf"
-  [27b-q8]="$HOME/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf"
-  [35b-a3b-nvfp4]="$HOME/models/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf"
-  [gptoss-mxfp4]="$HOME/models/gpt-oss-20b-MXFP4.gguf"
+  [27b-nvfp4]="${MODELS_DIR:-$HOME/models}/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf"
+  [27b-q8]="${MODELS_DIR:-$HOME/models}/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf"
+  [35b-a3b-nvfp4]="${MODELS_DIR:-$HOME/models}/michaelw9999--Qwen3.6-35B-A3B-NVFP4-MTP-GGUF/Qwen3.6-35B-A3B-NVFP4-MTP-HQ.gguf"
+  [gptoss-mxfp4]="${MODELS_DIR:-$HOME/models}/gpt-oss-20b-MXFP4.gguf"
 )
-DRAFT_DFLASH2="$HOME/models/z-lab--Qwen3.8-27B-DFlash2-GGUF/Qwen3.8-27B-DFlash2-Q4_K_M.gguf"
-MTP_HEAD_UNSLOTH="$HOME/models/unsloth--Qwen3.8-27B-GGUF/MTP/mtp-Qwen3.8-27B-Q4_0.gguf"
+DRAFT_DFLASH2="${MODELS_DIR:-$HOME/models}/z-lab--Qwen3.8-27B-DFlash2-GGUF/Qwen3.8-27B-DFlash2-Q4_K_M.gguf"
+MTP_HEAD_UNSLOTH="${MODELS_DIR:-$HOME/models}/unsloth--Qwen3.8-27B-GGUF/MTP/mtp-Qwen3.8-27B-Q4_0.gguf"
 
 model_path() { local p="${MODEL[$1]:-}"; [[ -n "$p" ]] || { echo "unknown model key: $1 (keys: ${!MODEL[*]})" >&2; exit 2; }; echo "$p"; }
-tree_bin()   { case "$1" in before) echo "$ROOT/build-before/bin";; after) echo "$ROOT/build/bin";; apoze) echo "$ROOT/build-apoze/bin";; dev) echo "$ROOT/build-dev/bin";; p3) echo "$ROOT/build-p3/bin";; cpu) echo "$ROOT/build-cpu/bin";; *) echo "unknown tree: $1" >&2; exit 2;; esac; }
-tree_src()   { case "$1" in before) echo "$ROOT/third_party/llama.cpp-before";; apoze) echo "$ROOT/third_party/llama.cpp-apoze";; *) echo "$ROOT/third_party/llama.cpp";; esac; }
+tree_bin()   { case "$1" in before) echo "$ROOT/build-before/bin";; after) echo "$ROOT/build/bin";; invariant) echo "$ROOT/build-invariant/bin";; cpu) echo "$ROOT/build-cpu/bin";; *) echo "unknown tree: $1" >&2; exit 2;; esac; }
+tree_src()   { case "$1" in before) echo "$ROOT/third_party/llama.cpp-before";; *) echo "$ROOT/third_party/llama.cpp";; esac; }
 tree_commit(){ git -C "$(tree_src "$1")" rev-parse --short=9 HEAD; }
 
-# ---- hygiene (PRD 7.1) -------------------------------------------------------------------------
+# ---- hygiene -------------------------------------------------------------------------
 gpu_query() { nvidia-smi --query-gpu="$1" --format=csv,noheader,nounits | head -1; }
 gpu_cool() { # wait until the GPU is below $1 C (default 60), at most $2 s (default 300)
   local max="${1:-60}" limit="${2:-300}" t0=$SECONDS t
@@ -66,15 +66,15 @@ sha256_cached() { # cache keyed on path+size+mtime so 17-29 GB files hash once
 write_meta() { # $1 = out dir, $2 = tree, $3 = model key, rest = extra "k=v" lines
   local dir="$1" tree="$2" mk="$3"; shift 3; mkdir -p "$dir"
   {
-    echo "date=$(date -Is)"; echo "host=$(hostname)"; echo "tree=$tree"; echo "llama_cpp_commit=$(tree_commit "$tree")"
+    echo "date=$(date -Is)"; echo "tree=$tree"; echo "llama_cpp_commit=$(tree_commit "$tree")"
     echo "fork_branch=$(git -C "$ROOT/third_party/llama.cpp" rev-parse --abbrev-ref HEAD 2>/dev/null || echo n/a)"
     echo "fork_describe=$(git -C "$ROOT/third_party/llama.cpp" describe --always --dirty 2>/dev/null || echo n/a)"
     echo "repo_commit=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo uncommitted)"
     echo "driver=$(gpu_query driver_version)"; echo "gpu=$(gpu_query name)"
     echo "cuda=$(nvcc --version 2>/dev/null | grep -o 'release [0-9.]*' | head -1)"
     echo "clocks_sm_mhz=$(gpu_query clocks.sm) clocks_mem_mhz=$(gpu_query clocks.mem) max_sm_mhz=$(gpu_query clocks.max.sm) power_limit_w=$(gpu_query power.limit) temp_c=$(gpu_query temperature.gpu)"
-    echo "clocks_locked=${CLOCKS_LOCKED:-no}   # owner runs: sudo nvidia-smi -lgc 3090,3090 -lmc 14001; set CLOCKS_LOCKED=yes"
-    echo "model=$mk path=$(model_path "$mk")"; echo "model_sha256=$(sha256_cached "$(model_path "$mk")")"
+    echo "clocks_locked=${CLOCKS_LOCKED:-no}   # to lock: sudo nvidia-smi -lgc 3090,3090 -lmc 14001, then set CLOCKS_LOCKED=yes"
+    p="$(model_path "$mk")"; echo "model=$mk path=${p/#$HOME/\~}"; echo "model_sha256=$(sha256_cached "$(model_path "$mk")")"
     echo "env GGML_CUDA_MMQ_PREC=${GGML_CUDA_MMQ_PREC:-} LLAMA_SPEC_CHAIN=${LLAMA_SPEC_CHAIN:-} GGML_CUDA_GRAPH_OPT=${GGML_CUDA_GRAPH_OPT:-} FP4_UNLOCK_SMALLM=${FP4_UNLOCK_SMALLM:-}"
     for kv in "$@"; do echo "$kv"; done
   } > "$dir/meta.txt"
@@ -111,7 +111,7 @@ server_stop() {
 }
 trap 'server_stop' EXIT
 
-# Common target flags (PRD 7.1): greedy, fit off, FA on, explicit context, explicit KV type.
+# Common target flags: greedy, fit off, FA on, explicit context, explicit KV type.
 target_args() { # $1 = model key, $2 = ctx, $3 = kv type
   echo -m "$(model_path "$1")" -ngl "${NGL:-99}" --fit off -c "$2" -fa on -ctk "$3" -ctv "$3" --temp 0 --top-k 1 --seed 7
 }

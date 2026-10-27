@@ -1,0 +1,174 @@
+== KV f16: reference (spec off), two runs
+  gen code-1: 512 tokens, 70.4 tok/s, acc 0/0
+  gen code-2: 512 tokens, 70.5 tok/s, acc 0/0
+  gen code-3: 512 tokens, 70.4 tok/s, acc 0/0
+  gen prose-1: 512 tokens, 70.5 tok/s, acc 0/0
+  gen prose-2: 512 tokens, 70.4 tok/s, acc 0/0
+  gen prose-3: 512 tokens, 70.5 tok/s, acc 0/0
+  gen code-1: 512 tokens, 70.4 tok/s, acc 0/0
+  gen code-2: 512 tokens, 70.4 tok/s, acc 0/0
+  gen code-3: 512 tokens, 70.4 tok/s, acc 0/0
+  gen prose-1: 512 tokens, 70.4 tok/s, acc 0/0
+  gen prose-2: 512 tokens, 70.4 tok/s, acc 0/0
+  gen prose-3: 512 tokens, 70.4 tok/s, acc 0/0
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (none-f16-B vs none-f16-A)
+== KV f16: mtp-n3 vs spec off
+  gen code-1: 512 tokens, 121.9 tok/s, acc 305/615
+  gen code-2: 512 tokens, 138.4 tok/s, acc 332/532
+  gen code-3: 512 tokens, 151.7 tok/s, acc 350/481
+  gen prose-1: 512 tokens, 127.7 tok/s, acc 315/586
+  gen prose-2: 512 tokens, 127.7 tok/s, acc 315/587
+  gen prose-3: 512 tokens, 128.4 tok/s, acc 316/585
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (mtp-n3-f16 vs none-f16-A)
+== KV f16: mtp-n7 vs spec off
+  gen code-1: 512 tokens, 99.2 tok/s, acc 326/1282
+  gen code-2: 512 tokens, 128.9 tok/s, acc 372/971
+  gen code-3: 512 tokens, 149.6 tok/s, acc 394/803
+  gen prose-1: 512 tokens, 108.2 tok/s, acc 342/1172
+  gen prose-2: 512 tokens, 108.6 tok/s, acc 343/1171
+  gen prose-3: 512 tokens, 109.3 tok/s, acc 344/1165
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (mtp-n7-f16 vs none-f16-A)
+== KV f16: dflash-n3 vs spec off
+  gen code-1: 512 tokens, 133.9 tok/s, acc 316/582
+  gen code-2: 512 tokens, 150.6 tok/s, acc 338/516
+  gen code-3: 512 tokens, 165.1 tok/s, acc 356/460
+  gen prose-1: 512 tokens, 144.1 tok/s, acc 329/543
+  gen prose-2: 512 tokens, 136.8 tok/s, acc 318/578
+  gen prose-3: 512 tokens, 136.2 tok/s, acc 317/581
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (dflash-n3-f16 vs none-f16-A)
+== KV f16: dflash-n7 vs spec off
+  gen code-1: 512 tokens, 125.7 tok/s, acc 341/1175
+  gen code-2: 512 tokens, 173.7 tok/s, acc 391/835
+  gen code-3: 512 tokens, 191.2 tok/s, acc 404/732
+  gen prose-1: 512 tokens, 145.8 tok/s, acc 364/1025
+  gen prose-2: 512 tokens, 138.5 tok/s, acc 355/1082
+  gen prose-3: 512 tokens, 138.5 tok/s, acc 355/1080
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (dflash-n7-f16 vs none-f16-A)
+== KV q8_0: reference (spec off), two runs
+  gen code-1: 512 tokens, 69.4 tok/s, acc 0/0
+  gen code-2: 512 tokens, 69.4 tok/s, acc 0/0
+  gen code-3: 512 tokens, 69.3 tok/s, acc 0/0
+  gen prose-1: 512 tokens, 69.4 tok/s, acc 0/0
+  gen prose-2: 512 tokens, 69.5 tok/s, acc 0/0
+  gen prose-3: 512 tokens, 69.5 tok/s, acc 0/0
+  gen code-1: 512 tokens, 69.4 tok/s, acc 0/0
+  gen code-2: 512 tokens, 69.4 tok/s, acc 0/0
+  gen code-3: 512 tokens, 69.3 tok/s, acc 0/0
+  gen prose-1: 512 tokens, 69.5 tok/s, acc 0/0
+  gen prose-2: 512 tokens, 69.4 tok/s, acc 0/0
+  gen prose-3: 512 tokens, 69.5 tok/s, acc 0/0
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (none-q8_0-B vs none-q8_0-A)
+== KV q8_0: mtp-n3 vs spec off
+  gen code-1: 512 tokens, 158.9 tok/s, acc 361/448
+  gen code-2: 512 tokens, 133.9 tok/s, acc 328/547
+  gen code-3: 512 tokens, 139.1 tok/s, acc 336/523
+  gen prose-1: 512 tokens, 121.0 tok/s, acc 306/614
+  gen prose-2: 512 tokens, 127.1 tok/s, acc 317/578
+  gen prose-3: 512 tokens, 126.6 tok/s, acc 316/583
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (mtp-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: mtp-n7 vs spec off
+  gen code-1: 512 tokens, 158.2 tok/s, acc 403/745
+  gen code-2: 512 tokens, 123.4 tok/s, acc 367/1002
+  gen code-3: 512 tokens, 128.7 tok/s, acc 374/949
+  gen prose-1: 512 tokens, 99.9 tok/s, acc 329/1273
+  gen prose-2: 512 tokens, 107.6 tok/s, acc 343/1163
+  gen prose-3: 512 tokens, 109.1 tok/s, acc 346/1145
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (mtp-n7-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n3 vs spec off
+  gen code-1: 512 tokens, 171.3 tok/s, acc 367/427
+  gen code-2: 512 tokens, 148.6 tok/s, acc 338/519
+  gen code-3: 512 tokens, 154.4 tok/s, acc 346/490
+  gen prose-1: 512 tokens, 136.9 tok/s, acc 321/570
+  gen prose-2: 512 tokens, 135.4 tok/s, acc 319/573
+  gen prose-3: 512 tokens, 137.4 tok/s, acc 322/564
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (dflash-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n7 vs spec off
+  gen code-1: 512 tokens, 207.5 tok/s, acc 420/631
+  gen code-2: 512 tokens, 161.7 tok/s, acc 383/892
+  gen code-3: 512 tokens, 165.9 tok/s, acc 387/849
+  gen prose-1: 512 tokens, 133.2 tok/s, acc 351/1115
+  gen prose-2: 512 tokens, 131.0 tok/s, acc 348/1129
+  gen prose-3: 512 tokens, 133.9 tok/s, acc 352/1110
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (dflash-n7-q8_0 vs none-q8_0-A)
+
+=== invariance summary (invariant, 27b-nvfp4) ===
+== KV f16: reference (spec off), two runs
+  divergence rate 0/6 (none-f16-B vs none-f16-A)
+== KV f16: mtp-n3 vs spec off
+  divergence rate 0/6 (mtp-n3-f16 vs none-f16-A)
+== KV f16: mtp-n7 vs spec off
+  divergence rate 0/6 (mtp-n7-f16 vs none-f16-A)
+== KV f16: dflash-n3 vs spec off
+  divergence rate 0/6 (dflash-n3-f16 vs none-f16-A)
+== KV f16: dflash-n7 vs spec off
+  divergence rate 0/6 (dflash-n7-f16 vs none-f16-A)
+== KV q8_0: reference (spec off), two runs
+  divergence rate 0/6 (none-q8_0-B vs none-q8_0-A)
+== KV q8_0: mtp-n3 vs spec off
+  divergence rate 0/6 (mtp-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: mtp-n7 vs spec off
+  divergence rate 0/6 (mtp-n7-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n3 vs spec off
+  divergence rate 0/6 (dflash-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n7 vs spec off
+  divergence rate 0/6 (dflash-n7-q8_0 vs none-q8_0-A)

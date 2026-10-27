@@ -1,4 +1,4 @@
-cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-perplexity -m /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -fa on -c 512 -f /home/crockettgugg/fp4-unlock/bench/prompts/kl-set-5k.txt -b 8 -ub 8 --kl-divergence --kl-divergence-base /home/crockettgugg/fp4-unlock/bench/results/ref-logits-27b-q8-c512-chunksall.bin
+cmd: ./build-before/bin/llama-perplexity -m ~/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -fa on -c 512 -f ./bench/prompts/kl-set-5k.txt -b 8 -ub 8 --kl-divergence --kl-divergence-base ./bench/results/ref-logits-27b-q8-c512-chunksall.bin
 env: {}
 0.00.311.412 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
 0.00.311.418 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring

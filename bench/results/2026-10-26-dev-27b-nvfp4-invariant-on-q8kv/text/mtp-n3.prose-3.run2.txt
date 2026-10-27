@@ -1,9 +1,0 @@
-We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
-
-Need final answer about 400 words. Need no preamble. Need concrete analogy, worked example plausible numbers, finish engineers do about it. Need likely around 400 words. Let's draft ~400 words. Need ensure high-school accessible.
-
-Potential analogy: kitchen: chef (compute) vs pantry/aisle (memory bandwidth). Chef can chop 1000 carrots per minute, but if only one waiter can bring 10 carrots per minute, chef waits. Or library: computer is reader, memory is bookshelf, bandwidth is how fast books can be fetched. Need one concrete analogy.
-
-Worked example: GPU has 10,000 math units, each can do 1 operation per nanosecond? Need plausible. Let's make simple: GPU can do 10 trillion operations per second (10 TOPS). But each pixel needs 16 bytes of texture data. If rendering 1080p at 60 fps: 1920*1080*60 = 124,416,000 pixels/sec. If each pixel needs 16 bytes, memory traffic = 1.99 GB/s. That's low, not bandwidth limited. Need more plausible: modern games need many samples, textures, overdraw. Maybe 100 bytes per pixel? 124M*100=12.4 GB/s. Still low vs 500 GB/s. Need make limited: maybe 1000 bytes per pixel? 124 GB/s, still below 500. Need numbers where memory bandwidth is bottleneck. Could use compute: 100 TFLOPS, each pixel needs 1000 FLOPs? 124M*1000=124 GFLOP/s, far below 100 TFLOP. Not limited. Need choose workload where memory traffic high: ray tracing? Or simple: GPU can do 100,000 operations per second? No.
-
-Need made-up but

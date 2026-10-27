@@ -4,8 +4,7 @@ third_party/
 build/
 build-before/
 build-cpu/
-build-dev/
-build-p3/
+build-invariant/
 third_party/llama.cpp/build*/
 # python
 .venv/
@@ -21,11 +20,10 @@ models/
 # editor
 .vscode/
 .idea/
+# local notes, plans and archived intermediate results (not shipped)
+notes/
 # keep bench/results/ (committed on purpose)
 .cuda-overlay/
-# Phase 0 diagnostic scratch worktree and its build (PRD 0.3; not carried)
-third_party/llama.cpp-pr28488/
-build-pr28488/
 # build logs written by scripts/build.sh
 *.cmake.log
 *.build.log
@@ -37,6 +35,3 @@ third_party/llama.cpp-before/
 bench/results/sha256.cache
 # Q8_0 reference logits for bench/kld.py (GB-scale, regenerated)
 bench/results/ref-logits-*.bin
-# scratch worktree: pinned commit + Apoze 6263445 (Phase 1.8 diagnostic)
-third_party/llama.cpp-apoze/
-build-apoze/

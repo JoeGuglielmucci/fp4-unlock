@@ -1,0 +1,14 @@
+We need to answer user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final about 400 words. Need likely exactly around 400? "about 400 words". Need ensure no preamble. Need one concrete analogy, simple worked example with made-up plausible numbers, finish explaining engineers do about it.
+
+Let's draft ~400 words. Need count. Let's craft.
+
+Draft:
+Imagine a graphics card as a very fast kitchen. The GPU is the chef, and the memory is the pantry. The chef can chop, mix, and plate dishes extremely quickly, but if the pantry door is narrow and the ingredients arrive slowly, the chef spends most of the time waiting. That waiting is memory bandwidth: the rate at which data can move between the GPU and its memory.
+
+A game needs lots of data: textures, vertex positions, colors, depth values, and intermediate results. The GPU may be able to do trillions of tiny calculations per second, but each calculation needs numbers. If the memory bus can only deliver, say, 500 gigabytes per second, and the workload needs 800 gigabytes per second to keep the compute units busy, the GPU is starved. It is not slow because the math is hard; it is slow because the data is late.
+
+Here is a simple made-up example. Suppose a GPU can perform 100 trillion floating-point operations per second. A particular shader needs 10 operations for every byte of data it reads. To use all that compute power, it would need 100 trillion / 10 = 10 trillion bytes per second, or 10,000 gigabytes per second. But the memory can only supply 500 gigabytes per second. So the GPU can only do 500 gigabytes per second × 10 operations per byte = 5,000 gigaflops, or 5 trillion operations per second. That is only 5% of its theoretical compute speed. The bottleneck is the data pipe, not the calculator.
+
+Engineers fight this in several ways. They design wider and faster memory, such as GDDR6 or HBM

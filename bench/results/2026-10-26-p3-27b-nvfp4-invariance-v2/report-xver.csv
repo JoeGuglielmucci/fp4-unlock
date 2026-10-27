@@ -1,7 +1,0 @@
-ref,new,prompt,identical,first_diverging_index,n_ref,n_new,ref_top2,new_top2,ref_gap,new_gap
-none-f16-A,none-f16-A,code-1,1,,512,512,,,,
-none-f16-A,none-f16-A,code-2,1,,512,512,,,,
-none-f16-A,none-f16-A,code-3,1,,512,512,,,,
-none-f16-A,none-f16-A,prose-1,1,,512,512,,,,
-none-f16-A,none-f16-A,prose-2,1,,512,512,,,,
-none-f16-A,none-f16-A,prose-3,1,,512,512,,,,
