@@ -1,0 +1,23 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Target Audience:** Curious high-school student
+   - **Length:** About 400 words
+   - **Topic:** Why a graphics card can be limited by memory bandwidth rather than compute speed
+   - **Requirements:** 
+     - Use one concrete analogy
+     - Give a simple worked example with made-up but plausible numbers
+     - Finish by explaining what engineers do about it
+   - **Tone/Style:** Direct, careful, technical but accessible, no preamble
+
+2.  **Deconstruct the Core Concept:**
+   - GPUs have massive compute units (shaders/cores) but relatively modest memory bandwidth compared to their compute capacity.
+   - This creates a bottleneck: cores sit idle waiting for data from VRAM.
+   - Analogy needed: Something with fast workers but slow supply lines.
+   - Worked example: Plausible numbers for compute throughput vs memory bandwidth, showing how they compare.
+   - Engineer solutions: Cache hierarchies, memory compression, wider/better memory (GDDR6X, HBM), algorithmic optimizations, compute-driven vs data-driven workloads.
+
+3.  **Draft - Section by Section (Mental Refinement):**
+   *(Analogy)* Imagine a kitchen with 100 incredibly fast chefs (the GPU cores). Each chef can chop, sauté, and plate a dish in seconds. But they all share a single narrow hallway to the pantry (the VRAM). If the pantry can only deliver ingredients at a slow rate, the chefs will spend most of their time standing around waiting for flour, not cooking. The kitchen’s output isn’t limited by how fast the chefs work; it’s limited by how quickly ingredients can move through that hallway.
+
+   *(Worked Example)* Let’s put numbers to this. Suppose a modern GPU can perform 100 teraflops of math (100 trillion calculations per second). Each calculation needs 4 bytes of data. That means the cores would need to pull 400 gigabytes of data every second just to stay busy. Now look at the memory: a typical gaming GPU might have 256 GB/s of memory bandwidth. That’s 400 GB/s needed vs 256 GB/s available. The math is fast enough to run at full speed, but the memory can’t feed it. The GPU will throttle its actual performance to match what

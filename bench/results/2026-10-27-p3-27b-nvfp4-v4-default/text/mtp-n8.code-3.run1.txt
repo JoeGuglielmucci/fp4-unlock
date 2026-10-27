@@ -1,0 +1,24 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical same status codes, same response bodies. Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 { w.WriteHeader(400); w.Write([]byte(`{"error":"bad id"}`)); return }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows { 404 {"error":"not found"}; return }
+  500 {"error":"db"}; return
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical. Need full refactored file. Need likely define sentinel errors: ErrInvalidID, ErrUserNotFound, ErrDatabase? But external behavior same. Need handler maps errors to status/body. Need functions:
+- parseUserID(r *http.Request) (int, error) or validateID(idStr string) (int, error). It should return ErrInvalidID for missing/non-integer/<=0.
+- fetchUser(db *sql.DB, id int) (User, error) maybe returns User struct and error. It should return ErrUserNotFound if sql.ErrNoRows, wrap other errors? Need clear error handling. But external behavior: 404 for not found, 500 for db. If fetchUser returns ErrUserNotFound for no rows, and other errors as is or wrapped. Handler: if errors.Is(err, ErrUserNotFound) -> 404; else -> 500.
+- writeJSON(w, status, value) or encodeUser(w, user) maybe. Need same response bodies. For success: Content-Type application/json, body JSON object with name

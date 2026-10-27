@@ -1,0 +1,65 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer. Need likely concise ~300 words. Need no preamble. Need ensure direct answer. Let's draft around 300 words.
+
+Need include:
+- draft model does draft model
+- what is draft model: small model, quick proposal, autoregressive
+- target model verifies in one forward pass: verify tokens
+- verify tokens in parallel
+- output distribution identical to target model: use rejection sampling, logit, accept/reject tokens
+- how target verifies:
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+  - verify tokens in parallel
+ 

@@ -1,0 +1,13 @@
+cmd: /home/crockettgugg/fp4-unlock/build-p3/bin/llama-server -m /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -c 65536 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7 -np 16 --spec-type draft-mtp --spec-draft-n-max 7 --spec-draft-backend-sampling
+0.00.135.227 I srv  llama_server: initializing ...
+0.00.135.238 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.135.505 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.137.818 I srv    load_model: loading model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.01.429.408 E ggml_backend_cuda_buffer_type_alloc_buffer: allocating 19152.00 MiB on device 0: cudaMalloc failed: out of memory
+0.01.429.413 E ggml_backend_buft_alloc_buffer_n_default: failed to allocate CUDA0 buffer of size 20082327552
+0.01.433.622 E llama_init_from_model: failed to initialize the context: failed to allocate buffer for rs cache
+0.01.433.628 E cmn  common_init_: failed to create context with model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.01.433.631 E cmn  common_init_: failed to create context with model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.01.433.634 E srv    load_model: failed to create_context with model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.01.433.636 I srv    operator(): operator(): cleaning up before exit...
+0.01.434.289 E srv  server_run_i: exiting due to model loading error

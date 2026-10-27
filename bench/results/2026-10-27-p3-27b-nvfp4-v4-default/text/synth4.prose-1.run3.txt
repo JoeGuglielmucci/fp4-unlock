@@ -1,0 +1,13 @@
+We need to answer user's request: summarize in about 300 words for general technical audience, how speculative decoding speeds up LLM inference. Need final answer only, no preamble. Need likely 300 words. Need cover: draft model role, how target verifies, why output distribution identical, can be kept identical, what determines speedup in practice, and end with two most common reasons speedup smaller than hoped. Need ensure exact count? "about 300 words". Let's draft around 300 words. Need count. Let's write concise but detailed.
+
+Draft:
+Speculative decoding speeds up LLM inference by using a small model to propose tokens before the large model checks. It reduces the number of expensive target-model forward passes that are often expensive, especially when memory-bound.
+
+Let's count: Speculative(1) decoding(2) decoding(3) speeds up(4) by(5) using(6) a(7) small(8) model(9) to(10) propose(11) tokens(12) before(13) the(14) large(15) model(16) checks(17). It(18) reduces the(19) number(20) of(21) expensive(22) target-model(2) model? Let's count: target-model(23) forward(24) passes(25) that(26) are(27) often(28) expensive(29), especially(30) when(31) memory-bound(32).
+
+Need count words. Let's draft full 300.
+
+Paragraph 1:
+Speculative decoding speeds up large language model inference by using a small draft model to propose several future tokens before the large target model checks them. The draft model is usually cheap and starts from the same prompt, generating a short sequence of candidate tokens. Because the draft model is often fast, it can produce many tokens in parallel, but the target model is still responsible for quality.
+
+The target model then verifies the draft token in one forward pass. In the target model, the draft tokens are appended to the prompt, and the model computes the next-token distribution at each position. This lets the target model evaluate many tokens at once, without needing the same number of sequential forward passes as ordinary autoregressive decoding. If the target model accepts a draft token, it is kept;

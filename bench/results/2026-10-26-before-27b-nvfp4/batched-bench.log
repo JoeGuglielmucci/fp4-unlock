@@ -1,0 +1,32 @@
+0.00.227.965 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
+0.00.227.972 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
+0.00.227.976 W model has unused tensor blk.64.attn_q.weight (size = 35389440 bytes) -- ignoring
+0.00.227.977 W model has unused tensor blk.64.attn_k.weight (size = 2949120 bytes) -- ignoring
+0.00.227.979 W model has unused tensor blk.64.attn_v.weight (size = 2949120 bytes) -- ignoring
+0.00.227.984 W model has unused tensor blk.64.attn_output.weight (size = 17694720 bytes) -- ignoring
+0.00.227.985 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.227.987 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.227.989 W model has unused tensor blk.64.ffn_gate.weight (size = 50135040 bytes) -- ignoring
+0.00.227.990 W model has unused tensor blk.64.ffn_down.weight (size = 50135040 bytes) -- ignoring
+0.00.227.992 W model has unused tensor blk.64.ffn_up.weight (size = 50135040 bytes) -- ignoring
+0.00.227.994 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 29491200 bytes) -- ignoring
+0.00.227.996 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring
+0.00.227.998 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring
+0.00.228.003 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring
+0.01.226.507 W llama_context: n_ctx is not divisible by n_seq_max - rounding down to 49152
+
+llama_batched_bench: n_kv_max = 49152, n_batch = 2048, n_ubatch = 512, flash_attn = 1, is_pp_shared = 0, is_tg_separate = 0, n_gpu_layers = 99, n_threads = 16, n_threads_batch = 16
+
+|    PP |     TG |    B |   N_KV |   T_PP s | S_PP t/s |   T_TG s | S_TG t/s |      T s |    S t/s |
+|-------|--------|------|--------|----------|----------|----------|----------|----------|----------|
+|   512 |    128 |    1 |    640 |    0.081 |  6322.16 |    1.545 |    82.83 |    1.626 |   393.51 |
+|   512 |    128 |    2 |   1280 |    0.151 |  6794.96 |    1.621 |   157.90 |    1.772 |   722.36 |
+|   512 |    128 |    3 |   1920 |    0.238 |  6455.54 |    1.742 |   220.38 |    1.980 |   969.50 |
+|   512 |    128 |    4 |   2560 |    0.304 |  6728.76 |    1.828 |   280.11 |    2.132 |  1200.63 |
+|   512 |    128 |    6 |   3840 |    0.452 |  6802.09 |    2.067 |   371.55 |    2.519 |  1524.65 |
+|   512 |    128 |    8 |   5120 |    0.605 |  6773.85 |    2.275 |   450.18 |    2.879 |  1778.21 |
+|   512 |    128 |   12 |   7680 |    0.905 |  6785.48 |    2.516 |   610.45 |    3.422 |  2244.55 |
+|   512 |    128 |   16 |  10240 |    1.207 |  6788.53 |    2.861 |   715.95 |    4.067 |  2517.65 |
+|   512 |    128 |   32 |  20480 |    2.410 |  6797.32 |    4.241 |   965.78 |    6.652 |  3079.00 |
+|   512 |    128 |   64 |  40960 |    4.832 |  6782.01 |    6.751 |  1213.45 |   11.583 |  3536.34 |
+

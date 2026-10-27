@@ -1,0 +1,42 @@
+# llama.cpp is never vendored: scripts/fetch-llama.sh clones upstream at docs/PINNED_COMMIT and applies patches/
+third_party/
+# build trees
+build/
+build-before/
+build-cpu/
+build-dev/
+build-p3/
+third_party/llama.cpp/build*/
+# python
+.venv/
+__pycache__/
+*.pyc
+# models never go in git
+models/
+*.gguf
+# profiler output
+*.nsys-rep
+*.ncu-rep
+*.sqlite
+# editor
+.vscode/
+.idea/
+# keep bench/results/ (committed on purpose)
+.cuda-overlay/
+# Phase 0 diagnostic scratch worktree and its build (PRD 0.3; not carried)
+third_party/llama.cpp-pr28488/
+build-pr28488/
+# build logs written by scripts/build.sh
+*.cmake.log
+*.build.log
+*.build2.log
+*.build3.log
+# detached worktree of the pinned upstream commit, created by scripts/build.sh before
+third_party/llama.cpp-before/
+# absolute-path hash cache written by bench/lib.sh
+bench/results/sha256.cache
+# Q8_0 reference logits for bench/kld.py (GB-scale, regenerated)
+bench/results/ref-logits-*.bin
+# scratch worktree: pinned commit + Apoze 6263445 (Phase 1.8 diagnostic)
+third_party/llama.cpp-apoze/
+build-apoze/

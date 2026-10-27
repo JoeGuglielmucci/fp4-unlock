@@ -1,0 +1,118 @@
+We need answer user's request. Need produce final full refactored Go file and list behaviors unit test should cover. Need likely refactor Go code. Need ensure external behavior identical. Let's analyze original code.
+
+Original:
+```go
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+```
+
+Actually duplicate imports:
+```go
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+Wait original imports:
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No, user says:
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+Let's re-read: 
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No. User:
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No. It says:
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+)
+```
+No.
+```
+import (
+    "database/sql

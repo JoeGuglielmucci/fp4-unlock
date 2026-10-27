@@ -1,0 +1,53 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. std::optional<Value> get, std::void put, bool erase, bool size, bool erase, size_t size() const. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer. Need ensure code complete runnable. Let's design.
+
+Header-only template. Need include < <algorithm> and main.
+
+Class template:
+
+#include <list>
+#include <unordered_map>
+#include <mutex>
+#include <optional>
+#include <cctype>
+#include <iostream>
+
+template <K> L:
+private:
+size_t size_t size;
+std::list;
+std::unordered_map;
+std::mutex;
+std::mutex m;
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+std::optional<Value> get(const Key&);
+void put(const Key&, const Value&);
+bool erase(const Key&);
+size_t size() const;
+bool erase(const Key&, const Key&);
+size_t size() const;
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);
+void put(const Key&, const Value&);

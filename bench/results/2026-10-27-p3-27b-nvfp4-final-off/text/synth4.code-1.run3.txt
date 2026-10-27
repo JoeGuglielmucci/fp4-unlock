@@ -1,0 +1,13 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get, std::optional<Value>, void put, std::optional<Value>, size_t size() const, bool erase, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer with code and explanation. Need ensure complete runnable code. Let's think details.
+
+C++17 header-only class template. Need include <<Key, Value> template. Need std::list and std::unordered_map. Thread-safe with std::mutex. Need use std::optional. Need include <mutex> and <mutex> and <optional> for shared.
+
+Design:
+template <typename Key, typename Value>
+class LRUCache<Key, Value> {
+public:
+  LRUCache<Key, Value>(size_t size) : size_t capacity = 0;
+  std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) const;
+  std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std::optional<Value> get(const Key&) && std

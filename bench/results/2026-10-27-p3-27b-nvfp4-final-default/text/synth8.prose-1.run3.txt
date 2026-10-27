@@ -1,0 +1,31 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer. Need likely concise ~300 words. Need no preamble. Need ensure direct answer. Let's draft around 300 words.
+
+Need include:
+- draft model does draft
+- What does the draft model generate?
+- target model verifies several tokens in one forward pass
+- why output distribution can be kept identical to normal decoding
+- how speedup determined (determines acceptance rate, number of tokens, etc.)
+- End with two most common reasons speedup is smaller than hoped.
+
+Need about 300 words. Let's draft.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a small draft model and a large target model. The draft model generates a small number of candidate tokens, usually one by itself, using its own fast inference. The target model verifies these tokens in a single forward pass. Because the target model can be run in parallel, it computes all tokens in the draft sequence at once, and the target model can also compute the log probabilities of the next token.
+
+The target model verifies the draft tokens by comparing the target model's output distribution with the target model's output distribution. If the target model's distribution matches the target model's output distribution, the draft tokens are accepted. If the target model's distribution does not match, the target model's distribution is not accepted. The target model's output distribution is kept identical to normal decoding.
+
+The output distribution can be kept identical to normal decoding by using a rejection sampling method. The target model's distribution is computed by the target model. The target model's distribution is compared to the target model's distribution. The target model's distribution is accepted.
+
+The speedup is determined by the number of actual tokens that are accepted, the number of tokens that are generated, and the number of tokens that are accepted.
+
+The speedup is smaller than expected because the number of expected is not enough.
+
+Need final. Let's make it 300 words.
+
+Draft:
+Speculative decoding:
+- The draft model generates a small number of candidate tokens, usually one by itself, using its own fast inference.
+- The target model verifies several tokens in one forward pass.
+- The target model verifies several tokens in one forward pass by computing the log probabilities of the next token.
+- The target model verifies several tokens in one forward pass.

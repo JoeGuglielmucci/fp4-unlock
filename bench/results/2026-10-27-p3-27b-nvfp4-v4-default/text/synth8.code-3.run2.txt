@@ -1,0 +1,64 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit tests. Need ensure same behavior identical. Let's analyze original code.
+
+Original:
+```go
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+
+func userHandler(w http.ResponseWriter, r *http.Request) {
+    idStr := r.URL.Query().Get("id")
+    id, err := strconv.Atoi(idStr)
+    if err != nil {
+        return
+    }
+    if err != nil || id <= 0 {
+        return
+    }
+    row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+    var name, email string
+    var user struct {
+        name: string, email: string
+    }
+    if err := row.Scan(&name, &email); err != nil {
+        if err == sql.ErrNoRows {
+            return
+        }
+        return
+    }
+    w.WriteHeader(500)
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+    return
+}
+```
+
+Need consider external behavior:
+- 200 OK with header Content-Type: application/json, body JSON object map[string]string, trailing newline.
+- 400 OK with no Content-Type header, body `{"error":"bad id"}`.
+- 500 OK with no Content-Type header, body `{"error":"db"}`.
+- 404 OK with no Content-Type header, body `{"error":"not found"}`.
+
+Need mention status codes: 200, 404, 500, 400.
+
+Need refactor:
+- separate into testable functions:
+  - `parseID` or `validateID`
+  - `fetchUser`
+  - `writeJSON`
+  - `writeError`
+  - `userHandler`
+  - `userResponse`
+  - `userResponse`
+  - `handleUser`
+  - `userHandler`
+  - `handleUser`
+  - `handleUser`
+  - `handleUser`
+  - `handleUser

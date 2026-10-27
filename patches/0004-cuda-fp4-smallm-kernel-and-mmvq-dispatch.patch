@@ -1,0 +1,1883 @@
+diff --git a/ggml/src/ggml-cuda/fp4-smallm.cu b/ggml/src/ggml-cuda/fp4-smallm.cu
+new file mode 100644
+index 000000000..2eb91ddf9
+--- /dev/null
++++ b/ggml/src/ggml-cuda/fp4-smallm.cu
+@@ -0,0 +1,1702 @@
++#include "fp4-smallm.cuh"
++#include "fp4-unlock.cuh"
++#include "cp-async.cuh"
++#include "mma.cuh"
++#include "unary.cuh"
++#include "vecdotq.cuh"
++
++#include <algorithm>
++#include <cstdlib>
++
++using namespace ggml_cuda_mma;
++
++// Each warp owns one m16n8 output tile: 16 weight rows x 8 activation columns. Columns >= ncols_dst carry zero
++// activations, rows >= nrows_x are clamped on load and masked on store.
++#define FP4_SMALLM_ROWS 16
++
++// v4 (FP4 MMA) residual terms: default and maximum (the column-scale header holds 8 floats per term, 128 B for 4).
++#define FP4_SMALLM_T_DEFAULT 2
++#define FP4_SMALLM_T_MAX     4
++
++int ggml_cuda_fp4_smallm_mode() {
++    static const int mode = []() {
++        const char * env = getenv("FP4_UNLOCK_KERNEL");
++        if (env == nullptr) {
++#ifdef GGML_CUDA_FP4_SMALLM
++            return 1;
++#else
++            return 0;
++#endif // GGML_CUDA_FP4_SMALLM
++        }
++        const int v = atoi(env);
++        return v < 0 ? 0 : (v > 3 ? 3 : v);
++    }();
++    return mode;
++}
++
++bool ggml_cuda_fp4_smallm_enabled() {
++    return ggml_cuda_fp4_smallm_mode() != 0;
++}
++
++// Smallest ncols_dst that takes the small-M kernel; below it the op stays on MMVQ. The threshold is set from the
++// end-to-end step cost (llama-bench -p M -n 0, Qwen3.5-27B NVFP4, RTX 5090, ms per forward of M tokens):
++//   M            1      2      3      4      6      8
++//   MMVQ     12.21  12.68  12.98  13.67  15.83  18.30
++//   v4 T=2   13.43  13.80  13.94  14.10  14.61  15.41
++// The kernel is flat in M, MMVQ grows with M; they cross between M = 4 and 6, so M <= 4 stays on MMVQ. The
++// test-backend-ops microbench crosses at M = 3 but is L2-resident (a 50 MB weight fits the 5090's L2) and overstates
++// MMVQ's cost at M = 3..4; the fusion state does not move the crossover (same gap with GGML_CUDA_DISABLE_FUSION=1).
++// FP4_UNLOCK_INVARIANT=1 sends every M through the kernel so the verify batch reproduces decode bitwise, at the
++// M = 1 cost in the table. FP4_UNLOCK_MIN_M overrides (1..8).
++int ggml_cuda_fp4_smallm_min_m() {
++    static const int min_m = []() {
++        if (fp4_unlock_invariant_enabled()) {
++            return 1;
++        }
++        const char * env = getenv("FP4_UNLOCK_MIN_M");
++        const int v = env ? atoi(env) : 5;
++        return v < 1 ? 1 : (v > 8 ? 8 : v);
++    }();
++    return min_m;
++}
++
++int ggml_cuda_fp4_smallm_terms() {
++    static const int terms = []() {
++        const char * env = getenv("FP4_UNLOCK_T");
++        if (env == nullptr) {
++            return FP4_SMALLM_T_DEFAULT;
++        }
++        const int v = atoi(env);
++        return v < 1 ? 1 : (v > FP4_SMALLM_T_MAX ? FP4_SMALLM_T_MAX : v);
++    }();
++    return terms;
++}
++
++// Fragment conventions (PTX m16n8k16 .s8, g = lane/4, q = lane%4):
++//   A: x[0] = (row g,   k 4q..4q+3)   x[1] = (row g+8, k 4q..4q+3)
++//   B: x[0] = (col g,   k 4q..4q+3)
++//   D: x[0] = (g, 2q)  x[1] = (g, 2q+1)  x[2] = (g+8, 2q)  x[3] = (g+8, 2q+1)
++// NVFP4 nibble order inside a block: u32 w = 2s+j of sub-block s holds elements 16s+4j+0..3 in the low nibbles and
++// 16s+4j+8..11 in the high nibbles (see vec_dot_nvfp4_q8_1). So the A fragment for lane q, sub-block s is the low
++// half of u32 2s+(q&1) when q < 2 and the high half when q >= 2.
++
++struct fp4_smallm_acc {
++    float x[4] = {0.0f, 0.0f, 0.0f, 0.0f};
++};
++
++// The weight words one lane needs from one 64-wide NVFP4 block of its two rows: the UE4M3 scale word and, per
++// sub-block s, u32 2s + (q & 1). Kept as a struct so the main loop can hold FP4_SMALLM_PF blocks in flight.
++struct fp4_smallm_wstage {
++    uint32_t da, db;
++    int      ua[4], ub[4];
++};
++
++// Prefetch depth: blocks per warp whose loads are issued back to back before the first is consumed. The first
++// build (PF = 1) consumed each block right after loading it, so every warp was a serial chain of L2 round trips:
++// 24.5 us at M = 1 on the 17408x5120 FFN shape against 15.6 us for MMVQ (FINDINGS "chain8 outputs"). The compute
++// order per warp (k ascending in steps of nwarps) does not depend on PF, so results are bitwise the PF = 1 ones.
++#ifndef FP4_SMALLM_PF
++#define FP4_SMALLM_PF 4
++#endif
++
++static __device__ __forceinline__ void fp4_smallm_load(
++        fp4_smallm_wstage & w, const block_nvfp4 * __restrict__ xa, const block_nvfp4 * __restrict__ xb, const int q) {
++    w.da = get_int_b4(xa, 0);
++    w.db = get_int_b4(xb, 0);
++#pragma unroll
++    for (int s = 0; s < 4; ++s) {
++        w.ua[s] = get_int_b4(xa->qs, 2*s + (q & 1));
++        w.ub[s] = get_int_b4(xb->qs, 2*s + (q & 1));
++    }
++}
++
++// One 64-wide NVFP4 block (4 k16 MMAs) of one weight stream for the warp's 16 rows.
++static __device__ __forceinline__ void fp4_smallm_block(
++        fp4_smallm_acc & acc, const fp4_smallm_wstage & w,
++        const int (&b)[4], const float (&as0)[2], const float (&as1)[2], const int q) {
++#pragma unroll
++    for (int s = 0; s < 4; ++s) {
++        const int2 va = get_int_from_table_16(w.ua[s], kvalues_mxfp4);
++        const int2 vb = get_int_from_table_16(w.ub[s], kvalues_mxfp4);
++        tile<16, 4, int> A;
++        tile< 8, 4, int> B;
++        tile<16, 8, int> D;
++        A.x[0] = q < 2 ? va.x : va.y;
++        A.x[1] = q < 2 ? vb.x : vb.y;
++        B.x[0] = b[s];
++        mma(D, A, B);
++        const float wa = ggml_cuda_ue4m3_to_fp32((w.da >> (8*s)) & 0xFF);
++        const float wb = ggml_cuda_ue4m3_to_fp32((w.db >> (8*s)) & 0xFF);
++        acc.x[0] += (wa * as0[s/2]) * float(D.x[0]);
++        acc.x[1] += (wa * as1[s/2]) * float(D.x[1]);
++        acc.x[2] += (wb * as0[s/2]) * float(D.x[2]);
++        acc.x[3] += (wb * as1[s/2]) * float(D.x[3]);
++    }
++}
++
++// Fused epilogue of one warp's 16x8 tile and the dst store (rows >= nrows_x and columns >= ncols_dst masked).
++template <bool has_fusion>
++static __device__ __forceinline__ void fp4_smallm_store(
++        const fp4_smallm_acc & acc, const fp4_smallm_acc & acc_gate, const ggml_cuda_mm_fusion_args_device & fusion, const bool use_gate,
++        float * __restrict__ dst, const int row0, const int nrows_x, const int ncols_dst, const int stride_col_dst) {
++    const int lane = threadIdx.x;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++    [[maybe_unused]] float x_scale_v    = 1.0f;
++    [[maybe_unused]] float gate_scale_v = 1.0f;
++    if constexpr (has_fusion) {
++        if (fusion.x_scale) {
++            x_scale_v = ((const float *) fusion.x_scale)[0];
++        }
++        if (use_gate && fusion.gate_scale) {
++            gate_scale_v = ((const float *) fusion.gate_scale)[0];
++        }
++    }
++
++#pragma unroll
++    for (int l = 0; l < 4; ++l) {
++        const int row = row0 + g + (l / 2) * 8;
++        const int col = 2*q + (l % 2);
++        if (row >= nrows_x || col >= ncols_dst) {
++            continue;
++        }
++        float result = acc.x[l];
++        if constexpr (has_fusion) {
++            result *= x_scale_v;
++            if (fusion.x_bias) {
++                result += ((const float *) fusion.x_bias)[col * stride_col_dst + row];
++            }
++            if (use_gate) {
++                float gate_value = acc_gate.x[l] * gate_scale_v;
++                if (fusion.gate_bias) {
++                    gate_value += ((const float *) fusion.gate_bias)[col * stride_col_dst + row];
++                }
++                switch (fusion.glu_op) {
++                    case GGML_GLU_OP_SWIGLU:
++                        result *= ggml_cuda_op_silu_single(gate_value);
++                        break;
++                    case GGML_GLU_OP_GEGLU:
++                        result *= ggml_cuda_op_gelu_single(gate_value);
++                        break;
++                    case GGML_GLU_OP_SWIGLU_OAI:
++                        result = ggml_cuda_op_swiglu_oai_single(gate_value, result);
++                        break;
++                    case GGML_GLU_OP_SWIGLU_CLAMP:
++                        result = ggml_cuda_op_swiglu_clamp_single(gate_value, result, fusion.glu_limit);
++                        break;
++                    default:
++                        result = result * gate_value;
++                        break;
++                }
++            }
++        }
++        dst[col * (size_t) stride_col_dst + row] = result;
++    }
++}
++
++// Cross-warp reduction in fixed warp order (0, then 1..nwarps-1) and the fused epilogue; shared by both kernels and,
++// like the K loop, independent of ncols_dst.
++template <int nwarps, bool has_fusion>
++static __device__ __forceinline__ void fp4_smallm_epilogue(
++        fp4_smallm_acc & acc, fp4_smallm_acc & acc_gate, const ggml_cuda_mm_fusion_args_device & fusion, const bool use_gate,
++        float * __restrict__ dst, const int row0, const int nrows_x, const int ncols_dst, const int stride_col_dst) {
++    const int warp = threadIdx.y;
++    const int lane = threadIdx.x;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++    // Cross-warp reduction in fixed warp order (0, then 1..nwarps-1), again independent of ncols_dst.
++    __shared__ float red[nwarps > 1 ? nwarps - 1 : 1][WARP_SIZE][4];
++    [[maybe_unused]] __shared__ float red_gate[(has_fusion && nwarps > 1) ? nwarps - 1 : 1][WARP_SIZE][4];
++    if (warp > 0) {
++#pragma unroll
++        for (int l = 0; l < 4; ++l) {
++            red[warp - 1][lane][l] = acc.x[l];
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    red_gate[warp - 1][lane][l] = acc_gate.x[l];
++                }
++            }
++        }
++    }
++    __syncthreads();
++    if (warp != 0) {
++        return;
++    }
++#pragma unroll
++    for (int w = 0; w < nwarps - 1; ++w) {
++#pragma unroll
++        for (int l = 0; l < 4; ++l) {
++            acc.x[l] += red[w][lane][l];
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    acc_gate.x[l] += red_gate[w][lane][l];
++                }
++            }
++        }
++    }
++
++    fp4_smallm_store<has_fusion>(acc, acc_gate, fusion, use_gate, dst, row0, nrows_x, ncols_dst, stride_col_dst);
++}
++
++// Fallback kernel (direct 4-byte global loads in the fragment layout). Used when the weight rows cannot be copied with
++// 16-byte cp.async (see fp4_smallm_cp_async_ok); otherwise fp4_smallm_w4a8_cp_kernel below.
++template <int nwarps, bool has_fusion>
++__launch_bounds__(nwarps*WARP_SIZE, nwarps <= 8 ? 2 : 1)
++static __global__ void fp4_smallm_w4a8_direct_kernel(
++        const void * __restrict__ vx, const void * __restrict__ vy, const ggml_cuda_mm_fusion_args_device fusion,
++        float * __restrict__ dst, const int ncols_x, const int nrows_x, const int ncols_dst,
++        const int stride_row_x, const int stride_col_y, const int stride_col_dst) {
++#if defined(BLACKWELL_MMA_AVAILABLE)
++    const int warp = threadIdx.y;
++    const int lane = threadIdx.x;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++
++    const int row0   = blockIdx.x * FP4_SMALLM_ROWS;
++    const int row_a  = min(row0 + g,     nrows_x - 1);
++    const int row_b  = min(row0 + g + 8, nrows_x - 1);
++    const int nblocks = ncols_x / QK_NVFP4;
++
++    const block_nvfp4 * x  = (const block_nvfp4 *) vx;
++    const block_q8_1  * y  = (const block_q8_1  *) vy;
++
++    [[maybe_unused]] const block_nvfp4 * xg = nullptr;
++    bool use_gate = false;
++    if constexpr (has_fusion) {
++        use_gate = fusion.gate != nullptr;
++        xg = (const block_nvfp4 *) fusion.gate;
++    }
++
++    // B fragment column and the two D columns of this lane.
++    const bool colb_ok = g < ncols_dst;
++    const bool col0_ok = 2*q     < ncols_dst;
++    const bool col1_ok = 2*q + 1 < ncols_dst;
++    const block_q8_1 * yb  = y + (colb_ok ? g       : 0) * (size_t) stride_col_y;
++    const block_q8_1 * yc0 = y + (col0_ok ? 2*q     : 0) * (size_t) stride_col_y;
++    const block_q8_1 * yc1 = y + (col1_ok ? 2*q + 1 : 0) * (size_t) stride_col_y;
++
++    const block_nvfp4 * xa = x + (size_t) row_a * stride_row_x;
++    const block_nvfp4 * xb = x + (size_t) row_b * stride_row_x;
++    [[maybe_unused]] const block_nvfp4 * xga = nullptr;
++    [[maybe_unused]] const block_nvfp4 * xgb = nullptr;
++    if constexpr (has_fusion) {
++        if (use_gate) {
++            xga = xg + (size_t) row_a * stride_row_x;
++            xgb = xg + (size_t) row_b * stride_row_x;
++        }
++    }
++
++    fp4_smallm_acc acc;
++    [[maybe_unused]] fp4_smallm_acc acc_gate;
++
++    // Programmatic dependent launch: this kernel may be launched while quantize_q8_1 (which writes vy) is still
++    // running, so wait for the preceding grid before the first global read, exactly as mul_mat_vec_q does.
++    ggml_cuda_pdl_sync();
++
++    // Fixed interleaved K split: warp w owns blocks w, w+nwarps, ... in that order, independent of ncols_dst.
++    // Loads for FP4_SMALLM_PF of those blocks are issued together, then consumed in the same ascending order.
++    constexpr int PF = FP4_SMALLM_PF;
++    for (int kb0 = warp; kb0 < nblocks; kb0 += PF*nwarps) {
++        fp4_smallm_wstage w[PF];
++        [[maybe_unused]] fp4_smallm_wstage wg[PF];
++#pragma unroll
++        for (int p = 0; p < PF; ++p) {
++            const int kb = kb0 + p*nwarps;
++            if (kb < nblocks) {
++                fp4_smallm_load(w[p], xa + kb, xb + kb, q);
++                if constexpr (has_fusion) {
++                    if (use_gate) {
++                        fp4_smallm_load(wg[p], xga + kb, xgb + kb, q);
++                    }
++                }
++            }
++        }
++#pragma unroll
++        for (int p = 0; p < PF; ++p) {
++            const int kb = kb0 + p*nwarps;
++            if (kb < nblocks) {
++                int   b[4];
++                float as0[2], as1[2];
++#pragma unroll
++                for (int s = 0; s < 4; ++s) {
++                    b[s] = colb_ok ? get_int_b4(yb[2*kb + s/2].qs, (s % 2)*4 + q) : 0;
++                }
++#pragma unroll
++                for (int h = 0; h < 2; ++h) {
++                    as0[h] = col0_ok ? __low2float(yc0[2*kb + h].ds) : 0.0f;
++                    as1[h] = col1_ok ? __low2float(yc1[2*kb + h].ds) : 0.0f;
++                }
++                fp4_smallm_block(acc, w[p], b, as0, as1, q);
++                if constexpr (has_fusion) {
++                    if (use_gate) {
++                        fp4_smallm_block(acc_gate, wg[p], b, as0, as1, q);
++                    }
++                }
++            }
++        }
++    }
++
++    // All global reads of vx/vy/gate are done; let the next kernel in the stream start its prologue.
++    ggml_cuda_pdl_lc();
++
++    fp4_smallm_epilogue<nwarps, has_fusion>(acc, acc_gate, fusion, use_gate, dst, row0, nrows_x, ncols_dst, stride_col_dst);
++#else
++    GGML_UNUSED_VARS(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst);
++    NO_DEVICE_CODE;
++#endif // defined(BLACKWELL_MMA_AVAILABLE)
++}
++
++
++// ---------------------------------------------------------------------------------------------------------------------
++// Main kernel: weights staged through shared memory with coalesced 16-byte cp.async copies.
++//
++// Why: in the fragment layout each 4-byte weight load of a warp touches 8 rows, i.e. 8 different 128-byte lines, and a
++// 64-wide block costs 10 such loads per lane: ~80 L1 wavefronts per 576 bytes of weights. MMVQ reads 8 consecutive
++// blocks of one row per warp instruction (3 lines). The direct kernels (v1, v2) were therefore bound by L1 transaction
++// throughput at ~2 TB/s against 3.2 TB/s from L2 for MMVQ (FINDINGS "chain11 outputs"), independent of how many loads
++// were in flight. Here a warp copies a chunk of 4 consecutive blocks (144 bytes, 16-byte aligned) of all its 16 rows
++// into shared memory with 4.5 cp.async instructions per lane (~5 lines each), then reads the fragments from shared
++// memory, where the 36-word row stride makes the 8-row fragment reads bank-conflict free. FP4_SMALLM_STAGES chunks
++// per warp are in flight. The k order per warp is fixed (chunks warp, warp+nwarps, ..., blocks ascending inside a
++// chunk) and the float accumulation is the one of fp4_smallm_block, so the batch-invariance argument is unchanged.
++#define FP4_SMALLM_CHUNK       4                                            // NVFP4 blocks per chunk (4 x 36 B = 144 B)
++#define FP4_SMALLM_ROW_BYTES   (FP4_SMALLM_CHUNK * (int) sizeof(block_nvfp4)) // 144
++#define FP4_SMALLM_STAGE_BYTES (FP4_SMALLM_ROWS * FP4_SMALLM_ROW_BYTES)      // 2304
++#define FP4_SMALLM_VECS        (FP4_SMALLM_STAGE_BYTES / 16)                 // 144 16-byte vectors per chunk
++#ifndef FP4_SMALLM_STAGES
++#define FP4_SMALLM_STAGES 2
++#endif
++// Ablation switch for bottleneck analysis (0 = production): 1 = no MMA/decode, 2 = no weight copies, 3 = no y loads.
++#ifndef FP4_SMALLM_EXP
++#define FP4_SMALLM_EXP 0
++#endif
++static_assert(sizeof(block_nvfp4) == 36, "fp4-smallm: block_nvfp4 layout");
++static_assert(FP4_SMALLM_ROW_BYTES % 16 == 0, "fp4-smallm: chunk rows must be 16-byte multiples");
++static_assert(FP4_SMALLM_VECS == 4*WARP_SIZE + WARP_SIZE/2, "fp4-smallm: copy schedule assumes 144 vectors");
++
++static __device__ __forceinline__ void fp4_smallm_cp_async_commit() {
++#ifdef CP_ASYNC_AVAILABLE
++    asm volatile("cp.async.commit_group;");
++#else
++    NO_DEVICE_CODE;
++#endif // CP_ASYNC_AVAILABLE
++}
++
++template <int n>
++static __device__ __forceinline__ void fp4_smallm_cp_async_wait() {
++#ifdef CP_ASYNC_AVAILABLE
++    asm volatile("cp.async.wait_group %0;" : : "n"(n));
++#else
++    NO_DEVICE_CODE;
++#endif // CP_ASYNC_AVAILABLE
++}
++
++// Per-lane copy sources for one weight stream: vector v = lane + 32*i of a chunk is row v/9, 16-byte part v%9.
++struct fp4_smallm_cpsrc {
++    const char * p[5];
++};
++
++static __device__ __forceinline__ void fp4_smallm_cpsrc_init(
++        fp4_smallm_cpsrc & s, const block_nvfp4 * __restrict__ x, const int row0, const int nrows_x, const int stride_row_x, const int lane) {
++#pragma unroll
++    for (int i = 0; i < 5; ++i) {
++        const int v    = lane + WARP_SIZE*i;
++        const int r    = (v < FP4_SMALLM_VECS) ? v / 9 : 0;
++        const int part = (v < FP4_SMALLM_VECS) ? v % 9 : 0;
++        const int row  = min(row0 + r, nrows_x - 1);
++        s.p[i] = (const char *) (x + (size_t) row * stride_row_x) + part*16;
++    }
++}
++
++// Issue the copy of chunk c (blocks 4c..4c+3 of the warp's 16 rows) into the shared stage at smem_dst.
++static __device__ __forceinline__ void fp4_smallm_cp_chunk(
++        const unsigned smem_dst, const fp4_smallm_cpsrc & s, const int c, const int lane) {
++    const size_t off = (size_t) c * FP4_SMALLM_ROW_BYTES;
++#pragma unroll
++    for (int i = 0; i < 4; ++i) {
++        cp_async_cg_16<0>(smem_dst + (lane + WARP_SIZE*i)*16, s.p[i] + off);
++    }
++    if (lane < WARP_SIZE/2) {
++        cp_async_cg_16<0>(smem_dst + (lane + 4*WARP_SIZE)*16, s.p[4] + off);
++    }
++}
++
++// Fragment words of block p of a staged chunk for this lane's two rows (g, g+8); 36-word row stride, 9 words per block.
++static __device__ __forceinline__ void fp4_smallm_load_smem(fp4_smallm_wstage & w, const uint32_t * __restrict__ sw, const int p, const int g, const int q) {
++    const uint32_t * ra = sw + 36*g       + 9*p;
++    const uint32_t * rb = sw + 36*(g + 8) + 9*p;
++    w.da = ra[0];
++    w.db = rb[0];
++#pragma unroll
++    for (int s = 0; s < 4; ++s) {
++        w.ua[s] = (int) ra[1 + 2*s + (q & 1)];
++        w.ub[s] = (int) rb[1 + 2*s + (q & 1)];
++    }
++}
++
++template <int nwarps, bool has_fusion>
++__launch_bounds__(nwarps*WARP_SIZE, nwarps >= 16 ? 1 : (nwarps == 8 ? 2 : 3))
++static __global__ void fp4_smallm_w4a8_cp_kernel(
++        const void * __restrict__ vx, const void * __restrict__ vy, const ggml_cuda_mm_fusion_args_device fusion,
++        float * __restrict__ dst, const int ncols_x, const int nrows_x, const int ncols_dst,
++        const int stride_row_x, const int stride_col_y, const int stride_col_dst) {
++#if defined(BLACKWELL_MMA_AVAILABLE) && defined(CP_ASYNC_AVAILABLE)
++    constexpr int STAGES   = FP4_SMALLM_STAGES;
++    constexpr int NSTREAMS = has_fusion ? 2 : 1;
++    constexpr int WARP_SMEM = STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES;
++
++    const int warp = threadIdx.y;
++    const int lane = threadIdx.x;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++
++    const int row0    = blockIdx.x * FP4_SMALLM_ROWS;
++    const int nblocks = ncols_x / QK_NVFP4;
++    const int nchunks = nblocks / FP4_SMALLM_CHUNK;
++
++    const block_nvfp4 * x  = (const block_nvfp4 *) vx;
++    const block_q8_1  * y  = (const block_q8_1  *) vy;
++
++    bool use_gate = false;
++    if constexpr (has_fusion) {
++        use_gate = fusion.gate != nullptr;
++    }
++
++    extern __shared__ char fp4_smallm_smem[];
++    char * smem_w = fp4_smallm_smem + warp * WARP_SMEM;
++    const unsigned smem_w_u = ggml_cuda_cvta_generic_to_shared(smem_w);
++
++    fp4_smallm_cpsrc srcx;
++    [[maybe_unused]] fp4_smallm_cpsrc srcg;
++    fp4_smallm_cpsrc_init(srcx, x, row0, nrows_x, stride_row_x, lane);
++    if constexpr (has_fusion) {
++        if (use_gate) {
++            fp4_smallm_cpsrc_init(srcg, (const block_nvfp4 *) fusion.gate, row0, nrows_x, stride_row_x, lane);
++        }
++    }
++
++    // B fragment column and the two D columns of this lane.
++    const bool colb_ok = g < ncols_dst;
++    const bool col0_ok = 2*q     < ncols_dst;
++    const bool col1_ok = 2*q + 1 < ncols_dst;
++    const block_q8_1 * yb  = y + (colb_ok ? g       : 0) * (size_t) stride_col_y;
++    const block_q8_1 * yc0 = y + (col0_ok ? 2*q     : 0) * (size_t) stride_col_y;
++    const block_q8_1 * yc1 = y + (col1_ok ? 2*q + 1 : 0) * (size_t) stride_col_y;
++
++    // Chunk i of this warp is chunk warp + i*nwarps of the matrix; an empty commit keeps the group count uniform.
++    auto issue = [&](const int i, const int st) {
++        const int c = warp + i*nwarps;
++        if (c < nchunks && FP4_SMALLM_EXP != 2) {
++            fp4_smallm_cp_chunk(smem_w_u + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES, srcx, c, lane);
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    fp4_smallm_cp_chunk(smem_w_u + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES, srcg, c, lane);
++                }
++            }
++        }
++        fp4_smallm_cp_async_commit();
++    };
++
++    // The weights do not depend on the preceding kernel, so their first copies overlap the PDL wait for quantize_q8_1.
++#pragma unroll
++    for (int st = 0; st < STAGES - 1; ++st) {
++        issue(st, st);
++    }
++    ggml_cuda_pdl_sync();
++
++    fp4_smallm_acc acc;
++    [[maybe_unused]] fp4_smallm_acc acc_gate;
++
++    const int nmine = warp < nchunks ? (nchunks - warp + nwarps - 1) / nwarps : 0;
++    for (int i = 0; i < nmine; ++i) {
++        const int c   = warp + i*nwarps;
++        const int kb0 = c * FP4_SMALLM_CHUNK;
++
++        // Activation words and scales of the chunk's 4 blocks (small, L1/L2 resident; issued before the wait).
++        int   b[FP4_SMALLM_CHUNK][4];
++        float as0[FP4_SMALLM_CHUNK][2], as1[FP4_SMALLM_CHUNK][2];
++#pragma unroll
++        for (int p = 0; p < FP4_SMALLM_CHUNK; ++p) {
++            const int kb = kb0 + p;
++#pragma unroll
++            for (int s = 0; s < 4; ++s) {
++                b[p][s] = (FP4_SMALLM_EXP == 3) ? (kb*4 + s)*0x01010101 : colb_ok ? get_int_b4(yb[2*kb + s/2].qs, (s % 2)*4 + q) : 0;
++            }
++#pragma unroll
++            for (int h = 0; h < 2; ++h) {
++                as0[p][h] = (FP4_SMALLM_EXP == 3) ? 1.0f : col0_ok ? __low2float(yc0[2*kb + h].ds) : 0.0f;
++                as1[p][h] = (FP4_SMALLM_EXP == 3) ? 1.0f : col1_ok ? __low2float(yc1[2*kb + h].ds) : 0.0f;
++            }
++        }
++
++        fp4_smallm_cp_async_wait<STAGES - 2>();   // this lane's copies of chunk i have landed
++        __syncwarp();                              // ... and everyone's; all lanes are also done with stage (i-1) % STAGES
++        issue(i + STAGES - 1, (i + STAGES - 1) % STAGES);
++
++        const int st = i % STAGES;
++        const uint32_t * sw  = (const uint32_t *) (smem_w + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES);
++        [[maybe_unused]] const uint32_t * swg = (const uint32_t *) (smem_w + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES);
++#pragma unroll
++        for (int p = 0; p < FP4_SMALLM_CHUNK; ++p) {
++            fp4_smallm_wstage w;
++            fp4_smallm_load_smem(w, sw, p, g, q);
++#if FP4_SMALLM_EXP == 1
++            acc.x[0] += __int_as_float(w.ua[0] ^ w.ub[1] ^ w.ua[2] ^ w.ub[3] ^ b[p][0] ^ b[p][3] ^ (int) w.da ^ (int) w.db) + as0[p][0]*as1[p][1];
++#else
++            fp4_smallm_block(acc, w, b[p], as0[p], as1[p], q);
++#endif
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    fp4_smallm_wstage wg;
++                    fp4_smallm_load_smem(wg, swg, p, g, q);
++                    fp4_smallm_block(acc_gate, wg, b[p], as0[p], as1[p], q);
++                }
++            }
++        }
++    }
++    fp4_smallm_cp_async_wait<0>();
++
++    // All global reads of vx/vy/gate are done; let the next kernel in the stream start its prologue.
++    ggml_cuda_pdl_lc();
++
++    fp4_smallm_epilogue<nwarps, has_fusion>(acc, acc_gate, fusion, use_gate, dst, row0, nrows_x, ncols_dst, stride_col_dst);
++#else
++    GGML_UNUSED_VARS(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst);
++    NO_DEVICE_CODE;
++#endif // defined(BLACKWELL_MMA_AVAILABLE) && defined(CP_ASYNC_AVAILABLE)
++}
++
++// 16-byte cp.async needs 16-byte aligned sources: the weight base, each row (stride_row_x blocks of 36 bytes) and each
++// chunk (4 blocks), and whole chunks only.
++static bool fp4_smallm_cp_async_ok(const void * vx, const void * gate, int ncols_x, int stride_row_x) {
++    const bool aligned = (reinterpret_cast<uintptr_t>(vx) % 16 == 0) && (gate == nullptr || reinterpret_cast<uintptr_t>(gate) % 16 == 0);
++    return aligned && stride_row_x % FP4_SMALLM_CHUNK == 0 && (ncols_x / QK_NVFP4) % FP4_SMALLM_CHUNK == 0;
++}
++
++template <int nwarps, bool has_fusion>
++static void fp4_smallm_launch_cp(
++        const void * vx, const void * vy, const ggml_cuda_mm_fusion_args_device & fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst, cudaStream_t stream) {
++    constexpr int NSTREAMS = has_fusion ? 2 : 1;
++    const int nbytes_shared = nwarps * FP4_SMALLM_STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES;
++    CUDA_SET_SHARED_MEMORY_LIMIT((fp4_smallm_w4a8_cp_kernel<nwarps, has_fusion>), nbytes_shared);
++    const dim3 block_nums((nrows_x + FP4_SMALLM_ROWS - 1) / FP4_SMALLM_ROWS, 1, 1);
++    const dim3 block_dims(WARP_SIZE, nwarps, 1);
++    const ggml_cuda_kernel_launch_params lp(block_nums, block_dims, nbytes_shared, stream);
++    ggml_cuda_kernel_launch(fp4_smallm_w4a8_cp_kernel<nwarps, has_fusion>, lp,
++        vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst);
++}
++
++template <int nwarps>
++static void fp4_smallm_launch_direct(
++        const void * vx, const void * vy, const ggml_cuda_mm_fusion_args_device & fusion, bool has_fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst, cudaStream_t stream) {
++    const dim3 block_nums((nrows_x + FP4_SMALLM_ROWS - 1) / FP4_SMALLM_ROWS, 1, 1);
++    const dim3 block_dims(WARP_SIZE, nwarps, 1);
++    const ggml_cuda_kernel_launch_params lp(block_nums, block_dims, 0, stream);
++    if (has_fusion) {
++        ggml_cuda_kernel_launch(fp4_smallm_w4a8_direct_kernel<nwarps, true>, lp,
++            vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst);
++    } else {
++        ggml_cuda_kernel_launch(fp4_smallm_w4a8_direct_kernel<nwarps, false>, lp,
++            vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst);
++    }
++}
++
++void ggml_cuda_fp4_smallm_mul_mat(
++        const void * vx, const void * vy, const ggml_cuda_mm_fusion_args_device & fusion, bool has_fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst, cudaStream_t stream) {
++    GGML_ASSERT(ncols_dst >= 1 && ncols_dst <= 8);
++    GGML_ASSERT(ncols_x % QK_NVFP4 == 0);
++    // nwarps is a function of the weight shape only (never of ncols_dst): more warps per 16-row tile when the grid is
++    // small so enough copies stay in flight, fewer when the row count alone fills the GPU. The fused kernel stages two
++    // weight streams, so it stops at 8 warps (2 x 2 stages x 2304 B x 8 = 72 KB of shared memory).
++    const void * gate = has_fusion ? fusion.gate : nullptr;
++    if (fp4_smallm_cp_async_ok(vx, gate, ncols_x, stride_row_x)) {
++        // Shared memory per block: nwarps x stages x streams x 2304 B must fit the device's opt-in limit (99 KB on
++        // sm_120), so the warp count is capped by it as well as by the row-count rule.
++        const size_t smpbo  = ggml_cuda_info().devices[ggml_cuda_get_device()].smpbo;
++        const int    nstreams = has_fusion ? 2 : 1;
++        int nwarps = nrows_x <= 6144 ? 16 : (nrows_x <= 32768 ? 8 : 4);
++        if (const char * ov = getenv("FP4_UNLOCK_NWARPS")) {       // tuning override (4, 8 or 16)
++            const int v = atoi(ov);
++            if (v == 4 || v == 8 || v == 16) { nwarps = v; }
++        }
++        while (nwarps > 4 && (size_t) nwarps * FP4_SMALLM_STAGES * nstreams * FP4_SMALLM_STAGE_BYTES > smpbo) { nwarps /= 2; }
++        if (has_fusion) {
++            switch (nwarps) {
++                case 16: fp4_smallm_launch_cp<16, true>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++                case  8: fp4_smallm_launch_cp< 8, true>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++                default: fp4_smallm_launch_cp< 4, true>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++            }
++        } else {
++            switch (nwarps) {
++                case 16: fp4_smallm_launch_cp<16, false>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++                case  8: fp4_smallm_launch_cp< 8, false>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++                default: fp4_smallm_launch_cp< 4, false>(vx, vy, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream); break;
++            }
++        }
++        return;
++    }
++    if (nrows_x <= 6144) {
++        fp4_smallm_launch_direct<16>(vx, vy, fusion, has_fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream);
++    } else if (nrows_x <= 32768) {
++        fp4_smallm_launch_direct< 8>(vx, vy, fusion, has_fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream);
++    } else {
++        fp4_smallm_launch_direct< 4>(vx, vy, fusion, has_fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, stream);
++    }
++}
++
++// =====================================================================================================================
++// v4: block-scaled FP4 tensor-core path (W4A4 x T residual terms). FINDINGS "Phase 3 kernel v4".
++//
++// The int8 kernels above are issue bound at M = 1: the no-compute floor of the same copy pipeline is 15.6 us on the
++// 17408x5120 FFN shape, the int8 kernel 27 us (ablation table in FINDINGS). v4 therefore moves the arithmetic to the
++// Blackwell block-scaled MMA (mma.m16n8k64 kind::mxf4nvf4, e2m1 x e2m1, ue4m3 scales, fp32 accumulate), one
++// instruction per 16 rows x 64 k per activation term, on the raw NVFP4 weight words staged by cp.async.
++//
++// Activations are quantized to NVFP4 by a residual expansion y ~= sum_t y_t: y_0 is the NVFP4 quantization of y
++// (per-column fp32 scale, per-16 UE4M3 scale, E2M1 nibbles, the quantize_mmq_nvfp4 recipe), y_1 the quantization of
++// y - y_0, and so on. T = 1 is plain W4A4; T = 3 puts the activation error below the weight's. The GEMM accumulates
++// each term into its own fp32 tile and combines them with the column scales at the end.
++//
++// Activation buffer (one per MUL_MAT, from the pool; written by fp4_smallm_v4_quantize_kernel, read by the GEMM):
++//   [0, hdr)                 fp32 column scales cs[(seg*T + t)*8 + col] per 2048-k segment seg, T <= 4; hdr = that
++//                            table rounded up to 128 B
++//   hdr + kb*(256T + 128)    record of 64-k block kb, laid out for the B fragment loads: for column g, lane q and term
++//                            t the two words (ggml NVFP4 words q and 4+q of the block, see the fragment notes at the
++//                            top) at byte (g*4 + q)*8T + 8t, then at byte 256T + 16g + 4t the UE4M3 scale word of
++//                            (column g, term t), byte s = sub-block s
++//   then, 128-B aligned      split-K counters: one int per 64-row group, zeroed by the quantizer every call
++//   then, 128-B aligned      split-K partials [split][row group][warp][lane][NSTREAMS*4] floats
++// Columns >= ncols_dst are all zero, so the GEMM never branches on ncols_dst.
++//
++// Quantizer: block (seg, col) of 128 threads, one 16-element group per thread per term, so a block owns a 2048-k
++// segment of one column. The fp32 column scale is per (segment, column, term) instead of per column: the block reduces
++// the amax of the values it already holds, there is no column-wide pass and no grid-wide reduction, and the GEMM
++// applies the scale per 256-k chunk (fresh MMA accumulator per chunk, fp32 FMA into the running sum, fixed order).
++// Terms t >= 1 use cs_t = cs_0 / 4^t, which the residual bound (|y - y_0| <= 0.18 |y|max per term with the scale
++// search) keeps inside the E2M1 x UE4M3 range.
++//
++// GEMM: a block is 4 warps x 16 rows = 64 rows; the 4 warps walk the same k range (the block's split) in the same
++// order, so a record is fetched from L2 once per block and hits L1 for the other three warps. The number of splits is
++// a function of the weight shape only, and the partial sums are combined by the last block of a row group in split
++// order 0..ksplit-1: the fp32 sequence of an output element is fixed by (shape, T) and never by ncols_dst.
++#if defined(BLACKWELL_MMA_AVAILABLE) && defined(CP_ASYNC_AVAILABLE) && CUDART_VERSION >= 12080
++#define FP4_SMALLM_V4_AVAILABLE
++#endif
++
++#define FP4_SMALLM_V4_WARPS    4
++#define FP4_SMALLM_V4_ROWS     (FP4_SMALLM_V4_WARPS * FP4_SMALLM_ROWS)   // 64 rows per block
++// Ablation switches for the v4 GEMM (timing experiments only, results are wrong): bit 1 = skip the B (activation)
++// loads, bit 2 = skip the MMAs, bit 4 = skip the weight copies (cp.async), bit 8 = one chunk per block only.
++#ifndef FP4_SMALLM_V4_EXP
++#define FP4_SMALLM_V4_EXP 0
++#endif
++#define FP4_SMALLM_V4_REC(T)   (256*(T) + 128)                           // one 64-k block record
++#define FP4_SMALLM_V4_QTHREADS 128                                       // quantizer block = 128 groups = 2048 k = one segment
++#define FP4_SMALLM_V4_SEG_K    (FP4_SMALLM_V4_QTHREADS * QK_NVFP4_SUB)   // 2048
++#define FP4_SMALLM_V4_SEG_CHUNKS (FP4_SMALLM_V4_SEG_K / (QK_NVFP4 * FP4_SMALLM_CHUNK))   // 4 chunks of 256 k per segment
++#define FP4_SMALLM_V4_MAXK     32768
++#define FP4_SMALLM_V4_CTA_TARGET 480                                     // GEMM blocks wanted per launch (170 SMs x 3, one wave)
++static_assert(FP4_SMALLM_V4_SEG_K % (QK_NVFP4 * FP4_SMALLM_CHUNK) == 0, "fp4-smallm v4: segment must hold whole chunks");
++
++static __host__ __device__ __forceinline__ int fp4_smallm_v4_nseg(const int ncols_x) {
++    return (ncols_x + FP4_SMALLM_V4_SEG_K - 1) / FP4_SMALLM_V4_SEG_K;
++}
++// Bytes of the per-(segment, term, column) scale table at the start of the activation buffer.
++static __host__ __device__ __forceinline__ int fp4_smallm_v4_hdr(const int ncols_x, const int T) {
++    return (fp4_smallm_v4_nseg(ncols_x) * T * 8 * (int) sizeof(float) + 127) / 128 * 128;
++}
++
++struct fp4_smallm_v4_layout {
++    size_t off_counters;
++    size_t off_partials;
++    size_t bytes_total;
++};
++
++static fp4_smallm_v4_layout fp4_smallm_v4_get_layout(const int ncols_x, const int nrows_x, const int T, const int ksplit, const bool has_fusion) {
++    fp4_smallm_v4_layout L;
++    const size_t nblocks = ncols_x / QK_NVFP4;
++    const size_t nrg     = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
++    const size_t bytes_y = fp4_smallm_v4_hdr(ncols_x, T) + nblocks * FP4_SMALLM_V4_REC(T);
++    L.off_counters = GGML_PAD(bytes_y, 128);
++    L.off_partials = GGML_PAD(L.off_counters + nrg * sizeof(int), 128);
++    const size_t partials = ksplit > 1 ? (size_t) ksplit * nrg * FP4_SMALLM_V4_ROWS * 8 * (has_fusion ? 2 : 1) * sizeof(float) : 0;
++    L.bytes_total  = L.off_partials + partials;
++    return L;
++}
++
++#ifdef FP4_SMALLM_V4_AVAILABLE
++// Squared error of a 16-element group quantized with the UE4M3 scale `scale` (fp32 value of the code / 2, as
++// ggml_cuda_ue4m3_to_fp32 returns it); the same function as quantize.cu's nvfp4_native_scale_error.
++static __device__ __forceinline__ float fp4_smallm_v4_scale_error(
++        const float vals[QK_NVFP4_SUB], const float inv_col_scale, const float inv_scale, const float scale) {
++    const float scale_dequant = 2.0f * scale;
++    float err = 0.0f;
++#pragma unroll
++    for (int k = 0; k < QK_NVFP4_SUB; k += 4) {
++        const float v0 = vals[k + 0] * inv_col_scale;
++        const float v1 = vals[k + 1] * inv_col_scale;
++        const float v2 = vals[k + 2] * inv_col_scale;
++        const float v3 = vals[k + 3] * inv_col_scale;
++
++        const __nv_fp4x4_e2m1 q(make_float4(v0 * inv_scale, v1 * inv_scale, v2 * inv_scale, v3 * inv_scale));
++        const __nv_fp4x4_storage_t q_storage = q.__x;
++        const __nv_fp4x2_storage_t q_lo = static_cast<__nv_fp4x2_storage_t>(q_storage);
++        const __nv_fp4x2_storage_t q_hi = static_cast<__nv_fp4x2_storage_t>(q_storage >> 8U);
++
++        const float2 dq_lo = __half22float2(static_cast<__half2>(__nv_cvt_fp4x2_to_halfraw2(q_lo, __NV_E2M1)));
++        const float2 dq_hi = __half22float2(static_cast<__half2>(__nv_cvt_fp4x2_to_halfraw2(q_hi, __NV_E2M1)));
++
++        const float err0 = fabsf(v0) - fabsf(dq_lo.x) * scale_dequant;
++        const float err1 = fabsf(v1) - fabsf(dq_lo.y) * scale_dequant;
++        const float err2 = fabsf(v2) - fabsf(dq_hi.x) * scale_dequant;
++        const float err3 = fabsf(v3) - fabsf(dq_hi.y) * scale_dequant;
++
++        err = fmaf(err0, err0, err);
++        err = fmaf(err1, err1, err);
++        err = fmaf(err2, err2, err);
++        err = fmaf(err3, err3, err);
++    }
++    return err;
++}
++
++// The 8 E2M1 values of one packed word, in nibble order: out[2b] = low nibble of byte b, out[2b+1] = high nibble.
++static __device__ __forceinline__ void fp4_smallm_v4_dequant_word(const uint32_t w, float out[8]) {
++#pragma unroll
++    for (int b = 0; b < 4; ++b) {
++        const __nv_fp4x2_storage_t st = static_cast<__nv_fp4x2_storage_t>((w >> (8*b)) & 0xffu);
++        const float2 f = __half22float2(static_cast<__half2>(__nv_cvt_fp4x2_to_halfraw2(st, __NV_E2M1)));
++        out[2*b]     = f.x;
++        out[2*b + 1] = f.y;
++    }
++}
++#endif // FP4_SMALLM_V4_AVAILABLE
++
++// Block (seg, col): groups 128*seg .. 128*seg+127 (segment seg) of column col (always 8 columns; columns >= ncols_dst
++// write zeros), T residual passes. Column c of x starts at x + c*stride_col_x (floats, 16-byte aligned);
++// ncols_x <= FP4_SMALLM_V4_MAXK.
++template <int T>
++__launch_bounds__(FP4_SMALLM_V4_QTHREADS, 4)
++static __global__ void fp4_smallm_v4_quantize_kernel(
++        const float * __restrict__ x, const int stride_col_x, const int ncols_x, const int ncols_dst,
++        char * __restrict__ ybuf, int * __restrict__ counters, const int ncounters) {
++#ifdef FP4_SMALLM_V4_AVAILABLE
++    constexpr int NW = FP4_SMALLM_V4_QTHREADS / WARP_SIZE;
++    const int seg  = blockIdx.x;
++    const int col  = blockIdx.y;
++    const int tid  = threadIdx.x;
++    const int lane = tid % WARP_SIZE;
++    const int warp = tid / WARP_SIZE;
++    const int ngroups = ncols_x / QK_NVFP4_SUB;
++    const int grp     = seg*FP4_SMALLM_V4_QTHREADS + tid;
++    const bool col_ok = col < ncols_dst;
++    const bool ok     = col_ok && grp < ngroups;
++
++    __shared__ float red[NW];
++
++    ggml_cuda_pdl_lc();     // the GEMM only touches the weights before its own pdl_sync
++    ggml_cuda_pdl_sync();   // x is produced by the preceding kernel; the counters may still be read by the previous GEMM
++
++    if (seg == 0 && col == 0) {
++        for (int i = tid; i < ncounters; i += FP4_SMALLM_V4_QTHREADS) {
++            counters[i] = 0;
++        }
++    }
++
++    const float * xc = x + (size_t) (col_ok ? col : 0) * stride_col_x;
++
++    // This thread's group (zeros when the column or the group is out of range).
++    float r[QK_NVFP4_SUB];
++    float amax = 0.0f;
++    {
++        const float4 * src = (const float4 *) (xc + (ok ? grp : 0) * QK_NVFP4_SUB);
++#pragma unroll
++        for (int v = 0; v < QK_NVFP4_SUB/4; ++v) {
++            const float4 f = ok ? src[v] : make_float4(0.0f, 0.0f, 0.0f, 0.0f);
++            r[4*v + 0] = f.x;
++            r[4*v + 1] = f.y;
++            r[4*v + 2] = f.z;
++            r[4*v + 3] = f.w;
++            amax = fmaxf(amax, fmaxf(fmaxf(fabsf(f.x), fabsf(f.y)), fmaxf(fabsf(f.z), fabsf(f.w))));
++        }
++    }
++
++    // Term-0 scale of (segment, column) from the block's own values.
++    amax = warp_reduce_max<WARP_SIZE>(amax);
++    if (lane == 0) {
++        red[warp] = amax;
++    }
++    __syncthreads();
++    amax = red[0];
++#pragma unroll
++    for (int w = 1; w < NW; ++w) {
++        amax = fmaxf(amax, red[w]);
++    }
++    const float col_scale0 = amax / (6.0f * 448.0f);
++    if (tid == 0) {
++        float cs = col_scale0;
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++            ((float *) ybuf)[(seg*T + t)*8 + col] = cs;
++            cs *= 0.25f;
++        }
++    }
++    if (grp >= ngroups) {
++        return;
++    }
++    const int kb = grp / 4;                  // 64-k block
++    const int sb = grp % 4;                  // sub-block inside it
++    char * rec = ybuf + fp4_smallm_v4_hdr(ncols_x, T) + (size_t) kb * FP4_SMALLM_V4_REC(T);
++    // ggml words 2sb (q0) and 2sb+1 (q1) of the block are B.x[(2sb)/4] of lane (2sb)%4 and B.x[(2sb+1)/4] of lane (2sb+1)%4.
++    uint32_t * q0_dst = (uint32_t *) (rec + (col*4 + (2*sb    ) % 4) * 8*T + 4*((2*sb    ) / 4));
++    uint32_t * q1_dst = (uint32_t *) (rec + (col*4 + (2*sb + 1) % 4) * 8*T + 4*((2*sb + 1) / 4));
++    uint8_t  * sc_dst = (uint8_t  *) (rec + 256*T + 16*col + sb);
++
++    float col_scale = col_scale0;
++#pragma unroll
++    for (int t = 0; t < T; ++t) {
++        const float inv_col_scale = col_scale > 0.0f ? 1.0f / col_scale : 0.0f;
++        float amax_sub = 0.0f;
++#pragma unroll
++        for (int k = 0; k < QK_NVFP4_SUB; ++k) {
++            amax_sub = fmaxf(amax_sub, fabsf(r[k] * inv_col_scale));
++        }
++
++        // UE4M3 sub-block scale: nearest code, then the +-1/+-2 neighbours, keep the one with the least error
++        // (quantize_mmq_nvfp4's search).
++        static constexpr int test_offsets[5] = { 0, -1, 1, -2, 2 };
++        const int first_fp8_code = (int) ggml_cuda_fp32_to_ue4m3(amax_sub / 6.0f);
++        uint8_t fp8_code       = (uint8_t) first_fp8_code;
++        float   subblock_scale = ggml_cuda_ue4m3_to_fp32(fp8_code);
++        float   best_err       = fp4_smallm_v4_scale_error(r, inv_col_scale, subblock_scale > 0.0f ? 0.5f / subblock_scale : 0.0f, subblock_scale);
++#pragma unroll
++        for (int o = 1; o < 5; ++o) {
++            const int test_code = first_fp8_code + test_offsets[o];
++            if (test_code < 0 || test_code > 0x7e) {
++                continue;
++            }
++            const float test_scale = ggml_cuda_ue4m3_to_fp32((uint8_t) test_code);
++            const float cur_err    = fp4_smallm_v4_scale_error(r, inv_col_scale, test_scale > 0.0f ? 0.5f / test_scale : 0.0f, test_scale);
++            if (cur_err < best_err) {
++                best_err       = cur_err;
++                fp8_code       = (uint8_t) test_code;
++                subblock_scale = test_scale;
++            }
++        }
++        const float inv_scale = subblock_scale > 0.0f ? 0.5f / subblock_scale : 0.0f;
++        const float s = inv_col_scale * inv_scale;
++
++        // ggml word order: word 0 byte b = (k b, k 8+b), word 1 byte b = (k 4+b, k 12+b), low nibble first.
++        __nv_fp4x4_e2m1 q0_lo(make_float4(r[0] * s, r[8]  * s, r[1] * s, r[9]  * s));
++        __nv_fp4x4_e2m1 q0_hi(make_float4(r[2] * s, r[10] * s, r[3] * s, r[11] * s));
++        __nv_fp4x4_e2m1 q1_lo(make_float4(r[4] * s, r[12] * s, r[5] * s, r[13] * s));
++        __nv_fp4x4_e2m1 q1_hi(make_float4(r[6] * s, r[14] * s, r[7] * s, r[15] * s));
++        const char2 q0_lo_c = *reinterpret_cast<char2 *>(&q0_lo);
++        const char2 q0_hi_c = *reinterpret_cast<char2 *>(&q0_hi);
++        const char2 q1_lo_c = *reinterpret_cast<char2 *>(&q1_lo);
++        const char2 q1_hi_c = *reinterpret_cast<char2 *>(&q1_hi);
++        const uint32_t q0 = uint32_t(uint8_t(q0_lo_c.x)) | (uint32_t(uint8_t(q0_lo_c.y)) <<  8) |
++                           (uint32_t(uint8_t(q0_hi_c.x)) << 16) | (uint32_t(uint8_t(q0_hi_c.y)) << 24);
++        const uint32_t q1 = uint32_t(uint8_t(q1_lo_c.x)) | (uint32_t(uint8_t(q1_lo_c.y)) <<  8) |
++                           (uint32_t(uint8_t(q1_hi_c.x)) << 16) | (uint32_t(uint8_t(q1_hi_c.y)) << 24);
++
++        q0_dst[2*t] = q0;
++        q1_dst[2*t] = q1;
++        sc_dst[4*t] = fp8_code;
++
++        if (t + 1 < T) {
++            // residual for the next term: value - col_scale * e4m3(code) * e2m1(nibble), the product the MMA forms
++            const float dq_scale = col_scale * 2.0f * subblock_scale;
++            float d0[8], d1[8];
++            fp4_smallm_v4_dequant_word(q0, d0);
++            fp4_smallm_v4_dequant_word(q1, d1);
++#pragma unroll
++            for (int b = 0; b < 4; ++b) {
++                r[b]      = fmaf(-dq_scale, d0[2*b],     r[b]);
++                r[8 + b]  = fmaf(-dq_scale, d0[2*b + 1], r[8 + b]);
++                r[4 + b]  = fmaf(-dq_scale, d1[2*b],     r[4 + b]);
++                r[12 + b] = fmaf(-dq_scale, d1[2*b + 1], r[12 + b]);
++            }
++            col_scale *= 0.25f;
++        }
++    }
++#else
++    GGML_UNUSED_VARS(x, stride_col_x, ncols_x, ncols_dst, ybuf, counters, ncounters);
++    NO_DEVICE_CODE;
++#endif // FP4_SMALLM_V4_AVAILABLE
++}
++
++template <int T, bool has_fusion>
++__launch_bounds__(FP4_SMALLM_V4_WARPS*WARP_SIZE, 3)
++static __global__ void fp4_smallm_v4_kernel(
++        const void * __restrict__ vx, const char * __restrict__ ybuf, const ggml_cuda_mm_fusion_args_device fusion,
++        float * __restrict__ dst, const int ncols_x, const int nrows_x, const int ncols_dst,
++        const int stride_row_x, const int stride_col_dst, int * __restrict__ counters, float * __restrict__ partials) {
++#ifdef FP4_SMALLM_V4_AVAILABLE
++    constexpr int STAGES    = FP4_SMALLM_STAGES;
++    constexpr int NSTREAMS  = has_fusion ? 2 : 1;
++    constexpr int WARP_SMEM = STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES;
++    constexpr int nwarps    = FP4_SMALLM_V4_WARPS;
++
++    const int warp = threadIdx.y;
++    const int lane = threadIdx.x;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++
++    const int rg      = blockIdx.x;                        // 64-row group
++    const int row0    = rg * FP4_SMALLM_V4_ROWS + warp * FP4_SMALLM_ROWS;
++    const int nchunks = ncols_x / (QK_NVFP4 * FP4_SMALLM_CHUNK);
++    const int ksplit  = gridDim.y;
++    const int c0      = (int) ((int64_t) nchunks *  blockIdx.y      / ksplit);
++    const int c1      = (int) ((int64_t) nchunks * (blockIdx.y + 1) / ksplit);
++    const int nmine   = c1 - c0;
++
++    const block_nvfp4 * x = (const block_nvfp4 *) vx;
++
++    bool use_gate = false;
++    if constexpr (has_fusion) {
++        use_gate = fusion.gate != nullptr;
++    }
++
++    extern __shared__ char fp4_smallm_smem[];
++    char * smem_w = fp4_smallm_smem + warp * WARP_SMEM;
++    const unsigned smem_w_u = ggml_cuda_cvta_generic_to_shared(smem_w);
++
++    fp4_smallm_cpsrc srcx;
++    [[maybe_unused]] fp4_smallm_cpsrc srcg;
++    fp4_smallm_cpsrc_init(srcx, x, row0, nrows_x, stride_row_x, lane);
++    if constexpr (has_fusion) {
++        if (use_gate) {
++            fp4_smallm_cpsrc_init(srcg, (const block_nvfp4 *) fusion.gate, row0, nrows_x, stride_row_x, lane);
++        }
++    }
++
++    auto issue = [&](const int i, const int st) {
++#if FP4_SMALLM_V4_EXP & 4
++        if (false) {
++#else
++        if (i < nmine) {
++#endif
++            fp4_smallm_cp_chunk(smem_w_u + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES, srcx, c0 + i, lane);
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    fp4_smallm_cp_chunk(smem_w_u + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES, srcg, c0 + i, lane);
++                }
++            }
++        }
++        fp4_smallm_cp_async_commit();
++    };
++
++    // The weights do not depend on the quantizer, so the first copies overlap the PDL wait.
++#pragma unroll
++    for (int st = 0; st < STAGES - 1; ++st) {
++        issue(st, st);
++    }
++    ggml_cuda_pdl_sync();
++
++    const char  * recs  = ybuf + fp4_smallm_v4_hdr(ncols_x, T);
++    const float * cstab = (const float *) ybuf;
++
++    fp4_smallm_acc acc;
++    [[maybe_unused]] fp4_smallm_acc acc_gate;
++
++    for (int i = 0; i < nmine; ++i) {
++        const int kb0 = (c0 + i) * FP4_SMALLM_CHUNK;
++
++        // Scales of this lane's two D columns (2q, 2q+1) per term for the chunk's segment, B fragments and scale
++        // words of the chunk's 4 blocks x T terms (column g): all issued before the wait.
++        float cs[T][2];
++        {
++            const float * cseg = cstab + (size_t) ((c0 + i) / FP4_SMALLM_V4_SEG_CHUNKS) * T * 8;
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                const float2 v = *(const float2 *) (cseg + t*8 + 2*q);
++                cs[t][0] = v.x;
++                cs[t][1] = v.y;
++            }
++        }
++        int      b0[FP4_SMALLM_CHUNK][T], b1[FP4_SMALLM_CHUNK][T];
++        uint32_t sb[FP4_SMALLM_CHUNK][T];
++#pragma unroll
++        for (int p = 0; p < FP4_SMALLM_CHUNK; ++p) {
++#if FP4_SMALLM_V4_EXP & 1
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                b0[p][t] = kb0 + p + t; b1[p][t] = kb0 - p; sb[p][t] = 0x3c3c3c3c;
++            }
++#else
++            const char  * rec = recs + (size_t) (kb0 + p) * FP4_SMALLM_V4_REC(T);
++            const uint2 * bq  = (const uint2 *) (rec + (g*4 + q) * 8*T);
++            const uint4   sv  = *(const uint4 *) (rec + 256*T + 16*g);
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                const uint2 v = bq[t];
++                b0[p][t] = (int) v.x;
++                b1[p][t] = (int) v.y;
++                sb[p][t] = t == 0 ? sv.x : (t == 1 ? sv.y : (t == 2 ? sv.z : sv.w));
++            }
++#endif
++        }
++
++        fp4_smallm_cp_async_wait<STAGES - 2>();
++        __syncwarp();
++        issue(i + STAGES - 1, (i + STAGES - 1) % STAGES);
++
++        const int st = i % STAGES;
++        const uint32_t * sw  = (const uint32_t *) (smem_w + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES);
++        [[maybe_unused]] const uint32_t * swg = (const uint32_t *) (smem_w + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES);
++
++        tile<16, 8, float> D[T];
++        [[maybe_unused]] tile<16, 8, float> Dg[T];
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++#pragma unroll
++            for (int l = 0; l < 4; ++l) {
++                D[t].x[l] = 0.0f;
++                if constexpr (has_fusion) {
++                    Dg[t].x[l] = 0.0f;
++                }
++            }
++        }
++#pragma unroll
++        for (int p = 0; p < FP4_SMALLM_CHUNK; ++p) {
++            // A fragment: rows g / g+8, words q and 4+q of block p; the scale word of row g + 8*(lane&1).
++            tile<16, 8, int> A;
++            A.x[0] = (int) sw[36*g       + 9*p + 1 + q];
++            A.x[1] = (int) sw[36*(g + 8) + 9*p + 1 + q];
++            A.x[2] = (int) sw[36*g       + 9*p + 5 + q];
++            A.x[3] = (int) sw[36*(g + 8) + 9*p + 5 + q];
++            const uint32_t sa = sw[36*(g + 8*(lane & 1)) + 9*p];
++            [[maybe_unused]] tile<16, 8, int> Ag;
++            [[maybe_unused]] uint32_t sag = 0;
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    Ag.x[0] = (int) swg[36*g       + 9*p + 1 + q];
++                    Ag.x[1] = (int) swg[36*(g + 8) + 9*p + 1 + q];
++                    Ag.x[2] = (int) swg[36*g       + 9*p + 5 + q];
++                    Ag.x[3] = (int) swg[36*(g + 8) + 9*p + 5 + q];
++                    sag = swg[36*(g + 8*(lane & 1)) + 9*p];
++                }
++            }
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                tile<8, 8, int> B;
++                B.x[0] = b0[p][t];
++                B.x[1] = b1[p][t];
++#if FP4_SMALLM_V4_EXP & 2
++                D[t].x[0] += __int_as_float(A.x[0] ^ B.x[0] ^ (int) sa);
++                D[t].x[1] += __int_as_float(A.x[1] ^ B.x[1] ^ (int) sb[p][t]);
++                D[t].x[2] += __int_as_float(A.x[2]);
++                D[t].x[3] += __int_as_float(A.x[3]);
++#else
++                mma_block_scaled_fp4<GGML_TYPE_NVFP4>(D[t], A, B, sa, sb[p][t]);
++#endif
++                if constexpr (has_fusion) {
++                    if (use_gate) {
++                        mma_block_scaled_fp4<GGML_TYPE_NVFP4>(Dg[t], Ag, B, sag, sb[p][t]);
++                    }
++                }
++            }
++        }
++
++        // Fold the chunk into the running sum, terms in fixed order t = 0..T-1 with the segment's column scales.
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++#pragma unroll
++            for (int l = 0; l < 4; ++l) {
++                acc.x[l] = fmaf(cs[t][l & 1], D[t].x[l], acc.x[l]);
++                if constexpr (has_fusion) {
++                    acc_gate.x[l] = fmaf(cs[t][l & 1], Dg[t].x[l], acc_gate.x[l]);
++                }
++            }
++        }
++    }
++    fp4_smallm_cp_async_wait<0>();
++
++    // All global reads of vx/ybuf/gate are done; the next kernel may start its prologue.
++    ggml_cuda_pdl_lc();
++
++    if (ksplit > 1) {
++        // Deterministic split-K: every block stores its partial tile; the last block of the row group sums the
++        // partials in split order 0..ksplit-1 (its own included, from memory) and runs the epilogue.
++        const size_t lane_off = (((size_t) (blockIdx.y * gridDim.x + rg) * nwarps + warp) * WARP_SIZE + lane) * (4*NSTREAMS);
++        *(float4 *) (partials + lane_off) = make_float4(acc.x[0], acc.x[1], acc.x[2], acc.x[3]);
++        if constexpr (has_fusion) {
++            *(float4 *) (partials + lane_off + 4) = make_float4(acc_gate.x[0], acc_gate.x[1], acc_gate.x[2], acc_gate.x[3]);
++        }
++        __threadfence();
++        __syncthreads();
++        __shared__ int s_last;
++        if (threadIdx.x == 0 && threadIdx.y == 0) {
++            s_last = atomicAdd(&counters[rg], 1) == ksplit - 1;
++        }
++        __syncthreads();
++        if (!s_last) {
++            return;
++        }
++        __threadfence();
++#pragma unroll
++        for (int l = 0; l < 4; ++l) {
++            acc.x[l] = 0.0f;
++            if constexpr (has_fusion) {
++                acc_gate.x[l] = 0.0f;
++            }
++        }
++        for (int s = 0; s < ksplit; ++s) {
++            const size_t off = (((size_t) (s * gridDim.x + rg) * nwarps + warp) * WARP_SIZE + lane) * (4*NSTREAMS);
++            const float4 v = __ldcg((const float4 *) (partials + off));
++            acc.x[0] += v.x; acc.x[1] += v.y; acc.x[2] += v.z; acc.x[3] += v.w;
++            if constexpr (has_fusion) {
++                const float4 vg = __ldcg((const float4 *) (partials + off + 4));
++                acc_gate.x[0] += vg.x; acc_gate.x[1] += vg.y; acc_gate.x[2] += vg.z; acc_gate.x[3] += vg.w;
++            }
++        }
++    }
++
++    fp4_smallm_store<has_fusion>(acc, acc_gate, fusion, use_gate, dst, row0, nrows_x, ncols_dst, stride_col_dst);
++#else
++    GGML_UNUSED_VARS(vx, ybuf, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_dst, counters, partials);
++    NO_DEVICE_CODE;
++#endif // FP4_SMALLM_V4_AVAILABLE
++}
++
++// ---------------------------------------------------------------------------------------------------------------------
++// v5: the v4 GEMM with the activation quantization moved inside the block. There is no quantizer kernel and no
++// activation record in global memory: every block reads the f32 activations of its own k range (8 columns, columns
++// >= ncols_dst are zero), quantizes one 256-k chunk per iteration into a shared-memory B buffer (one 16-element
++// group per thread, T residual terms, a per-(chunk, column, term) fp32 scale) while the next weight chunk streams
++// in through cp.async, and runs the MMAs against that buffer. The per-element arithmetic is the v4 quantizer's;
++// the column scale is now per 256-k chunk instead of per 2048-k segment.
++//
++// Shared memory per block: 4 warps x STAGES x NSTREAMS x 2304 B of weights, then two B buffers of
++// FP4_SMALLM_V5_BBUF_WORDS(T) words each: bq[t][kb][col][8] (word w of (col, kb, t) at 2*(w%4) + w/4, so lane q
++// reads its two words as one uint2), bs[t][kb][col] (4 UE4M3 sub-block scales), cs[t][col] (fp32 column scales).
++//
++// Split-K uses a persistent per-(device, stream) counter array that the last block of each row group resets to
++// zero, so no memset or quantizer launch precedes the GEMM (fp4_smallm_v5_counters).
++#define FP4_SMALLM_V5_BQ_WORDS(T)   ((T) * FP4_SMALLM_CHUNK * 8 * 8)
++#define FP4_SMALLM_V5_BS_WORDS(T)   ((T) * FP4_SMALLM_CHUNK * 8)
++#define FP4_SMALLM_V5_CS_WORDS(T)   ((T) * 8)
++#define FP4_SMALLM_V5_BBUF_WORDS(T) (FP4_SMALLM_V5_BQ_WORDS(T) + FP4_SMALLM_V5_BS_WORDS(T) + FP4_SMALLM_V5_CS_WORDS(T))
++#define FP4_SMALLM_V5_THREADS       (FP4_SMALLM_V4_WARPS * WARP_SIZE)
++#define FP4_SMALLM_V5_MAX_COUNTERS  (1 << 16)
++#ifndef FP4_SMALLM_V5_NSEARCH
++#define FP4_SMALLM_V5_NSEARCH 5   // 1 disables the scale offset search (diagnostic; see FINDINGS)
++#endif
++static_assert(FP4_SMALLM_V5_THREADS == FP4_SMALLM_CHUNK * 4 * 8, "fp4-smallm v5: one 16-element group per thread per chunk");
++static_assert(FP4_SMALLM_V5_BBUF_WORDS(1) % 4 == 0, "fp4-smallm v5: B buffers stay 16-byte aligned");
++
++#ifdef FP4_SMALLM_V4_AVAILABLE
++// Quantize one 16-element group r[] (column c, chunk-local block kb, sub-block s) with the column scale
++// col_scale0 into the B buffer (T terms); the v4 quantizer's arithmetic.
++template <int T>
++static __device__ __forceinline__ void fp4_smallm_v5_quantize_group(
++        float r[QK_NVFP4_SUB], float col_scale, uint32_t * __restrict__ bq, uint32_t * __restrict__ bs,
++        const int kb, const int s, const int c) {
++    // ggml words 2s (q0) and 2s+1 (q1) of the block: lane (2s)%4 word (2s)/4 and lane (2s+1)%4 word (2s+1)/4.
++    const int i0 = 2*((2*s    ) % 4) + (2*s    ) / 4;
++    const int i1 = 2*((2*s + 1) % 4) + (2*s + 1) / 4;
++#pragma unroll
++    for (int t = 0; t < T; ++t) {
++        const float inv_col_scale = col_scale > 0.0f ? 1.0f / col_scale : 0.0f;
++        float amax_sub = 0.0f;
++#pragma unroll
++        for (int k = 0; k < QK_NVFP4_SUB; ++k) {
++            amax_sub = fmaxf(amax_sub, fabsf(r[k] * inv_col_scale));
++        }
++        static constexpr int test_offsets[5] = { 0, -1, 1, -2, 2 };
++        const int first_fp8_code = (int) ggml_cuda_fp32_to_ue4m3(amax_sub / 6.0f);
++        uint8_t fp8_code       = (uint8_t) first_fp8_code;
++        float   subblock_scale = ggml_cuda_ue4m3_to_fp32(fp8_code);
++        float   best_err       = fp4_smallm_v4_scale_error(r, inv_col_scale, subblock_scale > 0.0f ? 0.5f / subblock_scale : 0.0f, subblock_scale);
++#pragma unroll
++        for (int o = 1; o < FP4_SMALLM_V5_NSEARCH; ++o) {
++            const int test_code = first_fp8_code + test_offsets[o];
++            if (test_code < 0 || test_code > 0x7e) {
++                continue;
++            }
++            const float test_scale = ggml_cuda_ue4m3_to_fp32((uint8_t) test_code);
++            const float cur_err    = fp4_smallm_v4_scale_error(r, inv_col_scale, test_scale > 0.0f ? 0.5f / test_scale : 0.0f, test_scale);
++            if (cur_err < best_err) {
++                best_err       = cur_err;
++                fp8_code       = (uint8_t) test_code;
++                subblock_scale = test_scale;
++            }
++        }
++        const float inv_scale = subblock_scale > 0.0f ? 0.5f / subblock_scale : 0.0f;
++        const float sc = inv_col_scale * inv_scale;
++
++        __nv_fp4x4_e2m1 q0_lo(make_float4(r[0] * sc, r[8]  * sc, r[1] * sc, r[9]  * sc));
++        __nv_fp4x4_e2m1 q0_hi(make_float4(r[2] * sc, r[10] * sc, r[3] * sc, r[11] * sc));
++        __nv_fp4x4_e2m1 q1_lo(make_float4(r[4] * sc, r[12] * sc, r[5] * sc, r[13] * sc));
++        __nv_fp4x4_e2m1 q1_hi(make_float4(r[6] * sc, r[14] * sc, r[7] * sc, r[15] * sc));
++        const char2 q0_lo_c = *reinterpret_cast<char2 *>(&q0_lo);
++        const char2 q0_hi_c = *reinterpret_cast<char2 *>(&q0_hi);
++        const char2 q1_lo_c = *reinterpret_cast<char2 *>(&q1_lo);
++        const char2 q1_hi_c = *reinterpret_cast<char2 *>(&q1_hi);
++        const uint32_t q0 = uint32_t(uint8_t(q0_lo_c.x)) | (uint32_t(uint8_t(q0_lo_c.y)) <<  8) |
++                           (uint32_t(uint8_t(q0_hi_c.x)) << 16) | (uint32_t(uint8_t(q0_hi_c.y)) << 24);
++        const uint32_t q1 = uint32_t(uint8_t(q1_lo_c.x)) | (uint32_t(uint8_t(q1_lo_c.y)) <<  8) |
++                           (uint32_t(uint8_t(q1_hi_c.x)) << 16) | (uint32_t(uint8_t(q1_hi_c.y)) << 24);
++
++        uint32_t * bqt = bq + ((t*FP4_SMALLM_CHUNK + kb)*8 + c)*8;
++        bqt[i0] = q0;
++        bqt[i1] = q1;
++        ((uint8_t *) (bs + (t*FP4_SMALLM_CHUNK + kb)*8 + c))[s] = fp8_code;
++
++        if (t + 1 < T) {
++            const float dq_scale = col_scale * 2.0f * subblock_scale;
++            float d0[8], d1[8];
++            fp4_smallm_v4_dequant_word(q0, d0);
++            fp4_smallm_v4_dequant_word(q1, d1);
++#pragma unroll
++            for (int b = 0; b < 4; ++b) {
++                r[b]      = fmaf(-dq_scale, d0[2*b],     r[b]);
++                r[8 + b]  = fmaf(-dq_scale, d0[2*b + 1], r[8 + b]);
++                r[4 + b]  = fmaf(-dq_scale, d1[2*b],     r[4 + b]);
++                r[12 + b] = fmaf(-dq_scale, d1[2*b + 1], r[12 + b]);
++            }
++            col_scale *= 0.25f;
++        }
++    }
++}
++#endif // FP4_SMALLM_V4_AVAILABLE
++
++template <int T, bool has_fusion>
++__launch_bounds__(FP4_SMALLM_V5_THREADS, 3)
++static __global__ void fp4_smallm_v5_kernel(
++        const void * __restrict__ vx, const float * __restrict__ y, const int stride_col_y,
++        const ggml_cuda_mm_fusion_args_device fusion, float * __restrict__ dst,
++        const int ncols_x, const int nrows_x, const int ncols_dst, const int stride_row_x, const int stride_col_dst,
++        int * __restrict__ counters, float * __restrict__ partials) {
++#ifdef FP4_SMALLM_V4_AVAILABLE
++    constexpr int STAGES     = FP4_SMALLM_STAGES;
++    constexpr int NSTREAMS   = has_fusion ? 2 : 1;
++    constexpr int WARP_SMEM  = STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES;
++    constexpr int nwarps     = FP4_SMALLM_V4_WARPS;
++    constexpr int BBUF_WORDS = FP4_SMALLM_V5_BBUF_WORDS(T);
++    constexpr int BQ_WORDS   = FP4_SMALLM_V5_BQ_WORDS(T);
++    constexpr int BS_WORDS   = FP4_SMALLM_V5_BS_WORDS(T);
++
++    const int warp = threadIdx.y;
++    const int lane = threadIdx.x;
++    const int tid  = warp*WARP_SIZE + lane;
++    const int g    = lane / 4;
++    const int q    = lane % 4;
++
++    const int rg      = blockIdx.x;                        // 64-row group
++    const int row0    = rg * FP4_SMALLM_V4_ROWS + warp * FP4_SMALLM_ROWS;
++    const int nchunks = ncols_x / (QK_NVFP4 * FP4_SMALLM_CHUNK);
++    const int ksplit  = gridDim.y;
++    const int c0      = (int) ((int64_t) nchunks *  blockIdx.y      / ksplit);
++    const int c1      = (int) ((int64_t) nchunks * (blockIdx.y + 1) / ksplit);
++    const int nmine   = c1 - c0;
++
++    const block_nvfp4 * x = (const block_nvfp4 *) vx;
++
++    bool use_gate = false;
++    if constexpr (has_fusion) {
++        use_gate = fusion.gate != nullptr;
++    }
++
++    extern __shared__ char fp4_smallm_smem[];
++    char     * smem_w   = fp4_smallm_smem + warp * WARP_SMEM;
++    uint32_t * bbuf     = (uint32_t *) (fp4_smallm_smem + nwarps * WARP_SMEM);
++    const unsigned smem_w_u = ggml_cuda_cvta_generic_to_shared(smem_w);
++
++    fp4_smallm_cpsrc srcx;
++    [[maybe_unused]] fp4_smallm_cpsrc srcg;
++    fp4_smallm_cpsrc_init(srcx, x, row0, nrows_x, stride_row_x, lane);
++    if constexpr (has_fusion) {
++        if (use_gate) {
++            fp4_smallm_cpsrc_init(srcg, (const block_nvfp4 *) fusion.gate, row0, nrows_x, stride_row_x, lane);
++        }
++    }
++
++    auto issue = [&](const int i, const int st) {
++#if FP4_SMALLM_V4_EXP & 4
++        if (false) {
++#else
++        if (i < nmine) {
++#endif
++            fp4_smallm_cp_chunk(smem_w_u + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES, srcx, c0 + i, lane);
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    fp4_smallm_cp_chunk(smem_w_u + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES, srcg, c0 + i, lane);
++                }
++            }
++        }
++        fp4_smallm_cp_async_commit();
++    };
++
++    // Quantizer role of this thread: column qc (warp w holds columns 2w, 2w+1), sub-block qsb of the chunk.
++    const int  qc   = tid / 16;
++    const int  qsb  = tid % 16;
++    const int  qkb  = qsb / 4;
++    const int  qs   = qsb % 4;
++    const bool qok  = qc < ncols_dst;
++    const bool wq   = 2*warp < ncols_dst;                  // warp-uniform: at least one real column
++    const float * yq = y + (size_t) (qok ? qc : 0) * stride_col_y + qsb * QK_NVFP4_SUB;
++
++    // Both B buffers start zero; columns >= ncols_dst are never written again.
++    for (int i = tid; i < 2*BBUF_WORDS; i += FP4_SMALLM_V5_THREADS) {
++        bbuf[i] = 0;
++    }
++
++    // The weights do not depend on the previous kernel, so the first copies overlap the PDL wait.
++#pragma unroll
++    for (int st = 0; st < STAGES - 1; ++st) {
++        issue(st, st);
++    }
++    ggml_cuda_pdl_sync();
++
++    float r[QK_NVFP4_SUB];
++    auto load_y = [&](const int i) {
++        const float4 * src = (const float4 *) (yq + (size_t) (c0 + i) * (QK_NVFP4 * FP4_SMALLM_CHUNK));
++#pragma unroll
++        for (int v = 0; v < QK_NVFP4_SUB/4; ++v) {
++            const float4 f = qok ? src[v] : make_float4(0.0f, 0.0f, 0.0f, 0.0f);
++            r[4*v + 0] = f.x;
++            r[4*v + 1] = f.y;
++            r[4*v + 2] = f.z;
++            r[4*v + 3] = f.w;
++        }
++    };
++    auto quantize = [&](const int b) {
++        uint32_t * bq = bbuf + b*BBUF_WORDS;
++        uint32_t * bs = bq + BQ_WORDS;
++        float    * cs = (float *) (bs + BS_WORDS);
++        float amax = 0.0f;
++#pragma unroll
++        for (int k = 0; k < QK_NVFP4_SUB; ++k) {
++            amax = fmaxf(amax, fabsf(r[k]));
++        }
++        // column amax over the chunk: the 16 lanes of this column
++        amax = fmaxf(amax, __shfl_xor_sync(0xffffffff, amax, 1));
++        amax = fmaxf(amax, __shfl_xor_sync(0xffffffff, amax, 2));
++        amax = fmaxf(amax, __shfl_xor_sync(0xffffffff, amax, 4));
++        amax = fmaxf(amax, __shfl_xor_sync(0xffffffff, amax, 8));
++        const float col_scale0 = amax / (6.0f * 448.0f);
++        if (qsb == 0) {
++            float c = col_scale0;
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                cs[t*8 + qc] = c;
++                c *= 0.25f;
++            }
++        }
++        fp4_smallm_v5_quantize_group<T>(r, col_scale0, bq, bs, qkb, qs, qc);
++    };
++
++    if (wq) {
++        load_y(0);
++        quantize(0);
++    }
++
++    fp4_smallm_acc acc;
++    [[maybe_unused]] fp4_smallm_acc acc_gate;
++
++    for (int i = 0; i < nmine; ++i) {
++        const bool more = i + 1 < nmine;
++        if (wq && more) {
++            load_y(i + 1);                                 // in flight across the MMAs below
++        }
++
++        fp4_smallm_cp_async_wait<STAGES - 2>();
++        __syncthreads();                                   // weights of chunk i and B buffer i%2 visible to all warps
++        issue(i + STAGES - 1, (i + STAGES - 1) % STAGES);
++
++        const int st = i % STAGES;
++        const uint32_t * sw  = (const uint32_t *) (smem_w + st*NSTREAMS*FP4_SMALLM_STAGE_BYTES);
++        [[maybe_unused]] const uint32_t * swg = (const uint32_t *) (smem_w + (st*NSTREAMS + 1)*FP4_SMALLM_STAGE_BYTES);
++        const uint32_t * bq = bbuf + (i % 2)*BBUF_WORDS;
++        const uint32_t * bs = bq + BQ_WORDS;
++        const float    * cs = (const float *) (bs + BS_WORDS);
++
++        float csr[T][2];
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++            const float2 v = *(const float2 *) (cs + t*8 + 2*q);
++            csr[t][0] = v.x;
++            csr[t][1] = v.y;
++        }
++
++        tile<16, 8, float> D[T];
++        [[maybe_unused]] tile<16, 8, float> Dg[T];
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++#pragma unroll
++            for (int l = 0; l < 4; ++l) {
++                D[t].x[l] = 0.0f;
++                if constexpr (has_fusion) {
++                    Dg[t].x[l] = 0.0f;
++                }
++            }
++        }
++#pragma unroll
++        for (int p = 0; p < FP4_SMALLM_CHUNK; ++p) {
++            tile<16, 8, int> A;
++            A.x[0] = (int) sw[36*g       + 9*p + 1 + q];
++            A.x[1] = (int) sw[36*(g + 8) + 9*p + 1 + q];
++            A.x[2] = (int) sw[36*g       + 9*p + 5 + q];
++            A.x[3] = (int) sw[36*(g + 8) + 9*p + 5 + q];
++            const uint32_t sa = sw[36*(g + 8*(lane & 1)) + 9*p];
++            [[maybe_unused]] tile<16, 8, int> Ag;
++            [[maybe_unused]] uint32_t sag = 0;
++            if constexpr (has_fusion) {
++                if (use_gate) {
++                    Ag.x[0] = (int) swg[36*g       + 9*p + 1 + q];
++                    Ag.x[1] = (int) swg[36*(g + 8) + 9*p + 1 + q];
++                    Ag.x[2] = (int) swg[36*g       + 9*p + 5 + q];
++                    Ag.x[3] = (int) swg[36*(g + 8) + 9*p + 5 + q];
++                    sag = swg[36*(g + 8*(lane & 1)) + 9*p];
++                }
++            }
++#pragma unroll
++            for (int t = 0; t < T; ++t) {
++                tile<8, 8, int> B;
++#if FP4_SMALLM_V4_EXP & 1
++                B.x[0] = p + t; B.x[1] = -p;
++                const uint32_t sb = 0x3c3c3c3c;
++#else
++                const uint2 bw = *(const uint2 *) (bq + ((t*FP4_SMALLM_CHUNK + p)*8 + g)*8 + 2*q);
++                B.x[0] = (int) bw.x;
++                B.x[1] = (int) bw.y;
++                const uint32_t sb = bs[(t*FP4_SMALLM_CHUNK + p)*8 + g];
++#endif
++#if FP4_SMALLM_V4_EXP & 2
++                D[t].x[0] += __int_as_float(A.x[0] ^ B.x[0] ^ (int) sa);
++                D[t].x[1] += __int_as_float(A.x[1] ^ B.x[1] ^ (int) sb);
++                D[t].x[2] += __int_as_float(A.x[2]);
++                D[t].x[3] += __int_as_float(A.x[3]);
++#else
++                mma_block_scaled_fp4<GGML_TYPE_NVFP4>(D[t], A, B, sa, sb);
++#endif
++                if constexpr (has_fusion) {
++                    if (use_gate) {
++                        mma_block_scaled_fp4<GGML_TYPE_NVFP4>(Dg[t], Ag, B, sag, sb);
++                    }
++                }
++            }
++        }
++
++        // Fold the chunk into the running sum, terms in fixed order t = 0..T-1 with the chunk's column scales.
++#pragma unroll
++        for (int t = 0; t < T; ++t) {
++#pragma unroll
++            for (int l = 0; l < 4; ++l) {
++                acc.x[l] = fmaf(csr[t][l & 1], D[t].x[l], acc.x[l]);
++                if constexpr (has_fusion) {
++                    acc_gate.x[l] = fmaf(csr[t][l & 1], Dg[t].x[l], acc_gate.x[l]);
++                }
++            }
++        }
++
++        // B buffer (i+1)%2 was last read in iteration i-1, before this iteration's barrier.
++        if (wq && more) {
++            quantize((i + 1) % 2);
++        }
++    }
++    fp4_smallm_cp_async_wait<0>();
++
++    // All global reads of vx/y/gate are done; the next kernel may start its prologue.
++    ggml_cuda_pdl_lc();
++
++    if (ksplit > 1) {
++        // Deterministic split-K: every block stores its partial tile; the last block of the row group sums the
++        // partials in split order 0..ksplit-1 (its own included, from memory), resets the counter and runs the epilogue.
++        const size_t lane_off = (((size_t) (blockIdx.y * gridDim.x + rg) * nwarps + warp) * WARP_SIZE + lane) * (4*NSTREAMS);
++        *(float4 *) (partials + lane_off) = make_float4(acc.x[0], acc.x[1], acc.x[2], acc.x[3]);
++        if constexpr (has_fusion) {
++            *(float4 *) (partials + lane_off + 4) = make_float4(acc_gate.x[0], acc_gate.x[1], acc_gate.x[2], acc_gate.x[3]);
++        }
++        __threadfence();
++        __syncthreads();
++        __shared__ int s_last;
++        if (tid == 0) {
++            s_last = atomicAdd(&counters[rg], 1) == ksplit - 1;
++            if (s_last) {
++                counters[rg] = 0;                          // ready for the next launch on this stream
++            }
++        }
++        __syncthreads();
++        if (!s_last) {
++            return;
++        }
++        __threadfence();
++#pragma unroll
++        for (int l = 0; l < 4; ++l) {
++            acc.x[l] = 0.0f;
++            if constexpr (has_fusion) {
++                acc_gate.x[l] = 0.0f;
++            }
++        }
++        for (int s = 0; s < ksplit; ++s) {
++            const size_t off = (((size_t) (s * gridDim.x + rg) * nwarps + warp) * WARP_SIZE + lane) * (4*NSTREAMS);
++            const float4 v = __ldcg((const float4 *) (partials + off));
++            acc.x[0] += v.x; acc.x[1] += v.y; acc.x[2] += v.z; acc.x[3] += v.w;
++            if constexpr (has_fusion) {
++                const float4 vg = __ldcg((const float4 *) (partials + off + 4));
++                acc_gate.x[0] += vg.x; acc_gate.x[1] += vg.y; acc_gate.x[2] += vg.z; acc_gate.x[3] += vg.w;
++            }
++        }
++    }
++
++    fp4_smallm_store<has_fusion>(acc, acc_gate, fusion, use_gate, dst, row0, nrows_x, ncols_dst, stride_col_dst);
++#else
++    GGML_UNUSED_VARS(vx, y, stride_col_y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_dst, counters, partials);
++    NO_DEVICE_CODE;
++#endif // FP4_SMALLM_V4_AVAILABLE
++}
++
++// Persistent split-K counters per (device, stream): zeroed once at allocation, then reset by the kernel itself
++// (the last block of each row group writes 0 after its atomicAdd). Launches on one stream are ordered and the
++// kernel only touches the counters after its PDL wait, so the reset is complete before the next launch's atomics.
++static int * fp4_smallm_v5_counters(const int stream_no, cudaStream_t stream) {
++    static int * bufs[GGML_CUDA_MAX_DEVICES][GGML_CUDA_MAX_STREAMS] = {};
++    const int dev = ggml_cuda_get_device();
++    GGML_ASSERT(stream_no >= 0 && stream_no < GGML_CUDA_MAX_STREAMS);
++    int *& b = bufs[dev][stream_no];
++    if (b == nullptr) {
++        CUDA_CHECK(cudaMalloc(&b, FP4_SMALLM_V5_MAX_COUNTERS * sizeof(int)));
++        CUDA_CHECK(cudaMemsetAsync(b, 0, FP4_SMALLM_V5_MAX_COUNTERS * sizeof(int), stream));
++    }
++    return b;
++}
++
++template <int T, bool has_fusion>
++static void fp4_smallm_v5_launch(
++        const void * vx, const float * y, const ggml_cuda_mm_fusion_args_device & fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst,
++        int * counters, float * partials, int ksplit, cudaStream_t stream) {
++    constexpr int NSTREAMS = has_fusion ? 2 : 1;
++    const int nrg = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
++    const int nbytes_shared = FP4_SMALLM_V4_WARPS * FP4_SMALLM_STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES +
++                              2 * FP4_SMALLM_V5_BBUF_WORDS(T) * (int) sizeof(uint32_t);
++    CUDA_SET_SHARED_MEMORY_LIMIT((fp4_smallm_v5_kernel<T, has_fusion>), nbytes_shared);
++    const dim3 block_nums(nrg, ksplit, 1);
++    const dim3 block_dims(WARP_SIZE, FP4_SMALLM_V4_WARPS, 1);
++    const ggml_cuda_kernel_launch_params lp(block_nums, block_dims, nbytes_shared, stream);
++    ggml_cuda_kernel_launch(fp4_smallm_v5_kernel<T, has_fusion>, lp,
++        vx, y, stride_col_y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_dst, counters, partials);
++}
++
++// Split count from the weight shape only: enough blocks to fill the GPU, at least 4 chunks (1024 k) per split.
++static int fp4_smallm_v4_ksplit(const int ncols_x, const int nrows_x, const int T) {
++    const int nrg     = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
++    const int nchunks = ncols_x / (QK_NVFP4 * FP4_SMALLM_CHUNK);
++    int ks = (FP4_SMALLM_V4_CTA_TARGET + nrg - 1) / nrg;
++    if (T >= 3) {   // KSPLIT sweep (test-backend-ops, 5120x17408): T = 3 prefers 8 over 6 (20.4 vs 23.7 us), T <= 2 prefers 6 (19.0 vs 21.4)
++        ks = ks <= 1 ? 1 : ks <= 2 ? 2 : ks <= 4 ? 4 : ks <= 8 ? 8 : 16;
++    }
++    ks = std::min(ks, std::max(1, nchunks / 4));
++    ks = std::max(1, std::min(ks, 16));
++    if (const char * ov = getenv("FP4_UNLOCK_KSPLIT")) {      // tuning override (1..16)
++        const int v = atoi(ov);
++        if (v >= 1 && v <= 16) {
++            ks = std::min(v, std::max(1, nchunks));
++        }
++    }
++    return ks;
++}
++
++template <int T, bool has_fusion>
++static void fp4_smallm_v4_launch(
++        const void * vx, const float * y, const ggml_cuda_mm_fusion_args_device & fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst,
++        char * ybuf, int * counters, float * partials, int ksplit, cudaStream_t stream) {
++    constexpr int NSTREAMS = has_fusion ? 2 : 1;
++    const int nrg = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
++    // FP4_UNLOCK_V4_SKIP=16 skips the GEMM launch, 32 the quantizer launch (timing experiments only).
++    static const int skip = getenv("FP4_UNLOCK_V4_SKIP") ? atoi(getenv("FP4_UNLOCK_V4_SKIP")) : 0;
++    if (!(skip & 32)) {
++        const dim3 block_nums(fp4_smallm_v4_nseg(ncols_x), 8, 1);
++        const dim3 block_dims(FP4_SMALLM_V4_QTHREADS, 1, 1);
++        const ggml_cuda_kernel_launch_params lp(block_nums, block_dims, 0, stream);
++        ggml_cuda_kernel_launch(fp4_smallm_v4_quantize_kernel<T>, lp,
++            y, stride_col_y, ncols_x, ncols_dst, ybuf, counters, nrg);
++    }
++    if (!(skip & 16)) {
++        const int nbytes_shared = FP4_SMALLM_V4_WARPS * FP4_SMALLM_STAGES * NSTREAMS * FP4_SMALLM_STAGE_BYTES;
++        CUDA_SET_SHARED_MEMORY_LIMIT((fp4_smallm_v4_kernel<T, has_fusion>), nbytes_shared);
++        const dim3 block_nums(nrg, ksplit, 1);
++        const dim3 block_dims(WARP_SIZE, FP4_SMALLM_V4_WARPS, 1);
++        const ggml_cuda_kernel_launch_params lp(block_nums, block_dims, nbytes_shared, stream);
++        ggml_cuda_kernel_launch(fp4_smallm_v4_kernel<T, has_fusion>, lp,
++            vx, (const char *) ybuf, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_dst, counters, partials);
++    }
++}
++
++bool ggml_cuda_fp4_smallm_v4_supported(const void * vx, const void * gate, const float * y, int ncols_x, int stride_row_x, int stride_col_y) {
++#if CUDART_VERSION >= 12080
++    return fp4_smallm_cp_async_ok(vx, gate, ncols_x, stride_row_x) && ncols_x <= FP4_SMALLM_V4_MAXK &&
++        reinterpret_cast<uintptr_t>(y) % 16 == 0 && stride_col_y % 4 == 0;
++#else
++    GGML_UNUSED_VARS(vx, gate, y, ncols_x, stride_row_x, stride_col_y);
++    return false;
++#endif // CUDART_VERSION >= 12080
++}
++
++void ggml_cuda_fp4_smallm_mul_mat_f32(
++        ggml_cuda_pool & pool, const void * vx, const float * y, const ggml_cuda_mm_fusion_args_device & fusion, bool has_fusion,
++        float * dst, int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst,
++        int stream_no, cudaStream_t stream) {
++    GGML_ASSERT(ncols_dst >= 1 && ncols_dst <= 8);
++    GGML_ASSERT(ncols_x % (QK_NVFP4 * FP4_SMALLM_CHUNK) == 0 && ncols_x <= FP4_SMALLM_V4_MAXK);
++    const int T      = ggml_cuda_fp4_smallm_terms();
++    const int ksplit = fp4_smallm_v4_ksplit(ncols_x, nrows_x, T);
++
++    if (ggml_cuda_fp4_smallm_mode() == 3) {
++        // v5 (mode 3, A/B only: slower than v4, see FINDINGS): in-block quantization, persistent counters, partials from the pool.
++        constexpr int NSTREAMS_MAX = 2;
++        const size_t nrg = (nrows_x + FP4_SMALLM_V4_ROWS - 1) / FP4_SMALLM_V4_ROWS;
++        GGML_ASSERT(nrg <= FP4_SMALLM_V5_MAX_COUNTERS);
++        int * counters = fp4_smallm_v5_counters(stream_no, stream);
++        ggml_cuda_pool_alloc<float> pbuf(pool);
++        float * partials = nullptr;
++        if (ksplit > 1) {
++            partials = pbuf.alloc((size_t) ksplit * nrg * FP4_SMALLM_V4_ROWS * 8 * (has_fusion ? 2 : 1));
++        }
++        GGML_UNUSED(NSTREAMS_MAX);
++#define FP4_SMALLM_V5_CASE(TT)                                                                                        \
++        case TT:                                                                                                      \
++            if (has_fusion) {                                                                                         \
++                fp4_smallm_v5_launch<TT, true >(vx, y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, counters, partials, ksplit, stream); \
++            } else {                                                                                                  \
++                fp4_smallm_v5_launch<TT, false>(vx, y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, counters, partials, ksplit, stream); \
++            }                                                                                                         \
++            break;
++        switch (T) {
++            FP4_SMALLM_V5_CASE(1)
++            FP4_SMALLM_V5_CASE(2)
++            FP4_SMALLM_V5_CASE(3)
++            default: FP4_SMALLM_V5_CASE(4)
++        }
++#undef FP4_SMALLM_V5_CASE
++        return;
++    }
++    const fp4_smallm_v4_layout L = fp4_smallm_v4_get_layout(ncols_x, nrows_x, T, ksplit, has_fusion);
++
++    ggml_cuda_pool_alloc<char> buf(pool, L.bytes_total);
++    char  * ybuf     = buf.get();
++    int   * counters = (int *) (ybuf + L.off_counters);
++    float * partials = ksplit > 1 ? (float *) (ybuf + L.off_partials) : nullptr;
++
++#define FP4_SMALLM_V4_CASE(TT)                                                                                        \
++    case TT:                                                                                                          \
++        if (has_fusion) {                                                                                             \
++            fp4_smallm_v4_launch<TT, true >(vx, y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, ybuf, counters, partials, ksplit, stream); \
++        } else {                                                                                                      \
++            fp4_smallm_v4_launch<TT, false>(vx, y, fusion, dst, ncols_x, nrows_x, ncols_dst, stride_row_x, stride_col_y, stride_col_dst, ybuf, counters, partials, ksplit, stream); \
++        }                                                                                                             \
++        break;
++    switch (T) {
++        FP4_SMALLM_V4_CASE(1)
++        FP4_SMALLM_V4_CASE(2)
++        FP4_SMALLM_V4_CASE(3)
++        default: FP4_SMALLM_V4_CASE(4)
++    }
++#undef FP4_SMALLM_V4_CASE
++}
+diff --git a/ggml/src/ggml-cuda/fp4-smallm.cuh b/ggml/src/ggml-cuda/fp4-smallm.cuh
+new file mode 100644
+index 000000000..f9b0dfc3f
+--- /dev/null
++++ b/ggml/src/ggml-cuda/fp4-smallm.cuh
+@@ -0,0 +1,45 @@
++// fp4-unlock Phase 3: dedicated small-M (ncols_dst 1..8) GEMM for NVFP4 weights on Blackwell tensor cores.
++//
++// One kernel instantiation serves every ncols_dst in 1..8; the K loop, the split-K combine and the term combine
++// depend only on the weight shape, and each output column is computed by its own MMA lanes. The arithmetic for a
++// given (row, column) therefore does not depend on how many columns are in the batch: the result for a token is
++// bitwise identical whether it is verified alone (M=1) or together with up to 7 draft tokens (M<=8). That is the
++// batch-invariance property the fp4-unlock "lossless" claim rests on.
++//
++// Two kernels (FP4_UNLOCK_KERNEL selects, see ggml_cuda_fp4_smallm_mode):
++//   v4 (default): block-scaled FP4 MMA (mma.m16n8k64 kind::mxf4nvf4) on the raw NVFP4 weight words; activations are
++//       quantized to NVFP4 by a residual expansion of FP4_UNLOCK_T terms (default 2, KL at the Q8_0-activation floor;
++//       3 = extra margin, 1 = plain W4A4), each term a
++//       separate fp32 accumulator combined at the end. Takes the f32 activations and does its own quantization.
++//   v3 (fallback / FP4_UNLOCK_KERNEL=2): int8 mma.m16n8k16 on the block_q8_1 activations that
++//       ggml_cuda_mul_mat_vec_q produces (W4A8), weights expanded nibble -> int8; scales applied in fp32 per k16.
++#pragma once
++
++#include "common.cuh"
++
++// Runtime switch FP4_UNLOCK_KERNEL: 0 = off (MMVQ), 1 = v4 FP4 MMA (v3 where unsupported), 2 = v3 int8 only,
++// 3 = v5 (v4 with the activation quantization inside the GEMM block; slower, kept for A/B).
++// Default: 1 when compiled with -DGGML_CUDA_FP4_SMALLM, 0 otherwise.
++int  ggml_cuda_fp4_smallm_mode();
++bool ggml_cuda_fp4_smallm_enabled();
++int  ggml_cuda_fp4_smallm_min_m();   // ncols_dst threshold (default 5; 1 under FP4_UNLOCK_INVARIANT); env FP4_UNLOCK_MIN_M
++// Residual activation terms of the v4 path (FP4_UNLOCK_T, 1..4, default 2).
++int  ggml_cuda_fp4_smallm_terms();
++
++// v3. src0 NVFP4 [ncols_x, nrows_x], src1 already quantized to block_q8_1 [ncols_x (padded), ncols_dst], dst f32 [nrows_x, ncols_dst].
++// stride_row_x in block_nvfp4 units, stride_col_y in block_q8_1 units, stride_col_dst in floats.
++// Precondition: ncols_dst <= 8, ncols_x % 64 == 0, single channel / sample.
++void ggml_cuda_fp4_smallm_mul_mat(
++        const void * vx, const void * vy, const ggml_cuda_mm_fusion_args_device & fusion, bool has_fusion, float * dst,
++        int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst, cudaStream_t stream);
++
++// v4 eligibility: 16-byte aligned weight rows in whole 256-k chunks (ncols_x % 256 == 0, ncols_x <= 32768), 16-byte
++// aligned f32 activation columns (stride_col_y in floats), CUDA >= 12.8.
++bool ggml_cuda_fp4_smallm_v4_supported(const void * vx, const void * gate, const float * y, int ncols_x, int stride_row_x, int stride_col_y);
++
++// v4. src1 is the f32 activation matrix [ncols_x, ncols_dst] (column stride stride_col_y floats); the activation
++// quantization buffer comes from the pool. Same preconditions as above plus ggml_cuda_fp4_smallm_v4_supported.
++void ggml_cuda_fp4_smallm_mul_mat_f32(
++        ggml_cuda_pool & pool, const void * vx, const float * y, const ggml_cuda_mm_fusion_args_device & fusion, bool has_fusion,
++        float * dst, int ncols_x, int nrows_x, int ncols_dst, int stride_row_x, int stride_col_y, int stride_col_dst,
++        int stream_no, cudaStream_t stream);
+diff --git a/ggml/src/ggml-cuda/mmvq.cu b/ggml/src/ggml-cuda/mmvq.cu
+index 930f1adc4..c2533bf44 100644
+--- a/ggml/src/ggml-cuda/mmvq.cu
++++ b/ggml/src/ggml-cuda/mmvq.cu
+@@ -1,9 +1,13 @@
++#include "fp4-smallm.cuh"
++#include "fp4-unlock.cuh"
+ #include "mmvq.cuh"
+ #include "quantize.cuh"
+ #include "unary.cuh"
+ #include "vecdotq.cuh"
+ 
+ #include <cstdint>
++#include <cstdlib>
++#include <cstring>
+ #include <type_traits>
+ 
+ // only enabled on DGX Spark, where it is a gain on every type below. On the higher-bandwidth parts the kernel
+@@ -315,10 +319,37 @@ int get_mmvq_mmid_max_batch(ggml_type type, int cc) {
+     return MMVQ_MAX_BATCH_SIZE;
+ }
+ 
++// fp4-unlock Phase 1.5 experiment: smallest ne11 at which NVFP4/MXFP4 leave MMVQ (int8 dp4a) for MMQ (FP4 tensor
++// core MMA with a J=8 tile) on Blackwell. Unset or 0 keeps upstream behaviour (MMVQ for ne11 <= MMVQ_MAX_BATCH_SIZE).
++// FP4_UNLOCK_SMALLM=1 routes ne11 >= 2 to MMQ; FP4_UNLOCK_SMALLM=N (N >= 2) routes ne11 >= N; FP4_UNLOCK_SMALLM=all
++// routes everything including ne11 == 1 (batch-invariance diagnostic, slow).
++static int fp4_unlock_fp4_mmq_min_n() {
++    static const int min_n = []() {
++        const char * env = getenv("FP4_UNLOCK_SMALLM");
++        if (env == nullptr || env[0] == '\0' || strcmp(env, "0") == 0) {
++            return MMVQ_MAX_BATCH_SIZE + 1;
++        }
++        if (strcmp(env, "all") == 0) {
++            return 1;
++        }
++        const int n = atoi(env);
++        return n <= 1 ? 2 : n;
++    }();
++    return min_n;
++}
++
+ bool ggml_cuda_should_use_mmvq(enum ggml_type type, int cc, int64_t ne11) {
+     if (!ggml_is_quantized(type)) {
+         return false;
+     }
++    // fp4-unlock Phase 2 (chain7 finding): the per-type tuned thresholds below move k-quants to MMQ inside the 1..8
++    // range (Blackwell: Q4_K at 6, Q5_K at 7, Q6_K at 8), so an M = 8 verify batch sums the attention/GDN projections
++    // in a different order than M = 1 decode. In invariant mode every quantized type stays on MMVQ up to 8 columns
++    // (whose k split is pinned by FP4_UNLOCK_INVARIANT_MMVQ); the FP4 types keep their own rule below so the
++    // FP4_UNLOCK_SMALLM experiment knob and the Phase 3 kernel dispatch are unchanged.
++    if (fp4_unlock_invariant_enabled() && type != GGML_TYPE_NVFP4 && type != GGML_TYPE_MXFP4) {
++        return ne11 <= MMVQ_MAX_BATCH_SIZE;
++    }
+     // k-quants cost more to decode and mvq redoes that per column, so MMQ wins sooner.
+     // Only list quant-types MMQ supports, others would fall back to cuBLAS.
+     if (GGML_CUDA_CC_IS_NVIDIA(cc) && cc == GGML_CUDA_CC_ADA_LOVELACE) {
+@@ -341,6 +372,15 @@ bool ggml_cuda_should_use_mmvq(enum ggml_type type, int cc, int64_t ne11) {
+                 return ne11 <= 6;
+             case GGML_TYPE_Q6_K:
+                 return ne11 <= 7;
++            case GGML_TYPE_NVFP4:
++                // fp4-unlock Phase 3: the dedicated small-M kernel (fp4-smallm.cu) owns every dense NVFP4 matmul
++                // with ne11 <= 8 when enabled, so MMVQ must claim that range for ggml_cuda_mul_mat_vec_q to run.
++                if (ggml_cuda_fp4_smallm_enabled()) {
++                    return ne11 <= MMVQ_MAX_BATCH_SIZE;
++                }
++                return ne11 < fp4_unlock_fp4_mmq_min_n();
++            case GGML_TYPE_MXFP4:
++                return ne11 < fp4_unlock_fp4_mmq_min_n();
+             default:
+                 return ne11 <= MMVQ_MAX_BATCH_SIZE;
+         }
+@@ -461,7 +501,12 @@ static constexpr __host__ __device__ int calc_nwarps(ggml_type type, int ncols_d
+             case 6:
+             case 7:
+             case 8:
++#ifdef FP4_UNLOCK_INVARIANT_MMVQ
++                // fp4-unlock: same k split for ncols_dst 1..8 so a column's sum order does not depend on the batch size
++                return 4;
++#else
+                 return 2;
++#endif // FP4_UNLOCK_INVARIANT_MMVQ
+             default:
+                 return 1;
+         }
+@@ -1548,6 +1593,25 @@ void ggml_cuda_mul_mat_vec_q(
+         }
+     }
+ 
++    // fp4-unlock Phase 3: dense NVFP4 with min_m <= ncols_dst <= 8 goes to the batch-invariant tensor-core kernel
++    // (min_m = 5 by default, 1 in invariant mode; see ggml_cuda_fp4_smallm_min_m). The v4
++    // (FP4 MMA) kernel quantizes the f32 activations itself, so it is dispatched before the q8_1 quantization below;
++    // the v3 (int8) kernel consumes the q8_1 buffer and is dispatched after it.
++    const bool fp4_smallm = !ids && src0->type == GGML_TYPE_NVFP4 && ggml_cuda_fp4_smallm_enabled() &&
++        (ids ? ne2 : ne1) <= MMVQ_MAX_BATCH_SIZE && (ids ? ne2 : ne1) >= ggml_cuda_fp4_smallm_min_m() && ne02 == 1 && ne03 == 1 && ne12 == 1 && ne13 == 1 && !fusion_local.shared_up &&
++        blackwell_mma_available(ggml_cuda_info().devices[ggml_cuda_get_device()].cc);
++    if (fp4_smallm && ggml_cuda_fp4_smallm_mode() != 2) {
++        const int64_t s01_x = src0->nb[1] / ts_src0;
++        const int64_t s11_f = src1->nb[1] / ts_src1;
++        const int64_t s1_d  =  dst->nb[1] / ts_dst;
++        const void * gate = fusion ? fusion_local.gate : nullptr;
++        if (ggml_cuda_fp4_smallm_v4_supported(src0->data, gate, src1_d, ne00, s01_x, s11_f)) {
++            ggml_cuda_fp4_smallm_mul_mat_f32(ctx.pool(), src0->data, src1_d, fusion_local, fusion != nullptr, dst_d,
++                                             ne00, ne01, ne1, s01_x, s11_f, s1_d, ctx.curr_stream_no, stream);
++            return;
++        }
++    }
++
+     const int64_t ne10_padded = GGML_PAD(ne10, MATRIX_ROW_PADDING);
+     ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool(), ne13*ne12 * ne11*ne10_padded * sizeof(block_q8_1)/QK8_1);
+     {
+@@ -1579,6 +1643,12 @@ void ggml_cuda_mul_mat_vec_q(
+ 
+     const int64_t ids_stride = ids ? ids->nb[1] / ggml_type_size(ids->type) : 0;
+ 
++    if (fp4_smallm) {
++        ggml_cuda_fp4_smallm_mul_mat(src0->data, src1_q8_1.get(), fusion_local, fusion != nullptr, dst_d,
++                                     ne00, ne01, ncols_dst, s01, s11, s1, stream);
++        return;
++    }
++
+     mul_mat_vec_q_switch_type(
+         src0->data, src0->type, src1_q8_1.get(), ids_d, fusion_local, dst_d, ne00,
+         ne01,              ncols_dst,     s01, stride_col_y,     stride_col_dst,

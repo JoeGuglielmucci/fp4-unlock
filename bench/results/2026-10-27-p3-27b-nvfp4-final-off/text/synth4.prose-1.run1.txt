@@ -1,0 +1,12 @@
+We need to answer user's request: summarize in about 300 words for general technical audience, how speculative decoding speeds up LLM inference. Need cover: what draft model does, how target verifies several tokens in one forward pass, why output distribution can be kept identical, and what determines speedup in practice. End with two most common reasons speedup smaller than hoped. Need direct final answer. Need likely about 300 words. Let's draft concise but detailed. Ensure no preamble. Need maybe 300 words. Let's count.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a small, fast model to propose several tokens before the larger target model checks them. The target model is usually the bottleneck because it is expensive to compute one token per forward pass. The draft model is usually called "draft" or "speculator" because it can be much smaller, faster, or a different architecture. It generates a sequence of candidate tokens, often greedily or with a fixed prefix, using the same context. The target then verifies the draft model's tokens in one forward pass. It can do this by taking the draft tokens as input and computing the target's logits at each step. The target then verifies the draft tokens are consistent with the target model. If the target model accepts the draft tokens, the output is generated. If the target model rejects, the output is generated.
+
+The output distribution can be kept identical to normal decoding by using a rejection-sampling procedure. The target model computes the probability of the target's tokens. The draft model's probability is computed. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens. The target model computes the probability of the target's tokens.
+
+Wait, let's write properly.
+
+Need final answer. Need maybe 300 words. Let's draft:
+
+Speculative decoding speeds up large language model inference by using a small, fast model to propose several tokens before the larger target model checks them. The target model is usually the bottleneck because it is expensive to compute one token per forward pass. The draft model is usually called "small" or "speculator" because it can be much smaller, faster, or a different architecture.

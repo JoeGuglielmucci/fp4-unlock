@@ -1,0 +1,38 @@
+We need to answer user's request: write a formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. Letter should state what the company builds, why access matters before launch, what company offers in return, what the company offers in return (benchmarks, bug reports, public write-up), and propose a specific next step. Use neutral professional tone and include placeholders only for names and dates.
+
+Need produce final answer. Need likely only letter. Ensure no placeholders except names/dates. Need about 350 words. Let's draft around 350 words. Need count words. Let's craft.
+
+[Date]
+[Vendor Name]
+[Address]
+
+[Recipient Name]
+[Company Name]
+[Address]
+
+Dear [Name of the Company's Contact],
+
+Subject: Early Access to Developer Program for [New GPU]
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for personal and machine learning workloads. We are building an open-source inference engine for personal and machine learning workloads. Our goal is to provide a lightweight, portable runtime that supports local and machine learning workloads.
+
+Need to be precise.
+
+Need no placeholders except names and dates. So placeholders only for names and dates. Could include [Company Name] etc? That's company names, not placeholders? User says include placeholders only for names and dates. It might mean names and dates only, not company names? But placeholders for names and dates: [Company Name], [Vendor Name], [Date], [Recipient Name] are names. But maybe company names are placeholders too. It says include placeholders only for names and dates. So we can use [Company Name], [Vendor Name], [Recipient Name], [Date]. That's okay. But maybe avoid [Company Name] as placeholder? It's a name. Could use [Company Name] and [Vendor Name]. Need no placeholders for names and dates.
+
+Need about 350 words. Let's draft and count.
+
+Draft:
+
+[Date]
+[Vendor Name]
+[Address]
+[Recipient Name]
+[Title]
+[Company Name]
+
+Dear [Vendor Name],
+
+Subject: Request for Early Access to the [New GPU] Developer Program
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for personal and machine learning workloads. Our engine is

@@ -1,0 +1,14 @@
+We need to answer user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final about 400 words. Need likely exactly around 400? "about 400 words". Need ensure no preamble. Need one concrete analogy, simple worked example with made-up plausible numbers, finish explaining engineers do about it.
+
+Let's draft ~400 words. Need count. Let's craft.
+
+Draft:
+Imagine a graphics card as a very fast kitchen. The GPU is the chef, and the memory is the pantry. The chef can chop, mix, and plate dishes extremely quickly, but if the pantry door is narrow and the ingredients arrive slowly, the chef spends most of the time waiting. That waiting is memory bandwidth: the rate at which data can move between the GPU and its memory.
+
+A game needs lots of data: textures, vertex positions, colors, depth values, and intermediate results. The GPU may be able to do trillions of tiny calculations per second, but if it must fetch or store too many bytes, the calculations stall. This is called being memory-bound.
+
+Example: suppose a GPU can do 100 trillion floating-point operations per second (100 TFLOPS). A simple shader needs 10 operations for each pixel. If the screen has 10 million pixels, the GPU needs 100 million operations, which is tiny compared with its power. But each pixel also needs 16 bytes of texture data. That is 160 million bytes, or 0.16 GB, per frame. At 60 frames per second, the card must move 9.6 GB/s. If the memory bandwidth is only 8 GB/s, the GPU cannot get all the data in time, even though it has plenty of computing speed left. The frame rate drops because the pantry is too slow, not because the chef is too slow.
+
+Engineers fight this in several ways. They use faster memory, such as GDDR6 or HBM, and wider memory buses. They design caches so the GPU can reuse data instead of fetching it again. They compress textures and geometry so fewer bytes cross the memory bus. They write shaders that do more useful

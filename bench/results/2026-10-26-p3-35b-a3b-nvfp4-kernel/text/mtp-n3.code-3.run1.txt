@@ -1,0 +1,26 @@
+Here's a thinking process:
+
+1.  **Analyze the Original Code:**
+   - It's a Go HTTP handler `userHandler` that takes an `id` query parameter.
+   - Validates `id`: must be a valid integer > 0. Returns 400 with `{"error":"bad id"}` on failure.
+   - Queries the database: `SELECT name, email FROM users WHERE id = ?`
+   - Handles `sql.ErrNoRows`: Returns 404 with `{"error":"not found"}`.
+   - Handles other DB errors: Returns 500 with `{"error":"db"}`.
+   - On success: Sets `Content-Type: application/json`, encodes `{"name": "...", "email": "..."}`.
+   - Uses a global `var db *sql.DB`.
+
+2.  **Identify Refactoring Goals:**
+   - Separate database access into a testable function.
+   - Separate input validation into a testable function.
+   - Separate JSON encoding into a testable function (or at least make it clear/testable).
+   - Maintain clear error handling.
+   - Keep external behavior identical (same status codes, same response bodies).
+   - Return the full refactored file.
+   - List behaviors a unit test should cover.
+
+3.  **Design the Refactored Structure:**
+   - `validateID(idStr string) (int, error)` - handles parsing and validation.
+   - `getUserByID(db *sql.DB, id int) (name, email string, err error)` - handles DB query.
+   - `writeJSON(w http.ResponseWriter, status int, v interface{})` - handles setting headers, encoding, and writing status/body. Actually, the original writes status first, then body. I'll make a helper that handles status and JSON encoding, or keep it simple. Let's stick to standard patterns: `writeJSON(w http.ResponseWriter, status int, v interface{}) error`.
+   - The handler will orchestrate these.
+   - Need to handle errors properly. The original returns specific JSON error messages for specific status codes. I'll create a structured error type or just handle it in the handler. To keep it testable and clean, I'll define custom errors or use standard errors with status codes. Actually, the prompt says "clear error handling", so I'll use a custom error type that carries the HTTP status

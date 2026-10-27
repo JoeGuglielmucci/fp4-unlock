@@ -1,0 +1,19 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than compute how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need answer in about 400 words. Need likely direct. Need maybe about 400 words. Need ensure no preamble. Need count words. Let's draft around 400 words.
+
+Need explain to curious high-school student. Use analogy: kitchen with large library, maybe 100 students? Maybe a library of 10000 books, one per page. Let's make analogy: kitchen with 100 students? Need concrete analogy: kitchen with 100 students? Maybe "a library of books, 100 readers, 100 pages per page, but each page can be read by one page at a time". Let's choose one concrete analogy: "a kitchen with 100 students, but each can only read 100 pages per minute, and the bookshelf is 100 pages per second". Hmm.
+
+Alternative: "a library with 100 readers, but each can only read 100 pages per minute, and the bookshelf is 100 pages per second". Let's use "a library with 100 readers, but each can only read 100 pages per minute, and the bookshelf is 100 pages per second". Need concrete analogy: "a kitchen with 100 students, 100 pages, 100 pages per minute". Let's craft.
+
+Need simple worked example with made-up but plausible numbers. Need GPU memory bandwidth.
+
+Let's draft:
+
+"Graphics card can be limited by memory bandwidth, not by how fast it computes.
+
+Use one concrete analogy: a library with 100 readers, but each can only read 100 pages per minute, and the bookshelf is 100 pages per second.
+
+Imagine a library with 100 readers, but each can only read 100 pages per minute, and the bookshelf is 100 pages per second.
+
+The library has 100 readers, but each can only read 100 pages per minute, and the bookshelf

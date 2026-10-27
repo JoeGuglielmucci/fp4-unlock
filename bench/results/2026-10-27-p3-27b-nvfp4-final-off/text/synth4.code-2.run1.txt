@@ -1,0 +1,12 @@
+We need answer user's request. Need produce final answer. Need identify bugs:
+1 sort key=lambda x: x[1] should sort by start. But if intervals sorted by end, maybe they can be merged incorrectly? Let's test: [1,3] and [3,5] sorted by end: [1,3],[3,5] current[0] < last[1]? 3<3 false, append [3,5] -> not touching. If sort by start, should use <=.
+2 bug: for current in intervals: includes first element, so last = merged[-1] and current = intervals[0], condition current[0] < last[1] false, so appends duplicate first interval. Need fix: iterate over intervals[1:] or start with for current in intervals. Actually if sort by start, current[0] < last[1] false, so no merge but duplicate. So bug.
+3 bug: condition current[0] < last[1] should be <= to include touching intervals.
+Need maybe mention at least two bugs. There are three. Need explain each one in one sentence. Then give corrected function and five test cases including empty list, single interval, touching intervals [1,3] and [3,5], nested intervals, nested intervals, unsorted input.
+Need maybe test cases:
+- merge_intervals([]) == []
+- merge_intervals([[1,3]]) == [[1,3]]
+- merge_intervals([[1,3],[3,5]]) == [[1,5]]
+- merge_intervals([[1,3],[2,4],[2,3],[3,5]])? Wait nested: [[1,10],[2,3],[4,5]] -> [[1,3? no]. Let's choose nested: [[1,10],[2,3],[4,5]] -> [[1,10]]. Or nested with unsorted: [[2,3],[4,5],[5,6],[1,10]] -> [[1,10]]. Need five test cases.
+- unsorted input: [[1,4],[1,3],[3],[?]. Let's use [[1,4],[1,3],[2,6],[8,9]] -> [[1,6],[2,6]].
+Need include maybe nested intervals as [1,10], [2,3], [4,5] -> [1,1

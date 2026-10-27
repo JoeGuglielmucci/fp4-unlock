@@ -1,0 +1,23 @@
+0.00.240.179 W model has unused tensor blk.40.attn_norm.weight (size = 8192 bytes) -- ignoring
+0.00.240.185 W model has unused tensor blk.40.post_attention_norm.weight (size = 8192 bytes) -- ignoring
+0.00.240.189 W model has unused tensor blk.40.attn_q.weight (size = 9437184 bytes) -- ignoring
+0.00.240.191 W model has unused tensor blk.40.attn_k.weight (size = 589824 bytes) -- ignoring
+0.00.240.192 W model has unused tensor blk.40.attn_v.weight (size = 589824 bytes) -- ignoring
+0.00.240.197 W model has unused tensor blk.40.attn_output.weight (size = 4718592 bytes) -- ignoring
+0.00.240.199 W model has unused tensor blk.40.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.240.200 W model has unused tensor blk.40.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.240.202 W model has unused tensor blk.40.ffn_gate_inp.weight (size = 557056 bytes) -- ignoring
+0.00.240.203 W model has unused tensor blk.40.ffn_down_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.240.207 W model has unused tensor blk.40.ffn_gate_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.240.209 W model has unused tensor blk.40.ffn_up_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.240.210 W model has unused tensor blk.40.ffn_gate_inp_shexp.weight (size = 8192 bytes) -- ignoring
+0.00.240.212 W model has unused tensor blk.40.ffn_gate_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.240.213 W model has unused tensor blk.40.ffn_up_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.240.215 W model has unused tensor blk.40.ffn_down_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.240.217 W model has unused tensor blk.40.nextn.eh_proj.weight (size = 4718592 bytes) -- ignoring
+0.00.240.220 W model has unused tensor blk.40.nextn.enorm.weight (size = 8192 bytes) -- ignoring
+0.00.240.222 W model has unused tensor blk.40.nextn.hnorm.weight (size = 8192 bytes) -- ignoring
+0.00.240.227 W model has unused tensor blk.40.nextn.shared_head_norm.weight (size = 8192 bytes) -- ignoring
+0.00.264.033 E llama_model_load: error loading model: done_getting_tensors: wrong number of tensors; expected 1101, got 1079
+0.00.264.059 E llama_batched_bench: error: unable to load model
+llama_model_load_from_file_impl: failed to load model

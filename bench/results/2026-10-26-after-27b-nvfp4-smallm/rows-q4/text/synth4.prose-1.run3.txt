@@ -1,0 +1,18 @@
+We need answer user's request: "Summarize, in about 300 words for a general technical audience, how speculative decoding speeds up large language model inference: what the draft model does, how the target model verifies several tokens in one forward pass, why the target model verifies several tokens in one forward pass, why the output distribution can be kept identical to normal decoding, and what determines the speedup in practice. End with the two most common reasons the speedup is smaller than hoped."
+
+Need produce final about 300 words. Need direct no preamble. Need likely count words. Let's draft.
+
+Need ensure no placeholders. Let's craft ~300 words.
+
+Draft:
+Speculative decoding accelerates LLM inference by reducing the number of tokens it needs to generate one at a time. The target model is usually large and expensive, so it is often hard to compute and generate many tokens per token. A small draft model first proposes a short sequence of candidate tokens, often called a draft model, which is cheap and fast. It can be selected multiple tokens per step. The target model then verifies these tokens in a single forward pass. Because the target model can process a sequence of tokens, it can compute the conditional probabilities of the draft tokens and the target's verification. The target model then checks the draft tokens against the target's probabilities. If the draft tokens are accepted, they are accepted; if rejected, the target is corrected and the process continues.
+
+The output distribution can be kept identical to normal decoding because the target model's acceptance/rejection test is a rejection rule. It ensures that the distribution is exactly the target's distribution. The algorithm is not simply using the draft model's output; it is a correction. The target model's acceptance/rejection test ensures that the distribution is exactly the target's distribution.
+
+The speedup in practice depends on the draft model's acceptance rate, the number of tokens it proposes, and the cost of the target model's forward pass. The target model's forward pass is more expensive than the draft model, so the number of tokens accepted per token is important. The speedup is limited by the target model's cost and the number of tokens accepted. The speedup is also limited by the number of tokens accepted.
+
+The two most common reasons the speedup is smaller than hoped are: (1) the target model's quality is high, and (2) the target model's cost is high.
+
+Need refine.
+
+Need about 30

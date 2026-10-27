@@ -1,0 +1,37 @@
+We need answer user's request. Need produce final answer: C++17 thread-safe LRU cache header-only class template LruCache<Key, Value> with fixed capacity. Need support std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Explain eviction policy in two sentences after code. Need likely include complete code. Need no preamble? User says implement directly, no preamble. We can provide code only. But need ensure C++17. Need maybe include <iostream>, <optional>, <memory>, <list>, <unordered_map>, <mutex>, <string>.
+
+Design:
+class LruCache<Key, Value> {
+public:
+  std::list::value_type Key;
+  static constexpr std::size_t n = size? Actually list element: struct Key { Value; }
+  std::list<Key> list;
+  std::map<int, std::unordered_map<Key, Value>> key;
+  std::mutex mtx;
+  size_t capacity;
+  LruCache(size_t size) = delete;
+  size_t size = 0;
+  LruCache(size_t capacity) : size_t capacity, capacity_{}
+  void put(const Key& key, const Value& v) {
+    std::lock_guard<std::mutex> lock(mtx);
+    std::unordered_map<Key, Value>::iterator? Actually std::unordered_map<Key, Value> key;
+    auto it = 0;
+    if (it == key.end()) {
+      auto it = list.emplace_front(list.begin(), key, v);
+      size_t size = 0;
+      if (size == capacity) {
+        auto it = list.back();
+        key.erase(it.first);
+        list.pop_back();
+      }
+    } else {
+      list.erase(it.first, v);
+      list.splice(list.begin(), list.begin(), it.first);
+    }
+  }
+  void put(const Key& key, const Value& v) {
+    std::lock_guard<std::mutex> lock(mtx);
+    auto it = 0;
+    if (it == key.end()) {
+      auto it = list.emplace_front(list.begin(), key, v);
+      size_t size

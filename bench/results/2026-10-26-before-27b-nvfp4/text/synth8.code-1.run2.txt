@@ -1,0 +1,39 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::get, put, erase, size, size_t size() const, O(1) average time for get/put. Use std::mutex. Protect every public method with std::mutex. Include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences.
+
+Need produce final answer. Need likely include code. Need consider constraints: header-only. C++17. Could use std::optional, std::optional, std::unordered_map, std::list, std::unordered_map, std::mutex, std::mutex.
+
+Need ensure all public methods protected. Use std::list and std::unordered_map.
+
+Design:
+- LruCache<Key, Value> with fixed capacity.
+- template <<Key, Value> (Key, Value)
+- Use std::list<Key, Value> (Key, Value) and std::unordered_map<Key, Value> (Key, Value)
+- std::list<Key, Value> (Key, Value)
+- Use std::list<Key, Value> (Key, Value)
+- std::unordered_map<Key, Value> (Key, Value)
+- std::mutex
+- std::list<Key, Value> (Key, Value)
+- std::unordered_map<Key, Value> (Key, Value)
+- std::mutex
+- std::list<Key, Value> (Key, Value)
+- std::list<Key, Value> (Key, Value)
+- std::unordered_map<Key, Value>
+- std::mutex
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::unordered_map<Key, Value>
+- std::unordered_map<Key, Value>
+- std::mutex
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::unordered_map<Key, Value>
+- std::unordered_map<Key, Value>
+- std::mutex
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::list<Key, Value>
+- std::unordered_map<Key, Value

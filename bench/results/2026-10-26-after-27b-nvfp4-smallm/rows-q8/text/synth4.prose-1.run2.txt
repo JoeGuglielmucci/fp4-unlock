@@ -1,0 +1,16 @@
+We need to answer user's request: summarize in about 300 words for general technical audience, how speculative decoding speeds up LLM inference. Need produce final about 300 words. Need likely cover: draft model, target verifies several tokens in one forward pass, why output distribution identical to normal decoding, what determines speedup in practice, and end with two most common reasons speedup is smaller than hoped.
+
+Need ensure about 300 words. Let's draft. Need no preamble. Need count words. Let's count.
+
+Draft:
+"Speculative decoding speeds up large language model inference by using a small number of cheap draft tokens to reduce the number of expensive target-model forward passes. It first uses a small draft model, or a self-contained prompt, to generate a short sequence of candidate tokens, often one for each position in a parallel prefix. The target model verifies these candidates in a single forward pass. Because the target model can process many positions at once, it obtains the next token probabilities for each token, not just the final one, and can check the token itself and the token probabilities for the next token.
+
+The target model then accepts the longest prefix of draft tokens that matches the target's own distribution. If the draft token is rejected, it is replaced by the token's target distribution. For each token, the target is sampled from the token that is the target distribution. This ensures the output distribution is identical to normal decoding. If the draft token is accepted, the target distribution is used. If the draft token is rejected, the target distribution is sampled.
+
+The key is that the output distribution is exactly the same as normal decoding. If the draft token is accepted, the target distribution is used. If the draft token is rejected, the target distribution is sampled.
+
+The speedup is determined by the number of accepted draft tokens per token. The more tokens accepted, the more target forward passes are done. The speedup is determined by the number of accepted draft tokens per token. The target model is also a large language model. The speedup is determined by the number of accepted draft tokens per token. The target model is also a large language model.
+
+The speedup is determined by the number of accepted draft tokens per token. The target model is also a large language model. The speedup is determined by the number of accepted draft tokens per token. The target model is also a large language model.
+
+The speedup is determined by the number of accepted draft tokens per token. The

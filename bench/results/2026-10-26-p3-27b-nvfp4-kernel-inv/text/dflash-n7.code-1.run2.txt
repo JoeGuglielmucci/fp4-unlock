@@ -1,0 +1,10 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need consider const methods with mutex: std::mutex non-const, need mutable std::mutex. get returns optional<Value>. If Value not copyable? assume copyable. put takes const Value&. Need store pair<Key, Value> in list. unordered_map<Key, typename std::list<...>::iterator>. Need capacity size_t. If capacity 0? put should not store? get returns nullopt. Need handle. Need thread-safe. Need maybe use std::lock_guard. Need include <optional>, <list>, <unordered_map>, <mutex>, <cstddef>, <utility>, <iostream>.
+
+Potential issue: get should move key to front. If key not found return nullopt. put: if key exists update value and move to front. If not and size == capacity: if capacity == 0 return; evict back. Need erase back from map and list. Then push_front. Need ensure O(1). Need maybe use std::list::splice to move node to front. For existing: auto it = map.find(key); if found: it->second->second = value; list.splice(list.begin(), list, it->second); return. For new: if capacity == 0 return; if size == capacity: auto last = std::prev(list.end()); map.erase(last->first); list.pop_back(); list.emplace_front(key, value); map.emplace(key, list.begin());
+
+Need main exercises eviction order capacity 3. Need demonstrate LRU eviction. Could print results. Need maybe use std::cout. Example:
+LruCache<int,int> cache(3);
+cache.put(1,10); cache.put(2,20); cache.put(3,30);
+auto v = cache.get(1); // 1 becomes MRU, order 1,3,2? Actually after put

@@ -1,0 +1,353 @@
+diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
+index 011b74613..7336cce3a 100644
+--- a/tests/test-backend-ops.cpp
++++ b/tests/test-backend-ops.cpp
+@@ -21,6 +21,7 @@
+ #include "ggml-cpp.h"
+ 
+ #include <algorithm>
++#include <cmath>
+ #include <atomic>
+ #include <array>
+ #include <cfloat>
+@@ -1400,7 +1401,7 @@ struct test_case {
+         return false;
+     }
+ 
+-    test_status_t eval(ggml_backend_t backend1,
++    virtual test_status_t eval(ggml_backend_t backend1,
+                        ggml_backend_t backend2,
+                        const char *   op_names_filter,
+                        printer *      output_printer) {
+@@ -7788,6 +7789,132 @@ struct test_mul_mat_add : public test_case {
+     }
+ };
+ 
++// fp4-unlock (PRD 2.1 regression test, pattern from ggml-org/llama.cpp#28488 MMVQ_BATCH / FA_BATCH):
++// batch invariance = column 0 of a MUL_MAT with ne11 = n (n = 2..n_max) must be bitwise equal to the ne11 = 1 result.
++// Compares backend1 against itself (not against CPU); the CPU result is used as a harness sanity check only.
++// Fails on stock CUDA for n >= 5 (MMVQ 4-to-2 warp switch) and n >= 9 (MMQ); passes with FP4_UNLOCK_INVARIANT=1
++// (Phase 2 pins) or with the small-M kernel (FP4_UNLOCK_KERNEL=1) for NVFP4/MXFP4 n <= 8.
++static bool fp4_unlock_batch_filter_matches(const std::string & op_name, const char * op_names_filter) {
++    if (op_names_filter == nullptr) {
++        return true;
++    }
++    for (const auto & entry : op_filter_entries(op_names_filter)) {
++        if (entry.find_first_of('(') == std::string_view::npos && op_filter_entry_matches(entry, op_name)) {
++            return true;
++        }
++    }
++    return false;
++}
++
++static void fp4_unlock_fill_fixed(ggml_tensor * t, uint32_t seed) {
++    const size_t nels = ggml_nelements(t);
++    std::vector<float> data(nels);
++    std::mt19937 gen(seed);
++    std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
++    for (size_t i = 0; i < nels; ++i) {
++        data[i] = dis(gen);
++    }
++    if (t->type == GGML_TYPE_F32) {
++        ggml_backend_tensor_set(t, data.data(), 0, nels*sizeof(float));
++    } else if (t->type == GGML_TYPE_F16) {
++        std::vector<ggml_fp16_t> d16(nels);
++        for (size_t i = 0; i < nels; ++i) {
++            d16[i] = ggml_fp32_to_fp16(data[i]);
++        }
++        ggml_backend_tensor_set(t, d16.data(), 0, nels*sizeof(ggml_fp16_t));
++    } else {
++        GGML_ASSERT(ggml_is_quantized(t->type) || t->type == GGML_TYPE_BF16);
++        std::vector<uint8_t> dataq(ggml_row_size(t->type, nels));
++        std::vector<float> im(t->ne[0], 1.0f);
++        const float * im_ptr = ggml_quantize_requires_imatrix(t->type) ? im.data() : nullptr;
++        ggml_quantize_chunk(t->type, data.data(), dataq.data(), 0, nels/t->ne[0], t->ne[0], im_ptr);
++        ggml_backend_tensor_set(t, dataq.data(), 0, dataq.size());
++    }
++}
++
++struct test_mul_mat_batch : public test_case {
++    const ggml_type type_a;
++    const int64_t m;      // rows of a (= ne01)
++    const int64_t k;      // ne00
++    const int64_t n_max;  // compare ne11 = 2..n_max against ne11 = 1
++
++    std::string vars() override { return VARS_TO_STR4(type_a, m, k, n_max); }
++    ggml_tensor * build_graph(ggml_context * ctx) override { GGML_UNUSED(ctx); return nullptr; }
++
++    bool run_one(ggml_backend_t backend, int64_t n, std::vector<float> & col0) {
++        ggml_init_params p = { ggml_tensor_overhead()*8 + ggml_graph_overhead(), nullptr, true };
++        ggml_context * ctx = ggml_init(p);
++        ggml_tensor * a = ggml_new_tensor_2d(ctx, type_a, k, m);
++        ggml_tensor * b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, k, n);
++        ggml_set_name(a, "a");
++        ggml_set_name(b, "b");
++        ggml_tensor * o = ggml_mul_mat(ctx, a, b);
++        ggml_set_name(o, "out");
++        ggml_cgraph * gf = ggml_new_graph(ctx);
++        ggml_build_forward_expand(gf, o);
++        ggml_backend_buffer_t buf = ggml_backend_alloc_ctx_tensors(ctx, backend);
++        if (!buf) { ggml_free(ctx); return false; }
++        fp4_unlock_fill_fixed(a, 123);
++        fp4_unlock_fill_fixed(b, 42);   // column 0 is the same for every n (the generator walks column 0 first)
++        const bool ok = ggml_backend_graph_compute(backend, gf) == GGML_STATUS_SUCCESS;
++        if (ok) {
++            col0.resize(m);
++            ggml_backend_tensor_get(o, col0.data(), 0, m*sizeof(float));   // column 0 = first m floats
++        }
++        ggml_backend_buffer_free(buf);
++        ggml_free(ctx);
++        return ok;
++    }
++
++    test_status_t eval(ggml_backend_t backend1, ggml_backend_t backend2, const char * op_names_filter, printer * output_printer) override {
++        GGML_UNUSED(backend2);
++        const std::string op_name = "MUL_MAT_BATCH";
++        current_op_name = op_name;
++        if (!fp4_unlock_batch_filter_matches(op_name, op_names_filter)) {
++            return test_status_t::SKIPPED;
++        }
++        const std::string backend_name = ggml_backend_name(backend1);
++        {
++            ggml_init_params p = { ggml_tensor_overhead()*4 + ggml_graph_overhead(), nullptr, true };
++            ggml_context_ptr c(ggml_init(p));
++            ggml_tensor * a = ggml_new_tensor_2d(c.get(), type_a, k, m);
++            ggml_tensor * b = ggml_new_tensor_2d(c.get(), GGML_TYPE_F32, k, n_max);
++            ggml_tensor * o = ggml_mul_mat(c.get(), a, b);
++            if (!ggml_backend_supports_op(backend1, o)) {
++                test_operation_info info(op_name, vars(), backend_name, test_status_t::NOT_SUPPORTED, "not supported");
++                if (output_printer) output_printer->print_operation(info);
++                return test_status_t::NOT_SUPPORTED;
++            }
++        }
++        // backend1 against itself: the question is whether this backend's ne11 = n result equals its own ne11 = 1 result.
++        // (No CPU reference: the CPU backend is itself not invariant for k-quants at n = 8, see docs/FINDINGS.md.)
++        std::vector<float> c1, cn;
++        bool ok = run_one(backend1, 1, c1);
++        std::string detail = ok ? "" : "alloc/compute failed";
++        for (int64_t n = 2; ok && n <= n_max; ++n) {
++            if (!run_one(backend1, n, cn)) { ok = false; detail = "alloc/compute failed"; break; }
++            int diff = 0; double max_abs = 0;
++            for (int64_t i = 0; i < m; ++i) {
++                const double d = fabs(double(c1[i]) - double(cn[i]));
++                if (d != 0) { diff++; max_abs = std::max(max_abs, d); }
++            }
++            if (diff != 0) {
++                char buf[256];
++                snprintf(buf, sizeof(buf), "batch invariance broken at n=%lld: %d/%lld values differ, max %.9g", (long long) n, diff, (long long) m, max_abs);
++                detail = buf; ok = false; break;
++            }
++        }
++        const test_status_t status = ok ? test_status_t::OK : test_status_t::FAIL;
++        test_operation_info info(op_name, vars(), backend_name, status, "");
++        if (!ok) { info.set_error("compare", detail); info.set_compare_failure(); }
++        if (output_printer) output_printer->print_operation(info);
++        return status;
++    }
++
++    test_mul_mat_batch(ggml_type type_a = GGML_TYPE_Q8_0, int64_t m = 256, int64_t k = 1024, int64_t n_max = 8)
++        : type_a(type_a), m(m), k(k), n_max(n_max) {}
++};
++
+ struct test_mul_mat_vec_fusion : public test_case {
+     const ggml_type type;
+     const ggml_glu_op glu_op;
+@@ -8735,6 +8862,122 @@ struct test_flash_attn_ext : public test_case {
+ };
+ 
+ // large Q values, so the online softmax has to rescale the partial results
++// fp4-unlock (PRD 2.1): FLASH_ATTN_EXT batch invariance. Query batch 0 of an FA with nb = n (n = 2..n_max) must be bitwise
++// the nb = 1 result for the same q row / mask row / K / V. Stock CUDA fails from nb = 3 (kernel family, tile and
++// stream-k split depend on nb); FP4_UNLOCK_INVARIANT=1 pins them (docs/FINDINGS.md "chain5" / "chain7").
++struct test_fa_batch : public test_case {
++    const int64_t hsk, hsv, nh, kv, n_max;
++    const std::array<int64_t, 2> nr23;
++    const ggml_type type_KV;
++
++    std::string vars() override { return VARS_TO_STR7(hsk, hsv, nh, nr23, kv, type_KV, n_max); }
++    ggml_tensor * build_graph(ggml_context * ctx) override { GGML_UNUSED(ctx); return nullptr; }
++
++    bool run_one(ggml_backend_t backend, int64_t nb, std::vector<float> & slice0) {
++        ggml_init_params p = { ggml_tensor_overhead()*32 + ggml_graph_overhead(), nullptr, true };
++        ggml_context * ctx = ggml_init(p);
++        test_flash_attn_ext helper(hsk, hsv, nh, nr23, kv, nb, /*mask*/ true, /*sinks*/ false, 0.0f, 0.0f, GGML_PREC_F32,
++                                   type_KV, type_KV, {0, 1, 2, 3}, /*kv_view*/ false, /*v_is_view_of_k*/ false, 0);
++        ggml_tensor * out = helper.build_graph(ctx);
++        ggml_cgraph * gf = ggml_new_graph(ctx);
++        ggml_build_forward_expand(gf, out);
++        ggml_backend_buffer_t buf = ggml_backend_alloc_ctx_tensors(ctx, backend);
++        if (!buf) { ggml_free(ctx); return false; }
++        for (ggml_tensor * t = ggml_get_first_tensor(ctx); t != nullptr; t = ggml_get_next_tensor(ctx, t)) {
++            if (t->op != GGML_OP_NONE) {
++                continue;
++            }
++            if (strcmp(t->name, "q") == 0) {
++                // q [hsk, nb, nh_q, 1]: seed per (head, batch) so batch 0 is the same vector for every nb
++                const int64_t D = t->ne[0], NB = t->ne[1], NH = t->ne[2];
++                std::vector<float> data(ggml_nelements(t));
++                for (int64_t h = 0; h < NH; ++h) {
++                    for (int64_t b = 0; b < NB; ++b) {
++                        std::mt19937 gen(1000 + (uint32_t) h*64 + (uint32_t) b);
++                        std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
++                        for (int64_t d = 0; d < D; ++d) {
++                            data[(size_t) d + (size_t) b*D + (size_t) h*D*NB] = dis(gen);
++                        }
++                    }
++                }
++                ggml_backend_tensor_set(t, data.data(), 0, data.size()*sizeof(float));
++            } else if (strcmp(t->name, "m") == 0) {
++                // mask [kv, nb]: per-column seed, ~half the positions allowed, column 0 identical for every nb
++                const int64_t KV = t->ne[0], NB = t->ne[1];
++                std::vector<ggml_fp16_t> data(ggml_nelements(t));
++                for (int64_t b = 0; b < NB; ++b) {
++                    std::mt19937 gen(2000 + (uint32_t) b);
++                    std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
++                    for (int64_t j = 0; j < KV; ++j) {
++                        data[(size_t) j + (size_t) b*KV] = ggml_fp32_to_fp16(dis(gen) > 0.0f ? 0.0f : -INFINITY);
++                    }
++                }
++                ggml_backend_tensor_set(t, data.data(), 0, data.size()*sizeof(ggml_fp16_t));
++            } else {
++                uint32_t seed = 42;
++                for (const char * c = t->name; *c; ++c) { seed = seed*31 + (uint8_t) *c; }
++                fp4_unlock_fill_fixed(t, seed);
++            }
++        }
++        const bool ok = ggml_backend_graph_compute(backend, gf) == GGML_STATUS_SUCCESS;
++        if (ok) {
++            // out [hsv, nh_q, nb, 1]: batch 0 is the first hsv*nh_q floats
++            const size_t n = (size_t) out->ne[0] * out->ne[1];
++            slice0.resize(n);
++            ggml_backend_tensor_get(out, slice0.data(), 0, n*sizeof(float));
++        }
++        ggml_backend_buffer_free(buf);
++        ggml_free(ctx);
++        return ok;
++    }
++
++    test_status_t eval(ggml_backend_t backend1, ggml_backend_t backend2, const char * op_names_filter, printer * output_printer) override {
++        GGML_UNUSED(backend2);
++        const std::string op_name = "FA_BATCH";
++        current_op_name = op_name;
++        if (!fp4_unlock_batch_filter_matches(op_name, op_names_filter)) {
++            return test_status_t::SKIPPED;
++        }
++        const std::string backend_name = ggml_backend_name(backend1);
++        {
++            ggml_init_params p = { ggml_tensor_overhead()*32 + ggml_graph_overhead(), nullptr, true };
++            ggml_context_ptr c(ggml_init(p));
++            test_flash_attn_ext helper(hsk, hsv, nh, nr23, kv, n_max, true, false, 0.0f, 0.0f, GGML_PREC_F32, type_KV, type_KV, {0, 1, 2, 3}, false, false, 0);
++            ggml_tensor * o = helper.build_graph(c.get());
++            if (!ggml_backend_supports_op(backend1, o)) {
++                test_operation_info info(op_name, vars(), backend_name, test_status_t::NOT_SUPPORTED, "not supported");
++                if (output_printer) output_printer->print_operation(info);
++                return test_status_t::NOT_SUPPORTED;
++            }
++        }
++        std::vector<float> s1, sn;
++        bool ok = run_one(backend1, 1, s1);
++        std::string detail = ok ? "" : "alloc/compute failed";
++        for (int64_t n = 2; ok && n <= n_max; ++n) {
++            if (!run_one(backend1, n, sn)) { ok = false; detail = "alloc/compute failed"; break; }
++            int diff = 0; double max_abs = 0;
++            for (size_t i = 0; i < s1.size(); ++i) {
++                const double d = fabs(double(s1[i]) - double(sn[i]));
++                if (d != 0) { diff++; max_abs = std::max(max_abs, d); }
++            }
++            if (diff != 0) {
++                char buf[256];
++                snprintf(buf, sizeof(buf), "batch invariance broken at nb=%lld: %d/%zu values differ, max %.9g", (long long) n, diff, s1.size(), max_abs);
++                detail = buf; ok = false; break;
++            }
++        }
++        const test_status_t status = ok ? test_status_t::OK : test_status_t::FAIL;
++        test_operation_info info(op_name, vars(), backend_name, status, "");
++        if (!ok) { info.set_error("compare", detail); info.set_compare_failure(); }
++        if (output_printer) output_printer->print_operation(info);
++        return status;
++    }
++
++    test_fa_batch(int64_t hsk = 128, int64_t hsv = 128, int64_t nh = 4, std::array<int64_t, 2> nr23 = {4, 1}, int64_t kv = 1024,
++                  ggml_type type_KV = GGML_TYPE_F16, int64_t n_max = 8)
++        : hsk(hsk), hsv(hsv), nh(nh), kv(kv), n_max(n_max), nr23(nr23), type_KV(type_KV) {}
++};
++
+ struct test_flash_attn_ext_large_logits : public test_flash_attn_ext {
+     static constexpr int q_range = 20;
+ 
+@@ -11093,6 +11336,19 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+     test_cases.emplace_back(new test_mul_mat_id_w4a4(GGML_TYPE_NVFP4, GGML_TYPE_F32, 8, 2, false, 32, 32, 256));
+     test_cases.emplace_back(new test_mul_mat_id_w4a4(GGML_TYPE_NVFP4, GGML_TYPE_F32, 4, 2, true,  64, 16, 256));
+     test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_MXFP4, GGML_TYPE_F32, 32, 32, 256));
++
++    // fp4-unlock PRD 2.1: batch invariance of column 0 for ne11 = 1..8 (fails on stock CUDA from n = 5; see docs/FINDINGS.md "chain5")
++    for (ggml_type t : {GGML_TYPE_NVFP4, GGML_TYPE_MXFP4, GGML_TYPE_Q8_0, GGML_TYPE_Q4_0, GGML_TYPE_Q4_K, GGML_TYPE_Q5_K, GGML_TYPE_Q6_K}) {
++        test_cases.emplace_back(new test_mul_mat_batch(t, 256, 1024, 8));
++        test_cases.emplace_back(new test_mul_mat_batch(t, 512, 5120, 8));
++    }
++    // The invariance contract covers n <= 8 only; from n = 9 the op routes to MMQ (different K split), so a larger
++    // n_max would fail by design. The 1024-row shape at n_max = 8 keeps a wide-M-grid case in the gate.
++    test_cases.emplace_back(new test_mul_mat_batch(GGML_TYPE_NVFP4, 1024, 5120, 8));
++    for (ggml_type kvt : {GGML_TYPE_F16, GGML_TYPE_Q8_0}) {
++        test_cases.emplace_back(new test_fa_batch(128, 128, 4, {4, 1}, 1024, kvt, 8));
++        test_cases.emplace_back(new test_fa_batch(256, 256, 4, {6, 1}, 4096, kvt, 8));   // Qwen3.8-27B head shape
++    }
+     test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_MXFP4, GGML_TYPE_F32, 64, 16, 512));
+     test_cases.emplace_back(new test_mul_mat_w4a4(GGML_TYPE_MXFP4, GGML_TYPE_F32, 32, 32, 256));
+     test_cases.emplace_back(new test_mul_mat_id_w4a8(GGML_TYPE_MXFP4, GGML_TYPE_F32, 8, 2, false, 32, 32, 256));
+@@ -11138,6 +11394,27 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+         test_cases.emplace_back(new test_mul_mat(type_a,    GGML_TYPE_F32, 16,  8, 16*256, { 1,  1}, {1, 1}));
+     }
+ 
++    // fp4-unlock Phase 3.1: NVFP4/MXFP4 at every decode / verify batch size M in [1, 8] at the Qwen3.8-27B FFN shapes
++    // (gate/up [5120 -> 17408] and down [17408 -> 5120], K reduced to one quarter to keep the CPU reference fast),
++    // plus the explicit W4A8 / W4A4 MMQ variants, so a small-M kernel is tested on both precisions before it exists.
++    for (ggml_type type_a : { GGML_TYPE_NVFP4, GGML_TYPE_MXFP4 }) {
++        for (int n = 1; n <= 8; ++n) {
++            test_cases.emplace_back(new test_mul_mat(type_a, GGML_TYPE_F32, 17408, n, 1280, { 1, 1 }, { 1, 1 }));
++            test_cases.emplace_back(new test_mul_mat(type_a, GGML_TYPE_F32,  5120, n, 4352, { 1, 1 }, { 1, 1 }));
++            test_cases.emplace_back(new test_mul_mat_w4a8(type_a, GGML_TYPE_F32, 512, n, 1280));
++            test_cases.emplace_back(new test_mul_mat_w4a4(type_a, GGML_TYPE_F32, 512, n, 1280));
++        }
++    }
++    // fp4-unlock Phase 3.3 edge cases for the small-M NVFP4 kernel: m not a multiple of 16 (row clamp on load, mask on
++    // store), k = 64 (single K block), 6160 / 32776 rows (the nwarps 8 / 4 tiers).
++    for (int n : { 2, 3, 5, 7, 8 }) {
++        test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_NVFP4, GGML_TYPE_F32, 40, n, 320));
++        test_cases.emplace_back(new test_mul_mat(GGML_TYPE_NVFP4, GGML_TYPE_F32, 40, n, 256, { 1, 1 }, { 1, 1 }));
++    }
++    test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_NVFP4, GGML_TYPE_F32,    48, 8,  64));
++    test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_NVFP4, GGML_TYPE_F32,  6160, 5, 256));
++    test_cases.emplace_back(new test_mul_mat_w4a8(GGML_TYPE_NVFP4, GGML_TYPE_F32, 32776, 3, 128));
++
+     // Multi-column MMVQ coverage for the Q4_K weight-reuse path and a Q5_K control.
+     for (ggml_type type_a : { GGML_TYPE_Q4_K, GGML_TYPE_Q5_K }) {
+         for (int n = 1; n <= 8; ++n) {
+@@ -12538,6 +12815,27 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
+     std::vector<std::unique_ptr<test_case>> test_cases;
+ 
++    // fp4-unlock: Qwen3.8-27B NVFP4 FFN shapes (ffn_gate/up [5120 -> 17408], ffn_down [17408 -> 5120]) at the
++    // verify-step batch sizes. Env-gated so the stock perf list is unchanged.
++    if (getenv("FP4_UNLOCK_PERF_SHAPES") != nullptr) {
++        for (ggml_type ta : {GGML_TYPE_NVFP4, GGML_TYPE_MXFP4, GGML_TYPE_Q4_0, GGML_TYPE_Q8_0}) {
++            for (int n : {1, 2, 3, 4, 6, 8, 12, 16, 32, 64, 512}) {
++                test_cases.emplace_back(new test_mul_mat(ta, GGML_TYPE_F32, 17408, n, 5120, {1, 1}, {1, 1}));
++                test_cases.emplace_back(new test_mul_mat(ta, GGML_TYPE_F32,  5120, n, 17408, {1, 1}, {1, 1}));
++            }
++        }
++        // fp4-unlock Phase 2: Qwen3.8-27B attention (D=256, 24 q heads / 4 kv heads) at decode and verify-step
++        // batch sizes, f16 and q8_0 KV, for the batch-invariant FA split cost measurement.
++        for (ggml_type tkv : {GGML_TYPE_F16, GGML_TYPE_Q8_0}) {
++            for (int64_t kv : {8192, 65536}) {
++                for (int64_t nb : {1, 4, 8}) {
++                    test_cases.emplace_back(new test_flash_attn_ext(256, 256, 4, {6, 1}, kv, nb, true, false, 0, 0, GGML_PREC_F32, tkv, tkv));
++                }
++            }
++        }
++        return test_cases;
++    }
++
+     // delta-net conv input: conv state followed by the transposed qkv of the ubatch
+     test_cases.emplace_back(new test_concat(GGML_TYPE_F32, {3, 8192, 1, 1}, 512, 0, 16));
+ 

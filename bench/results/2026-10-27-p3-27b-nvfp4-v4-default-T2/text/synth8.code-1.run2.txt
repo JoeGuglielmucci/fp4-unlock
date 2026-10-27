@@ -1,0 +1,50 @@
+We need answer user's request. Need produce final answer with code only? User asks implement a thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> fixed capacity, with std::optional, methods, size_t size const, O(1) std::list and std::unordered_map, protect every public method with std::mutex, include std::main() that exercises eviction order. Explain eviction policy in two sentences after code. Need likely no preamble. Need code.
+
+Need think about correctness.
+
+Class template LruCache<Key, Value> with static capacity. Need include < <cstdio> as C++17.
+
+Header-only:
+#include <list>
+#include <unordered_map>
+#include <mutex>
+#include <optional>
+#include <mutex>
+#include <cstddef>
+#include <utility>
+
+class template:
+template <typename LruCache, typename Value>
+public:
+LruCache<Key, Value>
+private:
+    std::list<Key, Value>
+    std::unordered_map<Key, Value>
+    std::size_t capacity;
+    std::mutex;
+    std::size_t size();
+    std::mutex();
+    std::size_t capacity;
+    std::size_t size();
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t erase(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);
+    std::size_t put(const Key&);
+    std::size_t get(const Key&);

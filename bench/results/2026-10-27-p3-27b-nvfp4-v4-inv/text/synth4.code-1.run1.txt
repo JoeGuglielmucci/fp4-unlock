@@ -1,0 +1,16 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get, std::optional<Value> get(const Key&), put, erase, bool erase, size_t size(), O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce complete runnable code. Need think about header-only class template. Need maybe include header-only? They say "as a header-only class template" but also include main() that exercises. Could provide one file with header-only? They ask "Implement ... as a header-only class template ... include a small main()". We can provide header-only class template in a single file, and include main() in same file? Maybe they want header-only class template plus main. Could provide code in one file: #include <bits/stdc++.h>, <bits/stdc++.h> not allowed? Use <list> and <unordered_map>, <mutex>, <optional>, <memory>, <optional>, <cstddef>, <cstddef>. Need include <cstdio>, <mutex>, <optional>, <unordered_map>, <list>, <utility>, <cstddef>.
+
+Need ensure thread-safe. C++17. Use std::mutex. Need protect every public method. Could use std::lock_guard<std::mutex> lock; in each method.
+
+Need O(1) average. Use std::list and std::unordered_map.
+
+Design:
+- list<Key> list? Or std::list<std::pair<Key, Value>>? Need map<Key, list<Value>::iterator>. If store Key, Value in list, map<Key, std::list<std::pair<Key, Value>>::iterator>.
+- capacity: size_t capacity_ = 0;
+- get: std::optional<Value> = std::nullopt;
+- get: lock; auto it = map.find(key); if not found return nullopt; if found, move to front.
+- std::optional<Value> get(const Key&) { return std::nullopt; }
+- put: lock; if capacity_ == 0, return; if not found, insert; if found, update value and move to front.
+- erase: lock; auto it = map.find(key

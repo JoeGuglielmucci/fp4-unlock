@@ -1,0 +1,14 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer. Need likely concise ~300 words. Need no preamble. Need ensure direct answer. Let's draft around 300 words.
+
+Need include:
+- draft model does draft
+- What does the draft model generate?
+- target model verifies several tokens in one forward pass
+- why output distribution can be kept identical to normal decoding
+- how speedup determined (determines acceptance rate, number of tokens, etc.)
+- End with two most common reasons speedup is smaller than hoped.
+
+Need about 300 words. Let's draft.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a small draft model and a large target model. The draft model generates a small number of candidate tokens, usually one by one, using its own fast inference. Because the target model is much larger than the small model, the draft model can be used to generate a few tokens. The target model then verifies the draft tokens in a single forward pass. The target model receives the draft tokens and computes the next token, and the probability of the next token. It can also compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token. The target model can compute the probability of the next token

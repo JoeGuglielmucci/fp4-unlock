@@ -1,0 +1,8 @@
+We need answer user's request: explain to curious high-school student, about 400 words, why GPU limited by memory bandwidth rather than compute. Use one concrete analogy, simple worked example with made-up plausible numbers, finish explaining what engineers do about it. Need final only. Need likely around 400 words. Let's draft ~400. Need ensure no preamble. Could be 380-420. Let's count.
+
+Draft:
+"Imagine a kitchen with a very fast chef. The chef can chop 100 carrots per second, but the pantry door is only wide enough for 20 carrots to pass through each second. No matter how fast the chef works, if the recipe needs fresh carrots, the chef will spend most of the time waiting for carrots to arrive. A graphics card is like that kitchen. Its compute units are the chef, and its memory bandwidth is the pantry door.
+
+A GPU does not just crunch numbers; it constantly pulls data from memory: textures, vertex positions, colors, depth values, and results from previous steps. If the data arrives too slowly, the compute units sit idle. This is called being memory-bandwidth bound.
+
+Here is a simple made-up example. Suppose a GPU has 10,000 compute cores, and each core can do 2 operations per clock. At 2 GHz, that is 10,000 × 2 × 2,000,000,000 = 40,000,000,000 operations per second, or 40 TOPS. Now suppose a game effect needs 10 operations for every byte of data it reads. To use all 40 TOPS, the GPU would need 4,000,000,000 bytes per second, or 4 GB/s. That sounds small, but many effects need far more data. If the effect needs 100 operations per byte, the GPU needs 40 GB/s. If the memory bus can only deliver 20 GB/s, the GPU can only do 2,000,000,000 × 100 = 200,000,000,000? Wait check: 20 GB/s * 100 ops/byte = 2,000,000,00

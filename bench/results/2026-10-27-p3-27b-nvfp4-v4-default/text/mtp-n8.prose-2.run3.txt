@@ -1,0 +1,13 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter only. Need about 350 words. Need count? Let's draft around 350 words. Need placeholders only for names and dates. Could include [Company Name]? User says placeholders only for names and dates. So use [Company Name], [Vendor Name], [New GPU Name], [Date], [Name], [Title], [Address]? Address maybe not name/date? They said placeholders only for names and dates, so avoid [Address], [Email], [Phone]? Maybe use generic no placeholders? But formal letter needs sender address? Could omit or use no placeholders. But if need names/dates only, can include [Your Name], [Date], [Vendor Contact Name], [Vendor Company Name], [GPU Model Name], [Launch Date]. Maybe company name placeholder? It's a name. OK.
+
+Need about 350 words. Let's draft and count.
+
+Dear [Vendor Contact Name],
+
+[Date]
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for deploying machine-learning models on high-performance hardware. Our engine is designed to provide a portable, low-level runtime for model execution, with particular emphasis on efficient memory management, kernel scheduling, and support for emerging accelerator architectures.
+
+We are requesting early access to the developer program for the [New GPU Name]. Because our product is open-source and widely used by researchers and independent developers, early access before the public launch would allow us to understand the GPU’s programming model, memory hierarchy, and performance characteristics in a timely manner. This access is important to us because inference workloads are sensitive to latency, throughput, and memory bandwidth, and we want to ensure that our engine can support the [New GPU Name] effectively from day one. Without early access, we risk releasing an initial version that is incomplete, poorly optimized, or based on incomplete assumptions about the hardware.
+
+In return for early access, [Company Name] is prepared to provide concrete and useful feedback. We can share detailed performance benchmarks for representative inference workloads, including throughput, latency, and memory utilization,

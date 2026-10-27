@@ -1,0 +1,8 @@
+We need to answer user's request: explain in English, about 400 words, for curious high-school student. Why high-school student? likely English. Need: one concrete analogy, simple worked example with made-up numbers, finish by explaining what engineers do about it. Need likely concise but detailed. Need no preamble. Ensure no analysis. Need maybe around 400 words. Let's draft.
+
+Need include:
+- Graphics card can be limited by memory bandwidth rather than compute.
+- Why memory bandwidth: memory data is not the bottleneck.
+- Analogy: memory bandwidth is the bottleneck.
+- Simple worked example: made-up numbers.
+- Example: 1100 million pixels per second, 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

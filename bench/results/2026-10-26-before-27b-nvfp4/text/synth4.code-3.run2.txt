@@ -1,0 +1,43 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit tests should cover. Need ensure external behavior identical, same status codes, response bodies. Need think carefully. Original handler:
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "net/http"
+    "strconv"
+)
+
+var db *sql.DB
+
+func userHandler(w http.ResponseWriter, r *http.Request)
+{
+    idStr := r.URL.Query().Get("id")
+    id, err := strconv.Atoi(idStr)
+    if err != nil {
+        return
+    }
+    row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+    var name, email string
+    if err := row.Scan(&name, &email); err != nil {
+        if err == sql.ErrNoRows {
+            w.WriteHeader(404)
+            w.Write([]byte(`{"error":"not found"}`))
+            return
+        }
+        w.WriteHeader(500)
+        w.Write([]byte(`{"error":"db"}`))
+        return
+    }
+    return
+}
+
+Need separate functions:
+- parseID: int, error, fmt, strconv
+- validateID: int, error
+- fetchUser: func(db *sql.DB) (int, error)
+- writeJSONResponse: jsonResponse, error
+- userHandler: func(w http.ResponseWriter, r *http.Request)
+
+Need preserve exact behavior:
+- 400: id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=100, id=1

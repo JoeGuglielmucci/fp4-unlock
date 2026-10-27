@@ -1,0 +1,51 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test should cover. Need be careful: external behavior identical. Keep external behavior same status codes, response bodies. Need consider:
+Original code:
+- bad id: 400 body {"error":"bad id"}. No Content-Type header? They write body without header. So no Content-Type set.
+- 404: not found: {"error":"not found"} no Content-Type.
+- 500: {"error":"db"} no Content-Type.
+- success: 200 (default) with Content-Type header set, body JSON.
+Need refactor:
+- database access, input validation, JSON encoding separated into testable functions with clear error handling.
+- Keep external behavior identical.
+- Need return full refactored file.
+- Need unit tests cover behaviors.
+Need think about possible testability.
+- parseID: func parseID(r.URL.Query().Get("id")) -> int.
+- validateID: int.
+- fetchUser: func(id int, error) {
+  row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+  if err := row.Scan(&name, &email); err != nil {
+    if err == sql.ErrNoRows { return 404, nil }
+    return 500, nil
+  }
+  return 200, name
+}
+- writeJSON: http.ResponseWriter, status int, body string.
+- encodeJSON: func(w http.ResponseWriter, r *http.Request, v interface{}) error.
+- handleUser: func(w http.ResponseWriter, r *http.Request) error.
+- handleUser: id, parseID, validateID, fetchUser.
+- handleUser: writeJSON, writeError, handleUser.
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:
+- handleUser:

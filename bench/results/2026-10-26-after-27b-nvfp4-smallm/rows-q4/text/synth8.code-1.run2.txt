@@ -1,0 +1,38 @@
+We need answer user's request. Need produce final answer with code header-only, explanation two sentences, no preamble. Need implement thread-safe LRU cache C++17.
+
+Let's think details.
+
+Class template LruCache<Key, Value> with fixed capacity.
+- std::get, put, erase, size, erase, return bool.
+- Methods: std::optional<Value> get(const Key&) const, Value copy? Actually LRU cache is std::optional<Value> get(const Key&) const.
+- void put(const Key&, const Value&)
+- void put(const Key&, const Value&)
+- bool erase(const Key&)
+- size_t size()
+- bool erase(const Key&)
+- size_t size() const.
+- O(1) average time for get and put.
+- Use std::list and std::unordered_map.
+- Protect every public method with std::mutex.
+- Include a small main() that exercises eviction order with capacity 3.
+- Explain eviction policy in two sentences after the code.
+
+Need ensure header-only.
+- Use std::list and std::unordered_map.
+- Use std::list and std::unordered_map.
+- Need include <mutex>, <optional>, <unordered_map>, <list>, <list>, <utility>, <cstddef>, <iostream>, <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm> for main.
+- Need avoid mutable default? Use std::mutex.
+- Need include <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm> for main.
+- Need avoid std::optional? Use std::mutex.
+- Need include <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm>, <algorithm> for main.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std::optional? Use std::mutex.
+- Need avoid std

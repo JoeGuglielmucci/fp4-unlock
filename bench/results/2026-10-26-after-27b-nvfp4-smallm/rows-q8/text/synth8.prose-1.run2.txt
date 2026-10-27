@@ -1,0 +1,27 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer only, no need analysis. Need ensure direct.
+</think>
+
+Speculative decoding speeds up large language models by using a small draft model to generate tokens that are likely to be accepted, while the target model verifies them in parallel.
+
+The key idea is:
+
+1. The draft model generates tokens that are likely to be accepted.
+2. The target model verifies the draft tokens in one forward pass.
+3. The target model verifies the draft tokens in one forward pass.
+4. The output distribution is kept identical to normal decoding.
+5. The target model verifies the draft tokens in one forward pass.
+6. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The output distribution is kept identical to normal decoding. The target model verifies the draft tokens in one forward pass. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The output distribution is kept identical to normal decoding. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The output distribution is kept identical to normal decoding. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The output distribution is kept identical to normal decoding. The speedup depends on the draft model.
+
+The draft model is a small model that proposes a few tokens. The target model verifies the draft tokens in one forward pass. The target model verifies the draft tokens in one forward pass. The output distribution is kept identical to normal decoding. The speedup depends on the draft model.
+
+The draft model is

@@ -1,0 +1,22 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get std::optional<Value> get(const Key&), const void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average get and put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer. Need think about requirements. Header-only class template. Need include main? The user says "include a small main() that exercises eviction order with capacity 3". Since class template, maybe header-only. But they ask include main. Could provide a single file with #pragma once? Or a header-only file. Need maybe include <iostream>, <optional>, <list>, <unordered_map>, <mutex>, <cstddef>. Need C++17.
+
+Potential pitfalls:
+- std::optional<Value> is std::optional. Need include <optional>.
+- Thread-safe LRU: std::list<std::list<list<int>::iterator> or std::pair<list<int>::iterator, std::pair<list<int>>>? Actually pair<list<int>::iterator, std::pair<list<int>>>? Need map<list<int>::iterator, std::pair<list<int>>>? Let's design.
+
+std::list<std::pair<list<int>::iterator, std::pair<list<int>>>? No.
+
+Common:
+std::list<std::pair<list<int>::iterator, std::pair<list<int>>>? Let's define:
+using Node<T> = std::pair<std::list<T>::iterator, std::pair<std::list<T>>>? No.
+std::list<std::pair<std::list<std::pair<list<int>::iterator, std::pair<list<int>>>? Wait.
+
+Simpler:
+std::list<std::pair<list<int>::iterator, std::pair<list<int>>>?
+But pair<list<int>::iterator, std::pair<list<int>>> is not a pair.
+
+Let's define:
+using Node = std::pair<std::pair<list<int>::iterator, std::pair<list<int>>>;
+using Map = std::unordered_map<list<int>::iterator, std

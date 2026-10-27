@@ -1,0 +1,18 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average get/put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17. Header-only class template. Need consider const methods with mutex: std::mutex non-const, use mutable std::mutex. get returns optional<Value>. If Value not copyable? We can return by value; assume copyable. put copies. Need maybe use std::list<std::pair<Key,Value>>; map Key -> iterator. On get: lock, find, if found move node to front (most recently used), return value. On put: lock, if exists update value and move to front; else if capacity full evict back (least recently used), erase map, pop_back; then emplace_front, map. Need capacity size_t. If capacity 0? Fixed capacity given at construction. If capacity 0, put should not store? Need handle. If capacity == 0, put does nothing? get returns nullopt. size 0. Eviction only if capacity > 0 and size == capacity. Need avoid emplace if capacity 0. Could assert? Better handle gracefully.
+
+Thread-safe: every public method protected with std::mutex. Use std::lock_guard.
+
+Need include main. It should exercise eviction order with capacity 3. Need demonstrate. Example:
+LruCache<int,int> cache(3);
+cache.put(1,100);
+cache.put(2,200);
+cache.put(3,300);
+cache.get(1); // use 1, LRU now 2
+cache.put(4,400); // evict 2
+print contains? We can use get. Need maybe output.
+Could use std::cout. Need include iostream, optional, list, unordered_map, mutex, cstddef, utility.
+
+Need ensure main exercises eviction order. Could print results:
+auto v = cache.get(1); std::cout

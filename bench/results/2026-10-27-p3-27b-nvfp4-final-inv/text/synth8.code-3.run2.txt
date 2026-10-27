@@ -1,0 +1,68 @@
+We need answer user's request. Need produce final full refactored Go file and list behaviors unit test should cover. Need likely refactor code. Need ensure external behavior identical. Let's analyze original.
+
+Original handler:
+- w = ResponseWriter, r = Request.
+- Get id from query.
+- id = strconv.Atoi(idStr). If id <= 0 return 400 body {"error":"bad id"}. Note no Content-Type header.
+- Query row.
+- db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+- if err != sql.ErrNoRows: 404.
+- else 500.
+- success: write header Content-Type application/json, then Encode(map[string]string{"name":name,"name","email":email}).
+- On success: header Content-Type set before json.NewEncoder.
+- On error: no Content-Type header.
+- The JSON encoder writes a new line.
+- The body is exactly `{"name": "name","email","error":"bad id"}`.
+
+Need keep external behavior identical.
+
+Need consider refactored functions:
+- DB access, input validation, JSON encoding separated.
+- Validate id: parse int.
+- Validate id: parse int.
+- DB query: fetch user by id.
+- Return user by id.
+- JSON encoding: map to JSON.
+- Encode user by id.
+- Error handling: write JSON error.
+- Need handle errors:
+- Handle id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+- Validate id:
+-

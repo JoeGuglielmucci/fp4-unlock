@@ -1,0 +1,83 @@
+opinv: nmax=16 kv=8192 seed=7  env FP4_UNLOCK_SMALLM=(unset) GGML_CUDA_MMQ_PREC=(unset)
+column 0 of the n-column result vs the n=1 result, bitwise
+
+MUL_MAT NVFP4 K=5120 R=17408 (ffn_up)            n=2:same n=3:same n=4:same n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=5: 11148 values differ, max |delta| 1.14e-05
+    n=6: 11148 values differ, max |delta| 1.14e-05
+    n=7: 11148 values differ, max |delta| 1.14e-05
+    n=8: 11148 values differ, max |delta| 1.14e-05
+    n=9: 17408 values differ, max |delta| 8.65
+    n=10: 17408 values differ, max |delta| 8.65
+    n=11: 17408 values differ, max |delta| 8.65
+    n=12: 17408 values differ, max |delta| 8.65
+    n=13: 17408 values differ, max |delta| 8.65
+    n=14: 17408 values differ, max |delta| 8.65
+    n=15: 17408 values differ, max |delta| 8.65
+    n=16: 17408 values differ, max |delta| 8.65
+MUL_MAT NVFP4 K=17408 R=5120 (ffn_down)          n=2:same n=3:same n=4:same n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=5: 3716 values differ, max |delta| 3.05e-05
+    n=6: 3716 values differ, max |delta| 3.05e-05
+    n=7: 3716 values differ, max |delta| 3.05e-05
+    n=8: 3716 values differ, max |delta| 3.05e-05
+    n=9: 5120 values differ, max |delta| 15.1
+    n=10: 5120 values differ, max |delta| 15.1
+    n=11: 5120 values differ, max |delta| 15.1
+    n=12: 5120 values differ, max |delta| 15.1
+    n=13: 5120 values differ, max |delta| 15.1
+    n=14: 5120 values differ, max |delta| 15.1
+    n=15: 5120 values differ, max |delta| 15.1
+    n=16: 5120 values differ, max |delta| 15.1
+MUL_MAT MXFP4 K=5120 R=17408                     n=2:same n=3:same n=4:same n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=5: 10400 values differ, max |delta| 9.54e-06
+    n=6: 10400 values differ, max |delta| 9.54e-06
+    n=7: 10400 values differ, max |delta| 9.54e-06
+    n=8: 10400 values differ, max |delta| 9.54e-06
+    n=9: 17408 values differ, max |delta| 8.64
+    n=10: 17408 values differ, max |delta| 8.64
+    n=11: 17408 values differ, max |delta| 8.64
+    n=12: 17408 values differ, max |delta| 8.64
+    n=13: 17408 values differ, max |delta| 8.64
+    n=14: 17408 values differ, max |delta| 8.64
+    n=15: 17408 values differ, max |delta| 8.64
+    n=16: 17408 values differ, max |delta| 8.64
+MUL_MAT Q8_0  K=5120 R=17408                     n=2:same n=3:same n=4:same n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=5: 12731 values differ, max |delta| 1.53e-05
+    n=6: 12731 values differ, max |delta| 1.53e-05
+    n=7: 12731 values differ, max |delta| 1.53e-05
+    n=8: 12731 values differ, max |delta| 1.53e-05
+    n=9: 17405 values differ, max |delta| 0.0166
+    n=10: 17405 values differ, max |delta| 0.0166
+    n=11: 17405 values differ, max |delta| 0.0166
+    n=12: 17405 values differ, max |delta| 0.0166
+    n=13: 17405 values differ, max |delta| 0.0166
+    n=14: 17405 values differ, max |delta| 0.0166
+    n=15: 17405 values differ, max |delta| 0.0166
+    n=16: 17405 values differ, max |delta| 0.0166
+FLASH_ATTN D=256 nh=24 nh_kv=4 f16 KV            n=2:same n=3:DIFF n=4:DIFF n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=3: 6144 values differ, max |delta| 1.23e-05
+    n=4: 6144 values differ, max |delta| 1.23e-05
+    n=5: 6144 values differ, max |delta| 1.38e-05
+    n=6: 6144 values differ, max |delta| 1.38e-05
+    n=7: 6144 values differ, max |delta| 1.38e-05
+    n=8: 6144 values differ, max |delta| 1.38e-05
+    n=9: 6144 values differ, max |delta| 1.77e-05
+    n=10: 6144 values differ, max |delta| 1.77e-05
+    n=11: 6144 values differ, max |delta| 1.77e-05
+    n=12: 6144 values differ, max |delta| 1.77e-05
+    n=13: 6144 values differ, max |delta| 1.77e-05
+    n=14: 6144 values differ, max |delta| 1.77e-05
+    n=15: 6144 values differ, max |delta| 1.77e-05
+    n=16: 6144 values differ, max |delta| 1.77e-05
+FLASH_ATTN D=256 nh=24 nh_kv=4 q8_0 KV           n=2:same n=3:same n=4:same n=5:DIFF n=6:DIFF n=7:DIFF n=8:DIFF n=9:DIFF n=10:DIFF n=11:DIFF n=12:DIFF n=13:DIFF n=14:DIFF n=15:DIFF n=16:DIFF
+    n=5: 6144 values differ, max |delta| 3.28e-05
+    n=6: 6144 values differ, max |delta| 3.28e-05
+    n=7: 6144 values differ, max |delta| 3.28e-05
+    n=8: 6144 values differ, max |delta| 3.28e-05
+    n=9: 6144 values differ, max |delta| 3.43e-05
+    n=10: 6144 values differ, max |delta| 3.43e-05
+    n=11: 6144 values differ, max |delta| 3.43e-05
+    n=12: 6144 values differ, max |delta| 3.43e-05
+    n=13: 6144 values differ, max |delta| 3.43e-05
+    n=14: 6144 values differ, max |delta| 3.43e-05
+    n=15: 6144 values differ, max |delta| 3.43e-05
+    n=16: 6144 values differ, max |delta| 3.43e-05

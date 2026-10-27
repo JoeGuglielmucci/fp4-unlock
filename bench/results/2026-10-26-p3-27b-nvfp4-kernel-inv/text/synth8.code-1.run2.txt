@@ -1,0 +1,51 @@
+We need answer user's request. Need produce final answer with code and explanation in two sentences. Need likely include header-only. Need think through requirements: C++17, thread-safe LRU cache class template LruCache<Key, Value> fixed capacity. Methods: std::get, put, erase, size, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() demonstrating eviction order. Explain eviction policy in two sentences after code.
+
+Need ensure code complete and runnable. Could include <iostream> in main.
+
+Need design:
+- template <<Key, Value>
+class LruCache<T> {
+  std::list<std::pair<Key, Value>>
+  std::unordered_map<Key, Value>
+  std::mutex
+  std::size_t<>
+  std::size_t capacity;
+  void put(const Key&, Value&) => void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  std::size_t<>
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  std::size_t<>
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+  void put(const Key&, Value&)
+ 

@@ -1,0 +1,13 @@
+We need answer user's request. Need analyze carefully. Need produce final answer in Python. Need include all bugs, explain each one sentence, give corrected function and five test cases including empty list, single interval, touching intervals, nested, unsorted.
+
+Need identify bugs:
+1. Sort by x[1] instead of x[2] (start). Need merge overlapping intervals.
+2. Overlap condition: current[0] < last[1] (end of last) but if intervals should be touching? User says touching intervals like [1,3] and [3,5] should be merged? The problem statement: "return them sorted by start, but it should be" maybe merge overlapping intervals. They explicitly mention touching intervals [1,3] and [3,5] as test case. Usually merge overlapping intervals should be merged if overlapping or touching? Need infer. If they say touching intervals like [1,3] and [3,5] should be merged? The phrase "return them sorted by start" and test cases include touching intervals. They likely expect merged if touching. Need condition: current[0] < last[1] or current[0] <= last[1]. If current[0] <= last[1] (end of last). But bug says current[0] < last[1] (end of last) not enough. Need fix to <= last[1]. Also sort by x[1] (end) is wrong.
+3. Need maybe merged[-1] reference is the interval. If intervals are [1,3] and [3,5] are touching, merging.
+4. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+5. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+6. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+7. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+8. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+9. Need maybe if intervals are [1,3] and [3,5] are touching, no bug.
+10. Need maybe if intervals are [1,3] and [3,5] are touching, no bug

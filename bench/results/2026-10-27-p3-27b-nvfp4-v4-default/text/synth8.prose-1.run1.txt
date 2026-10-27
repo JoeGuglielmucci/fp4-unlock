@@ -1,0 +1,12 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer. Need likely concise ~300 words. Need no preamble. Need ensure direct answer. Let's draft around 300-320 words.
+
+Need cover:
+- What draft model does (proposes small drafts, verify, target, etc.)
+- How target model verifies several tokens in one forward pass (verify, target model computes prefix, verify, target, logprobs, etc.)
+- Why output distribution can be kept identical to normal decoding (rejection sampling, target, verify, distribution, acceptance, etc.)
+- What determines speedup in practice (draft acceptance rate, target model, verify, cost, etc.)
+- End with two most common reasons speedup smaller than hoped: (1) low acceptance rate, (2) low draft model, verify, cost, or overhead. Need maybe mention: (1) if draft model is often wrong, (2) if draft model is wrong, verify, cost, or overhead. Need end with two most common reasons.
+
+Let's draft:
+
+"Speculative decoding speeds up LLM inference by using a small number of draft tokens to verify. The target model verifies several tokens in one forward pass. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The target model verifies several tokens in one forward pass, and the output distribution can be kept identical to normal decoding. The output distribution can be kept identical to normal decoding. The output distribution can

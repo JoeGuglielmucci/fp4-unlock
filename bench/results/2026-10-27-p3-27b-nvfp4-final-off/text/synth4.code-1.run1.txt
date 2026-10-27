@@ -1,0 +1,59 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get, std::optional<Value>, void put, void erase, size_t size(), O(1) average time for get and put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer with code only? User says include main and explain eviction policy in two sentences after code. Need likely code block. Need ensure C++17. Header-only class template. Need thread-safe. Use std::mutex.
+
+Potential issues: std::optional<Value> and std::list require C++17. Need include <cstdio> or <iostream> for main.
+
+Design:
+template <typename Key, typename Value>
+class LRUCache<Key, Value>
+{
+public:
+  LRUCache<Key, Value>(size_t size) : size_(capacity) = size : 0
+  private:
+    std::list<Node> list;
+    size_t m;
+    std::unordered_map<Key, Value> map;
+    std::mutex mutex;
+  };
+
+Need Node type.
+
+Need ensure O(1) average.
+
+Implementation details:
+struct Node {
+  Key key;
+  Value value;
+  std::list<Node>::iterator it;
+};
+
+Need handle capacity 0? If capacity 0, put returns nothing.
+
+Implementation:
+template <typename Key, typename Value>
+class LRUCache<Key, Value>
+{
+public:
+  LRUCache<Key, Value>(size_t size) : size_(capacity) = size : 0
+  private:
+    std::list<Node> list;
+    size_t m;
+    std::unordered_map<Key, Value> map;
+  };
+
+private:
+  struct Node {
+    Key key;
+    Value value;
+  };
+
+  std::list<Node>::iterator it;
+  std::unordered_map<Key, Value> map;
+  std::mutex mutex;
+  size_t size_;
+  size_t capacity;
+
+  std::list<Node>::iterator it;
+  std::unordered_map<Key, Value> map;
+  std::mutex mutex

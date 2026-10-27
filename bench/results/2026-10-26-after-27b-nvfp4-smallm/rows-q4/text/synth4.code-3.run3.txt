@@ -1,0 +1,44 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test should cover. Need ensure external behavior identical. User says keep external behavior identical (same status codes, same response bodies). Need return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+
+import (
+"database/sql"
+"encoding/json"
+"net/http"
+"strconv"
+)
+
+func userHandler(w http.ResponseWriter, r *http.Request) {
+  idStr := r.URL.Query().Get("id")
+  id, err := strconv.Atoi(idStr)
+  if err != nil || id <= 0 {
+    w.WriteHeader(400)
+    w.Write([]byte(`{"error":"bad id"}`))
+    return
+  }
+  row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+  var name, email string
+  if err := row.Scan(&name, &email); err != nil {
+    if err == sql.ErrNoRows {
+      w.WriteHeader(404)
+      w.Write([]byte(`{"error":"not found"}`))
+      return
+    }
+    w.WriteHeader(500)
+    w.Write([]byte(`{"error":"db"}`))
+    return
+  }
+  w.Header().Set("Content-Type", "application/json")
+  json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Important: original writes Content-Type header for successful 200 only, not for error 400/404/500. It does not set Content-Type before WriteHeader. For error responses, w.Write([]byte) no Content-Type. So keep identical: only set Content-Type on success and encode JSON. Need ensure no extra headers. Also original writes error bodies as raw bytes no trailing newline. json.NewEncoder(w).Encode adds trailing newline. So behavior identical.
+
+Need refactor into testable functions with clear error handling. Need separate database access, input validation, JSON encoding. Could use database/sql interface? Since db is global. Need testable functions. We can define:
+type userID int = 0? Or define parseUserID.
+
+Input validation: parseUserID(id string) error {
+ id, err := strconv.Atoi(id)
+ if err != nil || id <= 0 { return

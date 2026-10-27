@@ -1,0 +1,48 @@
+We need answer user's request. Need produce final answer with code only? User asks implement a thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> fixed capacity, with std::optional, methods, std::list and std::unordered_map, protect every public method with std::mutex, include main() exercises eviction order. Explain eviction policy in two sentences after code.
+
+Need think about design. C++17. Need include headers. Need complete runnable code.
+
+Potential issues:
+- std::list and std::unordered_map. Need thread-safe.
+- get/put: std::list and std::unordered_map are thread-safe.
+- Need fixed capacity. If capacity 0, size()=0, put returns false.
+- Need O(1) average.
+- Need use std::list and std::unordered_map.
+- Need protect every public method with std::mutex.
+- Need include <main> and <iostream>.
+- Need explain eviction policy in two sentences after code.
+
+Need ensure code compiles with C++17.
+
+Let's design:
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <iostream>
+#include <list>
+#include <mutex>
+#include <optional>
+#include <algorithm>
+#include <unordered_map>
+
+template <typename Key, Value>
+class LRUCache<Key, Value> {
+    std::mutex m;
+    std::size_t<Size, Key, Value>
+    std::list<Size, Key, Value>
+    std::unordered_map<Key, Value>
+    std::unordered_map<Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std::size_t<Size, Key, Value>
+    std

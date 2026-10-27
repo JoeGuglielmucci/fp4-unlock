@@ -1,0 +1,28 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test should cover. Need be careful: external behavior identical. Keep external behavior same status codes, response bodies. Need consider:
+Original code:
+- bad id: 400 body {"error":"bad id"}. No Content-Type header? They write body without header. So no Content-Type set.
+- success: sets Content-Type header, writes JSON, encoder adds newline.
+- 200 implicit? The header is not set before Write. So no Content-Type header.
+- 200 implicit? Header is not set before Write. So no Content-Type header.
+- 404: no Content-Type header, no Content-Type, body {"error":"not found"}
+- 500: no Content-Type header, body, no Content-Type.
+- 500: no Content-Type header, body, no Content-Type.
+- 200: no Content-Type header, body, no Content-Type.
+- 200: no Content-Type header, body, no Content-Type.
+- 200: no Content-Type header, body, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no Content-Type.
+- 200: no Content-Type header, no

@@ -1,0 +1,38 @@
+We need answer user's request. Need produce final full refactored Go file and list behaviors unit test should cover. Need be careful about external behavior identical: same status codes, same response bodies. Original handler:
+- 200? No header set before 200. On success: sets Content-Type header, writes JSON, status 200.
+- 400: no Content-Type header, body `{"error":"bad id"}`.
+- 500: for db error: no rows.
+- 404: no Content-Type header.
+Need refactor:
+  1. parseID into int
+  2. fetchUser from db query
+  3. validateUser from db query
+  4. writeJSON to w
+  5. handle errors with clear errors
+  6. handle errors with clear errors
+  7. handle 200 with JSON
+  8. handle 400 with JSON
+  9. handle 404 with JSON
+  10. handle 500 with JSON
+  11. handle 200 with JSON
+  12. handle 400 with JSON
+  13. handle 404 with JSON
+  14. handle 200 with JSON
+  15. handle 200 with JSON
+  16. handle 400 with JSON
+  17. handle 404 with JSON
+  18. handle 200 with JSON
+  19. handle 404 with JSON
+  20. handle 200 with JSON
+  21. handle 404 with JSON
+  22. handle 400 with JSON
+  22. handle 400 with JSON
+  23. handle 404 with JSON
+  24. handle 200 with JSON
+  25. handle 404 with JSON
+  26. handle 404 with JSON
+  27. handle 404 with JSON
+  28. handle 404 with JSON
+  29. handle 404 with JSON
+  30. handle 404 with JSON
+  3

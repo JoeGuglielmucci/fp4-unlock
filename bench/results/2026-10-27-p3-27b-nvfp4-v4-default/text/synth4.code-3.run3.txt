@@ -1,0 +1,43 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test should cover. Need ensure external behavior identical, same status codes, same response bodies. Need think carefully.
+
+Original handler:
+- package main
+- imports:
+  - (
+    "database/sql"
+    "encoding/json"
+    "net/http"
+    "strconv"
+  )
+- var db *sql.DB
+- func userHandler(w http.ResponseWriter, r *http.Request)
+  - idStr := r.URL.Query().Get("id")
+  - id, err := strconv.Atoi(idStr)
+  - if err != nil || id <= 0 {
+    w.WriteHeader(400)
+    w.Write([]byte(`{"error":"bad id"}`))
+    return
+  }
+  - row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+  - var name, email string
+  - if err := row.Scan(&name, &email); err != nil
+  if err == sql.ErrNoRows { 404, 404 body `{"error":"not found"}`
+  else 500
+  else:
+  - w.Header().Set("Content-Type", "application/json")
+  - json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+
+  - 400 and 404/500 do not set Content-Type header.
+  - 200 header set before writing.
+  - 200 body is `{"name": "name","email": "email"}` + newline.
+  - 400 body `{"error":"bad id"}` no newline.
+  - 404 `{"error":"not found"}` no newline.
+  - 500 `{"error":"db"}` no newline.
+  - 200 status code default 200.
+  - 400 if id missing, 0, negative, non-integer, too large.
+  - 200 if id > 0.
+  - 404 if no rows.
+  - 500 if any other DB error.
+  - 200 if row found.
+  - 400 if id <= 0.
+  - 

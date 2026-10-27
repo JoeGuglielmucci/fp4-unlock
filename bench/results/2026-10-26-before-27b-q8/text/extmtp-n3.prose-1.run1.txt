@@ -1,0 +1,13 @@
+We need answer user's request: summarize in about 300 words for general technical audience how speculative decoding speeds up LLM inference: draft model, target verifies several tokens in one forward pass, why output distribution identical, what determines speedup, end with two most common reasons speedup smaller than hoped. Need no preamble. Need about 300 words. Let's draft around 300 words. Need ensure final ends with two most common reasons. Could be exactly two sentences? "End with the two most common reasons..." likely final sentence(s) list two reasons. Need count words. Let's craft ~300.
+
+Draft:
+"Speculative decoding accelerates large language model inference by using a smaller, faster draft model to propose a short sequence of candidate tokens, often called a draft, before the large target model is run. The target model then processes the original prompt plus the draft tokens in a single forward pass. Because transformer attention lets it compute logits for every position in the sequence at once, it can evaluate the first draft token, the second, and so on in parallel, rather than waiting for each token to be generated one at a time.
+
+The key trick is rejection sampling. For each draft position, the target model’s probability distribution is compared with the draft model’s distribution. A token is accepted if it is sampled from a distribution that favors the target model while correcting for the draft model’s bias. If a token is rejected, the algorithm samples a replacement from the corrected target distribution and stops accepting further draft tokens. This procedure is mathematically equivalent to sampling from the target model alone, so the final output distribution remains identical to normal decoding, assuming the same temperature and sampling settings.
+
+In practice, speedup depends on how many draft tokens are accepted before a rejection, the relative cost of running the draft model versus the target model, and the efficiency of the target model’s parallel verification. If the draft model is too small or poorly aligned, it proposes tokens the target model rejects; if it is too large, drafting consumes much of the time saved by verification. Batch size, hardware, sequence length, and the target model’s compute-bound or memory-bound behavior also matter.
+
+The two most common reasons the speedup is smaller than hoped are low draft acceptance rates and high overhead from running the draft model or managing verification."
+
+Count words. Let's count manually.
+Speculative1 decoding2 accelerates3 large4 language5 model6 inference7 by8 using9 a10 smaller

@@ -1,0 +1,16 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer. Need include summary, no preamble, no code. Need likely around 300 words. Need ensure covers: what draft model does, how target model verifies several tokens in one forward pass, why output distribution identical to normal decoding, and what determines speedup in practice. End with two most common reasons speedup smaller than hoped. Need maybe mention speculative decoding: token acceptance, target model verifies multiple tokens in one forward pass, reject, resample. Need exact wording.
+
+Let's draft:
+
+"Summary: ~150 words.
+
+Speculative decoding: draft model generates tokens (e.g., gamma=1, 2, 3) sequentially. Target model verifies several tokens in one forward pass, because it can only generate one token per token given the next token, but can compute multiple tokens in parallel. It computes the probability of the next token's logits. It can be given the draft tokens and the target. The target model can compute the logit for the target token at the next token. If the target model's probability is high, it is also high. If the target model's probability is low, it is also accepted.
+
+Need to explain:
+- What is the draft model?
+- How does the target model verify several tokens in one forward pass?
+- Why can the output distribution be kept identical?
+- What determines the speedup in practice?
+- End with the two most common reasons the speedup is smaller than hoped.
+
+Need maybe mention "The draft model is a small generator that produces tokens sequentially. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model is a large model that verifies tokens. The target model

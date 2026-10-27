@@ -1,0 +1,11 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need consider const methods with mutex: std::mutex non-const, need mutable std::mutex. get returns optional<Value>. If Value not copyable? assume copyable. put takes const Value&. Need store pair<Key, Value> in list. unordered_map<Key, typename std::list<...>::iterator>. Need capacity size_t. If capacity 0? put should not store? get returns nullopt. size 0. Need handle. Need thread-safe. Use std::lock_guard.
+
+Potential issue: get should move key to front. If key not found return nullopt. Need maybe copy value. For LRU, most recently used at front, least recently used at back. Evict back when size == capacity before inserting new key. For put existing key: update value and move to front. For new key: if capacity > 0 and size == capacity, erase back. Need erase map entry and list. Then push_front and map.
+
+Need include <optional>, <list>, <unordered_map>, <mutex>, <cstddef>, <utility>, <iostream> for main. Header-only class template. Could put in single file with main. User asks header-only class template and include small main. We can provide one .cpp? Header-only means class in header, but can show complete file. Maybe include class in header and main in same code block. Need no placeholders.
+
+Need ensure O(1) average. unordered_map average O(1), list splice O(1). Need hash for Key. Need equality.
+
+Potential subtlety: std::list node_type = std::pair<const Key, Value>? If Key const, pair<const Key, Value>. But list::splice requires same list. We can use using Node = std::pair<const Key, Value>; using List = std::list<Node>; using Map = std::

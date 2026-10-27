@@ -1,0 +1,18 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need consider const methods with mutex: std::mutex non-const, need mutable std::mutex. get returns optional<Value>. If Value not copyable? assume copyable. put takes const Value&. Need store pair<Key, Value> in list. unordered_map<Key, typename std::list<...>::iterator>. Need capacity size_t. If capacity 0? put should not store? get returns nullopt. size 0. Need handle. Need thread-safe: lock_guard in each public method. For const methods, mutable mutex.
+
+Potential issue: std::list::splice to front O(1). Need when put existing key: update value and move to front. Could use list::splice(front, list, it) or splice. Need update map iterator remains valid. For new key: if capacity > 0 and size == capacity, evict back. Then push_front. Need if capacity 0, don't insert.
+
+Need main exercises eviction order capacity 3. Could print results. Need maybe use std::cout. Need ensure deterministic. Example:
+LruCache<int,int> cache(3);
+cache.put(1,10); cache.put(2,20); cache.put(3,30);
+cache.get(1); // 1 MRU, order 1,2,3? Actually after get 1 front: 1,2,3.
+cache.put(4,40); // evict LRU 2.
+print get 1,2,3,4.
+Maybe also erase. Need exercise eviction order. Could output:
+cache.put(1,10);
+cache.put(2,20);
+cache.put(3,30);
+cache.get(1); // touch 1
+cache.put(4,40); // evicts 2

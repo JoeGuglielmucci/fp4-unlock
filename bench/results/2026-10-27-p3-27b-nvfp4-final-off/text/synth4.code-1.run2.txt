@@ -1,0 +1,45 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get, std::optional<Value>, void put, void erase, bool erase, size_t size() const, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer. Need think about requirements.
+
+C++17, header-only class template. Need include std::optional, std::mutex, std::unordered_map, std::list, maybe <utility>, <cstddef>. Need thread-safe.
+
+Potential design:
+class LruCache<Key, Value> {
+public:
+  LruCache<Key, Value>(size_t capacity) = (size_t capacity) : m_capacity = 0;
+  std::optional<Value> get(const Key& key) {
+    std::mutex m;
+    auto it = m_map.find(key);
+    if (it == m_map.end()) return m_value;
+    std::list<Key>::iterator list_it = m_list::iterator;
+    m_list::iterator(it->second);
+    m_list.push_back(key);
+    return m_value;
+  }
+  std::optional<Value> get(const Key& key) {
+    std::lock_guard<std::mutex> m;
+    auto it = m_map.find(key);
+    if (it == m_map.end()) return m_value;
+    std::list<Key>::iterator list_it = m_list::iterator;
+    m_list::iterator(it->second);
+    m_list.push_back(key);
+    return m_value;
+  }
+  void put(const Key& key, const Value& value) {
+    std::lock_guard<std::mutex> m;
+    auto it = m_map.find(key);
+    if (it == m_map.end()) {
+      if (m_capacity == 0) return;
+      if (m_capacity == m_map.size()) {
+        auto evict = m_list::iterator;
+        m_list::iterator;
+        m_map::iterator;
+      }
+      m_list::iterator;
+      m_map::iterator;
+      m_map::iterator;
+    } else {
+      m_list::iterator;
+      m_list::iterator;
+     

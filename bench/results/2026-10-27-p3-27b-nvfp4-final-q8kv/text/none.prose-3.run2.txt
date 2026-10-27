@@ -1,0 +1,10 @@
+We need answer user's request: explain to curious high-school student, about 400 words, why GPU limited by memory bandwidth rather than compute. Use one concrete analogy, simple worked example with made-up plausible numbers, finish explaining what engineers do about it. Need likely around 400 words. Need no preamble. Need final only. Need ensure about 400 words maybe 380-420. Let's draft.
+
+Need concrete analogy: kitchen? GPU as many chefs, memory bandwidth as hallway/pantry. Compute fast but ingredients slow. Worked example: GPU can do 100 trillion operations/sec, but each operation needs 1 byte? Or realistic: 10 TFLOPS, memory bandwidth 500 GB/s. If each operation needs 1 byte, max 500 G ops/s, 20x below compute. Or use 100 TFLOPS and 1 TB/s, each op 1 byte -> 1000 G ops/s, 100x. Need plausible. Maybe modern GPU: 30 TFLOPS FP32, 1 TB/s. If shader needs 1 byte per FMA? Actually FMA uses 2 floats? Let's keep simple.
+
+Need explain memory bandwidth: data movement from VRAM to GPU cores. Compute units can sit idle waiting. Analogy: 100 chefs can chop 1000 carrots/min, but only one narrow hallway lets 100 carrots/min through. Worked example: game frame needs 100 million pixels, each pixel needs 4 bytes color + maybe 4 bytes depth? Let's make simple: 100 million pixels, each needs 8 bytes read/write? Total 800 MB. At 800 GB/s takes 1 ms. GPU compute can process 100 million pixels in 0.1 ms if 1 billion pixels/sec? Hmm.
+
+Need about 400 words. Let's draft and count.
+
+Draft:
+"Imagine a kitchen with 100 fast chefs. Each chef can chop 10 carrots per second, so together they could chop 1,000 carrots per second. But the only way to get carrots from the pantry to the kitchen is a narrow hallway that can carry just 100 carrots per second. No matter how fast the chefs chop, the kitchen can only process 1

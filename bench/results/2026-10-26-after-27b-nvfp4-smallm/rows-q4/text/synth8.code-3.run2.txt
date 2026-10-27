@@ -1,0 +1,20 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test. Need ensure same behavior identical. User says keep external behavior identical. Need return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+1. idStr := r.URL.Query().Get("id")
+2. if idStr == ""? id=0 => 0. id <= 0 => 400.
+3. parse id via strconv.Atoi.
+4. Query: SELECT name, email FROM users WHERE id = ?
+5. If no rows: 404 body {"error":"not found":"not found"}
+6. If other db error: 500.
+7. success: 200, Content-Type: application/json, header Set Content-Type. Body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+8. success: 200, Content-Type: application/json, header Set Content-Type. Body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+9. error handling: 400.
+10. success: 200, Content-Type: application/json, header Set Content-Type: application/json, body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+11. error handling: 400.
+12. success: 200, Content-Type: application/json, header Set Content-Type: application/json, body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+13. error handling: 400.
+14. success: 200, Content-Type: application/json, header Set Content-Type: application/json, body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+15. success: 200, Content-Type: application/json, header Set Content-Type: application/json, body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+16. success: 200, Content-Type: application/json, header Set Content-Type: application/json, body: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+17. success: 

@@ -1,0 +1,15 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter around 350 words. Need ensure placeholders only names and dates. Maybe [Company Name]? User says placeholders only for names and dates. So can use [Your Name], [Vendor Name], [Date], [GPU Name]? GPU name is not name? It's product name maybe okay? But "only for names and dates" suggests avoid placeholders for company? But need from small software company to hardware vendor. Could use [Company Name] as name placeholder? It's a name. [Vendor Name] name. [GPU Name] maybe product name, not a person? Could be considered name. But to be safe, use [GPU Name] as placeholder for name? They said placeholders only for names and dates, so product name is a name. But maybe they want no other placeholders like [address]. We can include date placeholder, sender name placeholder, recipient name placeholder. Need about 350 words. Let's draft and count. Need formal letter.
+
+Potential:
+
+[Date]
+
+[Vendor Contact Name]
+[Vendor Company Name]
+[Address?] no address placeholder? Avoid.
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name], a small software company developing an open-source inference engine for machine-learning workloads. Our engine is designed to run large language models and vision models efficiently on consumer and workstation hardware, with a focus on transparent performance, reproducible builds, and broad driver compatibility. We are writing to request early access to the developer program for [GPU Name], ahead of its public launch.
+
+Early access matters to us because our roadmap depends on understanding the GPU’s architecture, memory behavior, and driver stack before we commit to public release notes and optimization targets. Inference performance is highly sensitive to low-level details such as kernel scheduling, memory bandwidth, precision support, and thermal behavior. If we wait until launch, we risk publishing incomplete guidance, missing early performance regressions, or directing our users toward unsupported configurations. Early access would allow us to validate our runtime, tune kernels, and provide our community with reliable information at the same time the hardware becomes

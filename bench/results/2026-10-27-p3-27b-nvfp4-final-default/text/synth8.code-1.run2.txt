@@ -1,0 +1,31 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::get, put, erase, size, size_t size() const, O(1) average time for get/put. Use std::mutex. Protect every public method with std::mutex. Include small main() that exercises eviction order. Explain main() after code.
+
+Need ensure final answer only code? User asks "Implement a thread-safe LRU cache in C++17 as a header-only class template LruCache<Key, Value> with a fixed capacity given at construction. It must support `std::optional<Value> get(const Key&)`, `void put(const Key&, const Value&)`, `bool erase(const Key&)`, `size_t size() const`, and O(1) average time for get and put. Use a std::list and std::unordered_map, protect every public method with a std::mutex, and include a small main() that exercises eviction order with capacity 3. Explain the eviction policy in two sentences after the code."
+
+Need produce code. Need maybe include header-only. Let's design.
+
+Potential pitfalls:
+- std::list and std::unordered_map are not thread-safe. Need mutex.
+- std::list and std::unordered_map are not thread-safe. Need mutex.
+- std::list and std::unordered_map are not thread-safe. Need mutex.
+- Need O(1) average time for get and put.
+- Use std::list and std::unordered_map.
+- Protect every public method with std::mutex.
+- Use std::mutex.
+- Include small main() that exercises eviction order with capacity 3.
+- Explain main() after code.
+- Need final answer only code.
+
+Need consider C++17.
+- Use std::list and std::unordered_map.
+- Need include <iostream>, <fstream>.
+- Use std::list and std::unordered_map.
+- Need protect every public method with std::mutex.
+- Use std::mutex.
+- Use std::list and std::unordered_map.
+- Need include <iostream>, <fstream>.
+- Use std::list and std::unordered_map.
+- Need protect every public method with std::mutex.
+- Use std::mutex.
+- Use std::mutex.
+- Use std::list and std::unordered

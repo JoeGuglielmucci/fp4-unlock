@@ -1,0 +1,78 @@
+cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-perplexity -m /home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf -ngl 99 --fit off -fa on -c 512 -f /home/crockettgugg/fp4-unlock/bench/prompts/kl-set-5k.txt -b 512 -ub 512 --kl-divergence --kl-divergence-base /home/crockettgugg/fp4-unlock/bench/results/ref-logits-27b-q8-c512-chunksall.bin
+env: {'GGML_CUDA_MMQ_PREC': 'q8'}
+0.00.231.782 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
+0.00.231.789 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
+0.00.231.793 W model has unused tensor blk.64.attn_q.weight (size = 35389440 bytes) -- ignoring
+0.00.231.794 W model has unused tensor blk.64.attn_k.weight (size = 2949120 bytes) -- ignoring
+0.00.231.796 W model has unused tensor blk.64.attn_v.weight (size = 2949120 bytes) -- ignoring
+0.00.231.801 W model has unused tensor blk.64.attn_output.weight (size = 17694720 bytes) -- ignoring
+0.00.231.803 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.231.805 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.231.806 W model has unused tensor blk.64.ffn_gate.weight (size = 50135040 bytes) -- ignoring
+0.00.231.808 W model has unused tensor blk.64.ffn_down.weight (size = 50135040 bytes) -- ignoring
+0.00.231.809 W model has unused tensor blk.64.ffn_up.weight (size = 50135040 bytes) -- ignoring
+0.00.231.811 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 29491200 bytes) -- ignoring
+0.00.231.813 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring
+0.00.231.814 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring
+0.00.231.819 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring
+0.01.231.004 I cmn          init: llama threadpool init, n_threads = 16
+0.01.269.174 I 
+0.01.269.260 I system_info: n_threads = 16 (n_threads_batch = 16) / 32 | CUDA : ARCHS = 1200 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | BLACKWELL_NATIVE_FP4 = 1 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX_VNNI = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | AVX512 = 1 | AVX512_VBMI = 1 | AVX512_VNNI = 1 | AVX512_BF16 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.01.290.673 I kl_divergence: computing over 13 chunks, n_ctx=512, batch_size=512, n_seq=1
+0.01.480.704 I kl_divergence: 0.19 seconds per pass - ETA 0.03 minutes
+
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+   1       3.7135 ±    0.4303      -0.00314 ±    0.01673       0.01817 ±    0.00236     3.156 ±  0.258 %    96.078 ±  1.218 %
+   2       2.8133 ±    0.2359       0.00650 ±    0.01175       0.02531 ±    0.00307     3.999 ±  0.416 %    95.686 ±  0.901 %
+   3       2.3425 ±    0.1569       0.02025 ±    0.01322       0.03396 ±    0.00553     4.676 ±  0.616 %    96.209 ±  0.691 %
+   4       3.0736 ±    0.1951       0.02579 ±    0.01060       0.03362 ±    0.00424     4.592 ±  0.490 %    95.098 ±  0.676 %
+   5       2.7631 ±    0.1486       0.01946 ±    0.00912       0.03242 ±    0.00349     4.707 ±  0.406 %    95.059 ±  0.607 %
+   6       2.3444 ±    0.1074       0.01704 ±    0.00766       0.02850 ±    0.00297     4.597 ±  0.382 %    95.752 ±  0.516 %
+   7       2.8145 ±    0.1309       0.01975 ±    0.00681       0.02735 ±    0.00256     4.406 ±  0.343 %    95.686 ±  0.481 %
+   8       2.5220 ±    0.1050       0.01725 ±    0.00613       0.02449 ±    0.00225     4.186 ±  0.316 %    96.127 ±  0.427 %
+   9       2.2868 ±    0.0859       0.01591 ±    0.00547       0.02200 ±    0.00201     4.012 ±  0.297 %    96.558 ±  0.381 %
+  10       2.4072 ±    0.0859       0.01593 ±    0.00519       0.02228 ±    0.00201     4.158 ±  0.344 %    96.275 ±  0.375 %
+  11       2.4495 ±    0.0842       0.01511 ±    0.00519       0.02532 ±    0.00195     4.660 ±  0.324 %    95.793 ±  0.379 %
+  12       2.5086 ±    0.0864       0.02164 ±    0.00622       0.02891 ±    0.00209     5.432 ±  0.371 %    95.556 ±  0.373 %
+  13       2.4233 ±    0.0791       0.03481 ±    0.00813       0.04294 ±    0.00464     7.385 ±  0.503 %    95.354 ±  0.366 %
+
+====== Perplexity statistics ======
+Mean PPL(Q)                   :   2.423326 ±   0.079080
+Mean PPL(base)                :   2.340415 ±   0.074187
+Cor(ln(PPL(Q)), ln(PPL(base))):  96.85%
+Mean ln(PPL(Q)/PPL(base))     :   0.034813 ±   0.008128
+Mean PPL(Q)/PPL(base)         :   1.035426 ±   0.008416
+Mean PPL(Q)-PPL(base)         :   0.082912 ±   0.019842
+
+====== KL divergence statistics ======
+Mean    KLD:   0.042939 ±   0.004637
+Maximum KLD:   8.990046
+99.9%   KLD:   2.799024
+99.0%   KLD:   0.742322
+95.0%   KLD:   0.142718
+90.0%   KLD:   0.063428
+Median  KLD:   0.002145
+10.0%   KLD:   0.000013
+ 5.0%   KLD:   0.000004
+ 1.0%   KLD:   0.000000
+ 0.1%   KLD:  -0.000001
+Minimum KLD:  -0.000003
+
+====== Token probability statistics ======
+Mean    Δp: -0.769 ± 0.128 %
+Maximum Δp: 69.512%
+99.9%   Δp: 45.477%
+99.0%   Δp: 12.877%
+95.0%   Δp:  4.387%
+90.0%   Δp:  1.696%
+75.0%   Δp:  0.065%
+Median  Δp: -0.002%
+25.0%   Δp: -0.321%
+10.0%   Δp: -3.497%
+ 5.0%   Δp: -6.769%
+ 1.0%   Δp: -31.579%
+ 0.1%   Δp: -86.172%
+Minimum Δp: -94.587%
+RMS Δp    :  7.385 ± 0.503 %
+Same top p: 95.354 ± 0.366 %
+

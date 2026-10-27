@@ -1,0 +1,1 @@
+docker: 242c6a2b80e97dc20742b8d6b7769b8e1a517df54de15c36e97c555bf7e3c7ab  args: --model unsloth/Qwen3.8-27B-NVFP4 --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs 16 --speculative-config {"method":"mtp","num_speculative_tokens":3}

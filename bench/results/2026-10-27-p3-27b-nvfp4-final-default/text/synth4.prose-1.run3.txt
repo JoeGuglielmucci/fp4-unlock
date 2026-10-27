@@ -1,0 +1,14 @@
+We need to answer user's request: summarize in about 300 words for general technical audience, how speculative decoding speeds up LLM inference. Need cover: what draft model does, how target verifies several tokens in one forward pass, why output distribution can be kept identical, output distribution can be kept identical, what determines speedup in practice. End with two most common reasons speedup smaller than hoped. Need direct final, no preamble. Need about 300 words. Let's draft around 300. Need ensure exact words.
+
+Draft:
+Speculative decoding speeds up large language model inference by reducing the number of tokens the target model must generate one at a time. It uses a smaller draft model, often a lightweight LLM or a small adapter, to propose a new sequence of k tokens, usually one after the draft model has seen the previous token. The target model verifies these k tokens in a single forward pass. Because the target model is autoregressive, it can compute logits for all k tokens at the next token positions simultaneously, using the same prompt and the same token, rather than the draft model's sequential token.
+
+The target model then compares the draft tokens against its own distribution. The verification is not simply a rejection sampling: it is a modified acceptance process that keeps the distribution of the output token exactly the same as if the target model were greedy. So the output distribution is exactly the same as normal decoding. The target model's output distribution is unchanged. The draft model's tokens are only used to reduce the number of forward passes.
+
+The speedup is determined by the number of accepted tokens per token, and the number of tokens per verification round. The target model's forward pass is still the number of tokens, and the number of tokens per verification round is the number of tokens per verification round. The number of tokens per verification round is the number of tokens per verification round. The number of tokens per verification round is the number of tokens per verification round. The number of tokens per verification round is the number of tokens per verification round. The number of tokens per verification round is the number of tokens per verification round.
+
+The two most common reasons the speedup is smaller than hoped.
+
+Wait, I need to write a coherent summary. Need avoid repeating. Let's craft final.
+
+Speculative decoding speeds up large language model inference by reducing the number of tokens the target model must generate one at a time. It uses a smaller draft model, often a lightweight LLM or a small adapter,

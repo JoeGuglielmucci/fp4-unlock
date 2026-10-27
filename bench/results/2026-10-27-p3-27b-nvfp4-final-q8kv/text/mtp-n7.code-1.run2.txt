@@ -1,0 +1,49 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Support std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average get/put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() exercises eviction order capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need think details.
+
+Class template:
+template<typename Key, typename Value>
+class LruCache {
+public:
+ explicit LruCache(size_t capacity) : capacity_(capacity) {}
+ std::optional<Value> get(const Key& key) {
+   std::lock_guard<std::mutex> lock(mutex_);
+   auto it = map_.find(key);
+   if (it == map_.end()) return std::nullopt;
+   // move to front
+   list_.splice(list_.begin(), list_, it->second);
+   return it->second->second; // copy
+ }
+ void put(const Key& key, const Value& value) {
+   lock;
+   auto it = map_.find(key);
+   if (it != map_.end()) {
+      it->second->second = value;
+      list_.splice(list_.begin(), list_, it->second);
+   } else {
+      if (capacity_ == 0) return; // no storage
+      if (list_.size() == capacity_) {
+         auto back = list_.back();
+         map_.erase(back.first);
+         list_.pop_back();
+      }
+      list_.emplace_front(key, value);
+      map_.emplace(key, list_.begin());
+   }
+ }
+ bool erase(const Key& key) {
+   lock;
+   auto it = map_.find(key);
+   if (it == map_.end()) return false;
+   list_.erase(it->second);
+   map_.erase(it);
+   return true;
+ }
+ size_t size() const {
+   std::lock_guard<std::mutex> lock(mutex_);
+   return list_.size();
+ }
+private:
+ size_t capacity_;
+ std::mutex mutex_;

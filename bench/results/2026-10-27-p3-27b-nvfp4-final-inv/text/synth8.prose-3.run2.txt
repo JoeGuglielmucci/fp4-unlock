@@ -1,0 +1,10 @@
+We need to answer user's request: explain in English, about 400 words, for curious high-school student. Why high-school student? User asks: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than how fast it computes". Use one concrete analogy, give a simple worked example with made-up but plausible numbers, finish by explaining what engineers do. Need final answer. Need ensure about 400 words. Let's draft. Need maybe count words. Need no preamble. Need likely around 400. Let's craft ~380-420.
+
+Need include analogy: kitchen, library, factory? Let's count.
+
+Title: "A graphics card can't be counted on..."
+
+Draft:
+"A graphics card can't be counted on by how fast it is, but by how fast it can be moved.
+
+Think of a kitchen as a chef who is a graphics card. The chef can chop, cook, and eat, and the chef can be very fast, but the kitchen is a conveyor belt. The chef can only be ready if the food is ready, and the chef can only be ready if the food is ready. If the food is ready, the chef can be ready, but the food is ready, and the chef can be ready, but the food is ready, and the chef can be ready, but the food is ready, and the chef can be ready, but the food is ready, and the chef can be ready, but the food is ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the chef can be ready, and the

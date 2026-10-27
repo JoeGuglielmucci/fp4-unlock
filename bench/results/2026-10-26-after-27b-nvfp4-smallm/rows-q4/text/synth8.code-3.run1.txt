@@ -1,0 +1,18 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test. Need ensure same behavior identical. User says keep external behavior identical. Need return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+1. idStr := r.URL.Query().Get("id")
+2. if idStr == ""? id=0 => 0. id <= 0 => 400.
+3. parse id via strconv.Atoi.
+4. QueryRow with id.
+5. Scan into name/email.
+6. If no rows -> 404 {"error":"not found"}.
+7. If error -> 500 {"error":"db"}.
+8. success -> 200, Content-Type application/json, Content-Type: application/json, body {name:..., email:}.
+
+Need consider:
+- var db *sql.DB.
+- If no id, 400.
+- If id is invalid, 400.
+- If id is "0", 400.
+- If id is "0" + "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

@@ -1,0 +1,31 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical same status codes, same response bodies. Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 {
+  w.WriteHeader(400)
+  w.Write([]byte(`{"error":"bad id"}`))
+  return
+ }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows {
+   w.WriteHeader(404)
+   w.Write([]byte(`{"error":"not found"}`))
+   return
+  }
+  w.WriteHeader(500)
+  w.Write([]byte(`{"error":"db"}`))
+  return
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical. Need full refactored file. Need likely define sentinel errors: errBadRequest, errNotFound, errDB? But external behavior same: 400 body {"error":"bad id"} no Content-Type? Original for error responses does not set Content-Type. For success sets Content-Type application/json and encodes map. JSON encoder adds newline. Need preserve exact response bodies? "same response bodies" likely exact bytes. For success: json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email}) produces {"email":"...","name":"..."}\n? Go map keys sorted alphabetically: email then name. Need preserve. If we use json.Marshal(map[string]string{...}) and w.Write, no trailing newline. That changes body. Need keep same response bodies. Could use json.NewEncoder(w).Encode in handler for success. But they ask JSON encoding separated into testable functions. We can

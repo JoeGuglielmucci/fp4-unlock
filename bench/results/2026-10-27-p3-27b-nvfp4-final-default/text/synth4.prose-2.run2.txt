@@ -1,0 +1,56 @@
+We need to respond to user: "Write a formal letter of about 350 words from a small software company to a hardware vendor requesting early access to a developer program for a new GPU. The letter should state what the company builds (an open-source inference engine), why access matters before launch, what the company offers in return (benchmarks, bug reports, a public write-up), and propose a specific next step. Use a neutral, professional tone and include placeholders only for names and dates."
+
+Need produce final only letter. Need about 350 words. Need count maybe 350. Let's draft. Need ensure placeholders only for names and dates. No other placeholders. Need formal letter.
+
+Need formal letter:
+[Date]
+[Company name]
+[Address]
+[Vendor name]
+[Hardware vendor address]
+[Email]
+[Receipient name]
+[Subject]
+[Salutation]
+[Body]
+[Closing]
+[Signature]
+
+Need count words. Let's draft around 350 words. Need exact? "about 350 words" likely okay. Let's count.
+
+Draft:
+
+[Date]
+[Vendor name]
+[Company name]
+[Address]
+[Email address]
+[Recipient name]
+[Title]
+[Subject]
+[Company name]
+[Salutation]
+[Body]
+[Closing]
+[Signature]
+
+Need placeholders only names and dates. But addresses and email? The letter should include placeholders only for names and dates. Could include no placeholders? It says placeholders only for names and dates. So avoid placeholders for names and dates only. But maybe need no other placeholders. Could include [Company name] as name placeholder? It says names and dates. Company name is a name. Vendor name is a name. Recipient name is a name. Date is a date. Could include [Company name], [Vendor name], [Recipient name], [Date]. That's fine. But maybe "only for names and dates" means no other placeholders like [Address]. So avoid those. Could include no addresses.
+
+Need formal letter.
+
+Let's write:
+[Date]
+[Vendor name]
+[Recipient name]
+[Title]
+[Subject]
+[Company name]
+[Salutation]
+[Body]
+[Closing]
+[Signature]
+
+Need count words. Let's draft:
+
+[Date]
+[Vendor name

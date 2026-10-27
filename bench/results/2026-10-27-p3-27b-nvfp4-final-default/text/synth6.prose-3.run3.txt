@@ -1,0 +1,22 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final answer about 400 words. Need likely no preamble. Need ensure direct. Let's draft. Need maybe 400 words. Need concrete analogy, simple worked example, engineers do about it.
+
+Let's think about 400 words. Need maybe 350 words. Count approximate.
+
+Draft:
+Imagine your graphics card is a GPU with a kitchen. It has 2000 chefs (fast calculators). The CPU has a pantry. The fridge is small. The fridge door can only take one frame at a time (memory bandwidth). The GPU has 16 GB of memory. It can read 16 GB/s. The memory bandwidth is 16 GB/s. The GPU can compute 16 TFLOPS. But the GPU can only do 16 GB/s.
+
+Need analogy: kitchen. Maybe "the kitchen is a small fridge door". The GPU can do 16 GB/s. The GPU can do 16 TFLOPS. The memory bandwidth is 16 GB/s. The GPU can do 16 TFLOPS. But the GPU can only do 16 GB/s.
+
+Need concrete analogy: kitchen. The GPU is a chef. The GPU is a chef. The memory is a small fridge. The fridge door can only take one frame. The GPU can do 16 GB/s. The GPU can do 16 GB/s. The GPU can do 16 GB/s.
+
+Need concrete analogy: kitchen. The GPU is a chef. The GPU is a chef. The GPU is a chef. The GPU is a chef.
+
+Need concrete analogy: kitchen. The GPU is a chef. The GPU is a chef. The GPU is a chef. The GPU is a chef.
+
+Need concrete analogy: kitchen. The GPU is a chef. The GPU is a chef. The GPU is a chef. The GPU is a chef.
+
+Need concrete analogy: kitchen. The GPU is a chef. The GPU is a chef. The GPU is a chef. The GPU is a chef. The GPU is a chef.
+
+Need concrete analogy

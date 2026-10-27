@@ -1,0 +1,47 @@
+We need answer user's request. Need analyze. Need produce final with corrected function and explanation. Need identify at least two bugs in function.
+
+Let's inspect function:
+def merge_intervals(intervals):
+    if not intervals:
+        return intervals
+    intervals.sort(key=lambda x: x[1])
+    merged = [intervals[0]]
+    for current in intervals:
+        last = merged[-1]
+        if current[0] < last[1]:
+            last[1] = max(last[1], current[1])
+        else:
+            merged.append(current)
+    return merged
+```
+Intended merge overlapping intervals:
+- Sort by start.
+- Iterate over intervals.
+- For each interval, if current[0] <= current[1] of last? Actually standard:
+```
+intervals.sort(key=lambda x: x[1])
+merged = [intervals[0]]
+for current in intervals:
+    last = merged[-1]
+    if current[0] <= last[1]:
+        last[1] = max(last[1], current[1])
+    else:
+        merged.append(current)
+```
+But if current is first interval, then current[0] <= last[1] (since last is itself) trivially true, so merge will be True.
+But if current[0] == last[1] (self) and current[0] < last[1] false, no change.
+If current[0] < last[1] (self) true, no change.
+So bug 1.
+
+Need fix:
+- Sort by start: `intervals.sort(key=lambda x: x[1])`
+- Or start iteration: `for current in intervals[1:]`
+- Or use `if current[0] <= last[1]`
+- Or use `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1]`
+- Or `if current[0] <= last[1

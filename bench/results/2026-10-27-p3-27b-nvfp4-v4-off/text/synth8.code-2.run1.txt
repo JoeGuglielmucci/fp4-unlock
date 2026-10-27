@@ -1,0 +1,18 @@
+We need answer user's request. Need produce final answer in English. Need identify bugs:
+1. Sorting by x[1] instead of by start (x[0] for start). Should sort by start.
+2. Overlap condition: current[0] < last[1] if intervals are [1,3] and [3,5] should overlap? The problem says touching intervals like [1,3] and [3,5] should be considered overlapping? In many examples, touching intervals are merged (if [1,3] and [3,5] => [3,5]? Actually if [1,3] and [3,5] => [3,5]? Let's think: If intervals [1,3] and [3,5] => [1,5] if touching. The condition should be <= not <. The bug is current[0] < last[1] should be merged. Also if current[0] < last[1] (not including equality) and [1,3] and [3,5] => [1,3] and [3,5] => [1,3] and [3,5] not merged.
+3. Need check if intervals is [1,3] and [3,5] sorted by start:
+   If sort by start:
+   merged = [1,3]
+   current = [3,5] -> [3,5] < 1 -> false -> append [1,3]
+   return [1,3] and [3,5]
+   So bug.
+4. Need maybe use <=.
+5. Need maybe use <= for overlap.
+6. Need maybe if intervals is empty list return []? The original code returns intervals if not intervals. That's fine.
+7. Need maybe if intervals is empty return []? The original code returns the input list. That's fine.
+8. Need maybe if intervals is empty return []? The original code returns the input list. That's fine.
+9. Need maybe if intervals is empty return []? The original code returns the input list. That's fine.
+10. Need maybe if intervals is empty return []? The original code returns the input list. That's fine.
+11. Need maybe if intervals is empty return []? The original code returns the input list. That's fine.
+12. Need maybe if intervals is empty return

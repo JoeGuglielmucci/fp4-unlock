@@ -1,0 +1,16 @@
+We need to answer user's request: explain in English, about 400 words, to curious high-school student, why graphics card can be limited by memory bandwidth rather than compute speed. Use one concrete analogy, simple worked example with made-up plausible numbers, finish by explaining what engineers do about it. Need likely about 400 words. Need no preamble. Need complete runnable code. Let's craft ~400 words. Need count maybe 400. Let's draft and count.
+
+Title? Not needed.
+
+Draft:
+Imagine a graphics card is a kitchen where the chefs (the fast ones) are the compute units, but the ingredients are stored in a pantry. The chefs can cook as fast as they want, but if they can’t move the food to the stove quickly enough, they can’t be done.
+
+In a graphics card, the pantry is a memory. The GPU has a "memory" that holds the pixels, textures, and other data. The memory bandwidth is the memory that can be moved. The compute units are the cores. The memory bandwidth is the rate at which data can be moved from the memory to the compute units.
+
+The memory bandwidth is the rate at which data can be moved from the memory to the compute units. The compute units are the cores. The memory bandwidth is the rate at which data can be moved from the memory to the compute units.
+
+Let's make a concrete analogy: A graphics card is a kitchen where the chefs (the fast ones) are the compute units, but the ingredients are stored in a pantry. The memory bandwidth is the rate at which data can be moved from the memory to the compute units. The compute units are the cores. The memory bandwidth is the rate at which data can be moved from the memory to the compute units.
+
+Let's make a concrete analogy: A graphics card is a kitchen where the chefs (the fast ones) are the compute units, but the ingredients are stored in a pantry. The memory bandwidth is the rate at which data can be moved from the memory to the compute units. The compute units are the cores. The memory bandwidth is the rate at which data can be moved from the memory to the compute units.
+
+Let's make a concrete analogy: A graphics card is a kitchen where the chefs (the fast ones) are the compute units, but the ingredients are stored in a pantry. The memory bandwidth is the rate at which data can be moved from the memory to the compute units. The compute

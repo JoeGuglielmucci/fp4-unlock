@@ -1,0 +1,7 @@
+kernel0: "avg_ts": 82.987038 "avg_ts": 80.883551 "avg_ts": 68.300874 
+kernel1-default: "avg_ts": 83.036902 "avg_ts": 80.802721 "avg_ts": 68.280390 
+kernel1-inv-T3: "avg_ts": 74.073032 "avg_ts": 72.581859 "avg_ts": 60.221462 
+kernel1-inv-T1: "avg_ts": 76.285902 "avg_ts": 74.729592 "avg_ts": 61.753718 
+kernel0-inv: "avg_ts": 82.797958 "avg_ts": 80.973628 "avg_ts": 65.870672 
+kernel1-inv-T2: "avg_ts": 75.314236 "avg_ts": 73.819431 "avg_ts": 61.083886 
+kernel1-default-T2: "avg_ts": 82.993068 "avg_ts": 80.877983 "avg_ts": 68.291595 

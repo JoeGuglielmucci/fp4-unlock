@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 JoeGuglielmucci
+Copyright (c) 2026 Joe Guglielmucci
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+This repository vendors llama.cpp (https://github.com/ggml-org/llama.cpp)
+as a git submodule under third_party/llama.cpp and carries patches against
+it under patches/. llama.cpp is licensed under the MIT License,
+Copyright (c) 2023-2026 The ggml authors. Its license text is retained in
+third_party/llama.cpp/LICENSE.

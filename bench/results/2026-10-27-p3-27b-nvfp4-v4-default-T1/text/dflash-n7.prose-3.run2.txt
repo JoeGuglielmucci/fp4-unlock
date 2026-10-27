@@ -1,0 +1,13 @@
+We need answer user's request: explain to curious high-school student, about 400 words, why GPU limited by memory bandwidth rather than compute. Use one concrete analogy, simple worked example with made-up plausible numbers, finish explaining what engineers do about it. Need likely around 400 words. Need no preamble. Need final only. Let's craft ~400 words. Need ensure analogy concrete. Worked example: GPU can do 100 trillion ops/sec, but needs to read 100 GB/s? Let's make plausible: RTX 4090 ~ 83 TFLOPS FP32, 1008 GB/s. But maybe simpler: GPU can do 100 trillion math ops/sec, memory can move 1000 GB/s. Each pixel needs 16 bytes? If 100 trillion ops/sec and each op needs 1 byte? Then needs 100 TB/s > 1000 GB/s, so memory bottleneck. Need high-school understandable.
+
+Need about 400 words. Let's draft and count.
+
+"Imagine a kitchen with a super-fast chef..." Analogy: chef can chop 1000 onions per minute, but pantry door only lets in 10 onions per minute. Chef waits. GPU compute = chef, memory bandwidth = pantry door.
+
+Worked example: GPU can do 100 trillion operations per second. To render a frame, each operation needs one byte of data from memory. That would require 100 trillion bytes/sec = 100 TB/s. But memory bandwidth is 1000 GB/s = 1 TB/s. So memory can supply only 1% of needed data. GPU sits idle 99% of time. Or if each op needs 16 bytes, even worse. Need plausible numbers: 1000 GB/s is plausible high-end. 100 TB/s not plausible but made-up. Maybe use 100 trillion ops and 1000 GB/s. If each op needs 1 byte, 100 TB/s. Good.
+
+Finish engineers: cache data, compress textures, reduce precision, reuse data in fast on-chip memory, optimize algorithms, use higher bandwidth memory, better scheduling, tensor cores? Need explain.
+
+Need about 400 words. Let's count draft:
+
+Imagine a kitchen with a super-fast chef.

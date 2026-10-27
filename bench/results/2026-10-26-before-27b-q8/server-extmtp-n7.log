@@ -1,0 +1,14 @@
+cmd: /home/crockettgugg/fp4-unlock/build-before/bin/llama-server -m /home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf -ngl 99 --fit off -c 4096 -fa on -ctk f16 -ctv f16 --temp 0 --top-k 1 --seed 7 -md /home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/MTP/mtp-Qwen3.8-27B-Q4_0.gguf --spec-type draft-mtp --spec-draft-n-max 7 --spec-draft-backend-sampling
+0.00.136.224 I srv  llama_server: initializing ...
+0.00.136.234 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.136.510 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.138.872 I srv    load_model: loading model '/home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf'
+0.02.140.377 E ggml_backend_cuda_buffer_type_alloc_buffer: allocating 212.49 MiB on device 0: cudaMalloc failed: out of memory
+0.02.140.381 E ggml_gallocr_reserve_n_impl: failed to allocate CUDA0 buffer of size 222810368
+0.02.140.382 E graph_reserve: failed to allocate compute buffers
+0.02.146.812 E llama_init_from_model: failed to initialize the context: failed to allocate compute pp buffers
+0.02.146.818 E cmn  common_init_: failed to create context with model '/home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf'
+0.02.146.821 E cmn  common_init_: failed to create context with model '/home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf'
+0.02.146.825 E srv    load_model: failed to create_context with model '/home/crockettgugg/models/unsloth--Qwen3.8-27B-GGUF/Qwen3.8-27B-Q8_0.gguf'
+0.02.146.827 I srv    operator(): operator(): cleaning up before exit...
+0.02.147.478 E srv  server_run_i: exiting due to model loading error

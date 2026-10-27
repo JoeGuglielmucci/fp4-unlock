@@ -1,0 +1,49 @@
+We need answer user's request. Need produce final answer with code and explanation in two sentences. Need likely include header-only. Need think through requirements: C++17, thread-safe LRU cache class template LruCache<Key, Value> fixed capacity. Methods: std::get, put, erase, size, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() demonstrating eviction order. Explain eviction policy in two sentences after code.
+
+Need ensure code complete and runnable. Could include <iostream> as main.
+
+Need design:
+- template <<Key, Value>
+class LruCache<T> {
+  std::mutex m_;
+  size_t m();
+  std::list::list<Key, Value> list_;
+  std::unordered_map<Key, typename std::list::Type<Key>::value_type> list_;
+  std::mutex m_;
+  std::map<Key, typename std::list::Type<Key>::value_type> const;
+  std::map<Key, Value> map_;
+  std::size_t size_;
+  std::map<Key, Value> map_;
+  std::size_t size_;
+  std::size_t map_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;
+  std::size_t size_;

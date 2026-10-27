@@ -1,0 +1,10 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need final answer in about 400 words. Need likely direct, no preamble. Need ensure analogy, concrete analogy, worked example, plausible numbers, finish. Need maybe about 400 words. Let's draft.
+
+Need maybe 400 words. Count sentences. Need high-school student. Let's craft around 380-420.
+
+Draft:
+Imagine a graphics card is a GPU that is a huge kitchen with many cooks. The GPU is a huge kitchen with many cooks, and many can be 1000. The cooks are the compute units. The memory bandwidth is the hallway between kitchen and pantry. The hallway is the only way to get ingredients. If the kitchen is fast, the hallway can be slow.
+
+Need analogy: GPU has 1000 cooks, each can chop 10000 onions per second, and memory is 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 1000 MB, 100

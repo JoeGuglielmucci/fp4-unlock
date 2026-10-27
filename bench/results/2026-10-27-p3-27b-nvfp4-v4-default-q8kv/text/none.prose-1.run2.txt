@@ -1,0 +1,14 @@
+We need answer user's request: summarize in about 300 words for general technical audience how speculative decoding speeds up LLM inference: draft model, target verifies several tokens in one forward pass, why output distribution can be kept identical to normal decoding, what determines speedup in practice. End with two most common reasons speedup smaller than hoped.
+
+Need produce final about 300 words. Need likely exactly around 300? "about 300 words". Need no preamble. Need direct. Let's draft ~300 words. Count words.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a smaller, faster draft model to propose several candidate tokens before the large target model is run. The draft model generates a short sequence, often called a draft, using its own autoregressive decoding. Instead of accepting these tokens blindly, the target model processes the original prompt plus the draft in a single forward pass and computes its own probabilities for each position. This lets the target model verify multiple tokens at once, because transformer inference is often memory- and latency-bound: one pass over a longer sequence can be much cheaper than several separate passes over shorter sequences.
+
+The key correctness property is that the final output distribution can be identical to ordinary target-model decoding. For each drafted token, the method compares the draft probability with the target probability. If the target is more likely, the token is accepted. If the target is less likely, the token is rejected and a new token is sampled from a corrected distribution that favors the target model while accounting for the draft. This rejection-sampling step preserves the target model’s distribution exactly, so speculative decoding is not a lossy approximation.
+
+In practice, speedup depends on how often the target accepts drafted tokens, the draft length, the relative cost of the draft and target models, and hardware efficiency. A good draft model that matches the target’s behavior can accept many tokens, reducing the number of expensive target passes. If acceptance is low, the draft work is wasted.
+
+The two most common reasons the speedup is smaller than hoped are low draft-target agreement, especially on difficult or out-of-domain prompts, and high overhead from running the draft model, extra verification logic, or inefficient batching that erases the savings from fewer target passes.
+
+Count words: Speculative1 decoding2 speeds3 up4 large5 language6 model7 inference8 by9 using10 a11 smaller12 faster13 draft14 model15 to16 propose

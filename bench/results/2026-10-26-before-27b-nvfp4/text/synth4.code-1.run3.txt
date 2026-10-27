@@ -1,0 +1,17 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get std::optional<Value> get(const Key&), const void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average get and put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer. Need think about requirements. Header-only class template. Need include main? The user says "include a small main() that exercises eviction order with capacity 3". Since class template, maybe header-only. But they ask include main. Could provide a single file with #pragma once? Or a header-only file. Need maybe include <iostream>, <optional>, <list>, <unordered_map>, <mutex>, <cstddef>. Need C++17.
+
+Potential pitfalls:
+- std::optional<Value> is std::optional, so include <optional>.
+- Thread-safe LRU: std::list<std::list<list<int>::iterator> or std::pair<list<int>::iterator, std::pair<list<int>>>::pair, const Key&> and std::unordered_map<Key, std::list<list<int>::iterator, std::pair<list<int>>>::pair, const Key&>
+- Need copy constructor? For std::list, copy constructor? It's not necessary.
+- Need handle capacity: if capacity 0? Fixed capacity given at construction. Could allow size_t 0. But if capacity 0, put returns? Should we allow size 0? We can handle: if capacity == 0, put does nothing, return. But if capacity 0, get returns? No.
+- Need O(1) average. Use std::list and std::unordered_map.
+- Need ensure thread safety: use std::mutex and std::lock_guard.
+- Need include <mutex> and <mutex>.
+- Need maybe include <cstddef> for size_t.
+- Need maybe include <utility> for std::move.
+- Need maybe include <iostream> for main.
+- Need maybe include <algorithm> for std::find? Not needed.
+- Need maybe include <memory> for std::make

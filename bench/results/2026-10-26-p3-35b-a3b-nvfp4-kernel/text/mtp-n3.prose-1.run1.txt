@@ -1,0 +1,25 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Topic:** Speculative decoding for LLM inference speedup
+   - **Audience:** General technical audience
+   - **Length:** About 300 words
+   - **Key Points to Cover:**
+     - What the draft model does
+     - How the target model verifies several tokens in one forward pass
+     - Why the output distribution can be kept identical to normal decoding
+     - What determines the speedup in practice
+   - **Ending:** Two most common reasons the speedup is smaller than hoped
+   - **Constraints:** Direct answer, no preamble, complete/runnable code not needed (it's a summary), careful senior engineer/technical writer tone.
+
+2.  **Deconstruct Key Points & Draft Content (Mental):**
+   - *Draft model:* A smaller, faster model generates a sequence of candidate tokens (draft tokens) autoregressively.
+   - *Target model verification:* The target model processes the entire draft sequence in a single forward pass (parallel evaluation), computing logits for each position. It then uses a rejection sampling step to decide which draft tokens to accept.
+   - *Identical distribution:* The verification step uses a correction mechanism (typically rejection sampling based on the ratio of target to draft probabilities). If a draft token is rejected, the target model samples a replacement from its own distribution, ensuring the final output exactly matches the target model's marginal distribution.
+   - *Speedup determinants:* The acceptance rate of draft tokens (how many are kept vs. rejected) and the relative compute cost of the draft vs. target model. Higher acceptance rates and lower draft model overhead yield greater speedups.
+   - *Common reasons for smaller-than-hoped speedup:* 1) Low draft acceptance rate (draft model diverges from target distribution), 2) Overhead from parallel verification and synchronization (memory bandwidth limits, kernel launch overhead, or the target model being too large/fast relative to the draft model).
+
+3.  **Refine & Count Words (Target: ~300):**
+   Let's draft it carefully, aiming for precision and technical accuracy.
+
+   Speculative decoding accelerates autoregressive LLM inference by decoupling token generation from full-model evaluation. A lightweight draft model first generates a short sequence of candidate tokens autoregressively. Instead of evaluating each token sequentially, the target model processes the entire draft sequence in a single forward pass, computing

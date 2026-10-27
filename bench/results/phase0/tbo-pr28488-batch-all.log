@@ -1,0 +1,45 @@
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 32110 MiB):
+  Device 0: NVIDIA GeForce RTX 5090, compute capability 12.0, VMM: yes, VRAM: 32110 MiB
+Testing 2 devices
+
+Backend 1/2: CUDA0
+  Device description: NVIDIA GeForce RTX 5090
+  Device memory: 32110 MB (31603 MB free)
+
+  MMVQ_BATCH(type_a=q4_0,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q4_0,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q4_K,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q4_K,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q6_K,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q6_K,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q8_0,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=q8_0,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  MMVQ_BATCH(type_a=nvfp4,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=nvfp4,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  MMVQ_BATCH(type_a=mxfp4,type_b=f32,m=512,k=2048): [1;32mOK[0m
+  MMVQ_BATCH(type_a=mxfp4,type_b=f32,m=256,k=1024): [1;32mOK[0m
+  RMS_BATCH(m=512,eps=0.000001): [1;32mOK[0m
+  RMS_BATCH(m=1024,eps=0.000001): [1;32mOK[0m
+  RMS_BATCH(m=2048,eps=0.000001): [1;32mOK[0m
+  RMS_BATCH(m=5120,eps=0.000001): [1;32mOK[0m
+  P021_BATCH(m=256,k=128,nh=4): Error in compare: batch invariance broken diff 906/1024 max 0.002728939 rms 0.000748422
+compare failed [1;31mFAIL[0m
+  P021_BATCH(m=256,k=128,nh=8): Error in compare: batch invariance broken diff 1851/2048 max 0.002783597 rms 0.000767634
+compare failed [1;31mFAIL[0m
+  FA_BATCH(hsk=64,hsv=64,nh=2,kv=128): [1;32mOK[0m
+  FA_BATCH(hsk=128,hsv=128,nh=2,kv=256): [1;32mOK[0m
+  DMMV_VIEW_BATCH(m=256,k=256,nh=8,ntok=8): [1;32mOK[0m
+  DMMV_VIEW_BATCH(m=128,k=64,nh=4,ntok=8): [1;32mOK[0m
+  DMMV_BATCH(type_a=q8_0,m=256,k=256): [1;32mOK[0m
+  DMMV_BATCH(type_a=q8_0,m=512,k=256): [1;32mOK[0m
+  22/24 tests passed
+
+Failing tests:
+  (m=256,k=128,nh=4)
+  (m=256,k=128,nh=8)
+  Backend CUDA0: [1;31mFAIL[0m
+Backend 2/2: CPU
+  Skipping
+1/2 backends passed
+[1;31mFAIL[0m
+exit 1

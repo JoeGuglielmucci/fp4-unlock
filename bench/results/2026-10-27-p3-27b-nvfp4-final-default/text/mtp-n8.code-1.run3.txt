@@ -1,0 +1,11 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need thread-safe. Need consider const methods with mutex: size() const should lock mutex. But std::mutex is non-copyable, non-assignable. In const method, lock_guard on mutex_ okay if mutex_ is mutable? std::mutex is not mutable? We can declare mutable std::mutex mutex_; because locking in const method requires mutable. Or use std::shared_mutex? Requirement std::mutex. Use mutable std::mutex.
+
+Need list stores pairs? For LRU, list<Key, Value> maybe std::list<std::pair<Key, Value>>. unordered_map<Key, typename std::list<std::pair<Key, Value>>::iterator>. get: find, if found move to front (most recent), return value. put: if key exists update value and move front; else if capacity full and size == capacity, evict back (least recently used), erase map, pop_back; then emplace_front, map[key]=iterator. Need capacity 0? Fixed capacity given at construction. If capacity 0, put should not store? Need handle. If capacity_ == 0, put returns without storing? get returns nullopt. size 0. Eviction only if capacity_ > 0 and size == capacity_. Need avoid size() call inside lock? Could use map.size(). But size() public locks; inside private no lock. Use map_.size().
+
+Need include <optional>, <list>, <unordered_map>, <mutex>, <utility>, <cstddef>. Need maybe using namespace std? Better not.
+
+Potential issue: std::optional<Value> get(const Key&) returns copy. If Value not copyable? Requirement says optional<Value>, so copy. Could return by value.
+
+Need main exercises eviction order with capacity 3. Need demonstrate thread-safe? Could just single-threaded. Maybe include threads? User says small main exercises

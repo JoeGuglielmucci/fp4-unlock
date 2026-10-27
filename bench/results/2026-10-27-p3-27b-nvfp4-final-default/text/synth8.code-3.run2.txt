@@ -1,0 +1,82 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit tests. Need ensure same behavior identical. Let's analyze original code.
+
+Original:
+```go
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+```
+
+Actually imports:
+```
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+```
+
+Wait duplicate imports:
+```
+package main
+
+import (
+	"database/sql"
+	""encoding/json"
+	"database/sql"
+	"net/http"
+	"server"
+)
+```
+No.
+
+Need keep behavior identical: status codes, same response bodies, same status codes, same response bodies? Let's check original:
+- 200 success: no Content-Type header set? Actually original:
+```go
+w.Header().Set("Content-Type", "application/json")
+w.WriteHeader(400)
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(map[string]string{"name": name, "email": "email"})
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(map[string]string{"name": name, "email": "email"})
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(map[string]string{"name": name, "email": "email"})
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(map[string]string{"name": name, "email": "email"})
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(map[string]string{"name": name, "email": "email"})
+```
+No.
+- 200:
+```go
+w.Header().Set("Content-Type", "application/json")

@@ -1,0 +1,140 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test. Need ensure same behavior identical. Let's analyze original code.
+
+Original:
+```go
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+```
+
+Actually imports:
+```
+package main
+
+import (
+    "database/sql"
+    "encoding/json"
+    "database/sql"
+    "net/http"
+    "strconv"
+)
+```
+
+Wait duplicate imports:
+```
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"database/sql"
+	"net/http"
+	"
+```
+
+Actually original:
+```
+package main
+
+import (
+    "database/sql"
+	"encoding/json"
+	"database/sql"
+	"net/http"
+	"request"
+	"strconv"
+)
+```
+Wait original:
+```
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"database/sql"
+	"
+```
+Wait original:
+```
+package main
+
+import (
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"
+```
+	"
+```
+	"database/sql"
+	"
+```
+	"database/sql"
+	"database/sql"
+	"
+```
+	"database/sql"
+	"database/sql"
+	

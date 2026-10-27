@@ -1,0 +1,3 @@
+tg-kernel0: "avg_ts": 83.140565 "avg_ts": 81.031099 "avg_ts": 68.336924 
+tg-default: "avg_ts": 83.058507 "avg_ts": 80.855372 "avg_ts": 68.292670 
+tg-inv: "avg_ts": 75.273227 "avg_ts": 73.756458 "avg_ts": 61.080294 

@@ -1,0 +1,54 @@
+Adds the Qwen3.8-27B NVFP4 FFN perf shapes, the Phase 2 attention perf shapes and the Phase 3.1 small-M eval cases to test-backend-ops; perf shapes gated on FP4_UNLOCK_PERF_SHAPES=1 so the stock
+perf list is unchanged. Applied to third_party/llama.cpp (fork branch) and to the detached before worktree by
+scripts/build.sh so both columns measure with the same tool. Not for upstream.
+diff --git a/tests/test-backend-ops.cpp b/tests/test-backend-ops.cpp
+index 011b74613..8dd66c5bb 100644
+--- a/tests/test-backend-ops.cpp
++++ b/tests/test-backend-ops.cpp
+@@ -11138,6 +11138,18 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+         test_cases.emplace_back(new test_mul_mat(type_a,    GGML_TYPE_F32, 16,  8, 16*256, { 1,  1}, {1, 1}));
+     }
+ 
++    // fp4-unlock Phase 3.1: NVFP4/MXFP4 at every decode / verify batch size M in [1, 8] at the Qwen3.8-27B FFN shapes
++    // (gate/up [5120 -> 17408] and down [17408 -> 5120], K reduced to one quarter to keep the CPU reference fast),
++    // plus the explicit W4A8 / W4A4 MMQ variants, so a small-M kernel is tested on both precisions before it exists.
++    for (ggml_type type_a : { GGML_TYPE_NVFP4, GGML_TYPE_MXFP4 }) {
++        for (int n = 1; n <= 8; ++n) {
++            test_cases.emplace_back(new test_mul_mat(type_a, GGML_TYPE_F32, 17408, n, 1280, { 1, 1 }, { 1, 1 }));
++            test_cases.emplace_back(new test_mul_mat(type_a, GGML_TYPE_F32,  5120, n, 4352, { 1, 1 }, { 1, 1 }));
++            test_cases.emplace_back(new test_mul_mat_w4a8(type_a, GGML_TYPE_F32, 512, n, 1280));
++            test_cases.emplace_back(new test_mul_mat_w4a4(type_a, GGML_TYPE_F32, 512, n, 1280));
++        }
++    }
++
+     // Multi-column MMVQ coverage for the Q4_K weight-reuse path and a Q5_K control.
+     for (ggml_type type_a : { GGML_TYPE_Q4_K, GGML_TYPE_Q5_K }) {
+         for (int n = 1; n <= 8; ++n) {
+@@ -12538,6 +12550,27 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
+ static std::vector<std::unique_ptr<test_case>> make_test_cases_perf() {
+     std::vector<std::unique_ptr<test_case>> test_cases;
+ 
++    // fp4-unlock: Qwen3.8-27B NVFP4 FFN shapes (ffn_gate/up [5120 -> 17408], ffn_down [17408 -> 5120]) at the
++    // verify-step batch sizes. Env-gated so the stock perf list is unchanged.
++    if (getenv("FP4_UNLOCK_PERF_SHAPES") != nullptr) {
++        for (ggml_type ta : {GGML_TYPE_NVFP4, GGML_TYPE_MXFP4, GGML_TYPE_Q4_0, GGML_TYPE_Q8_0}) {
++            for (int n : {1, 2, 3, 4, 6, 8, 12, 16, 32, 64, 512}) {
++                test_cases.emplace_back(new test_mul_mat(ta, GGML_TYPE_F32, 17408, n, 5120, {1, 1}, {1, 1}));
++                test_cases.emplace_back(new test_mul_mat(ta, GGML_TYPE_F32,  5120, n, 17408, {1, 1}, {1, 1}));
++            }
++        }
++        // fp4-unlock Phase 2: Qwen3.8-27B attention (D=256, 24 q heads / 4 kv heads) at decode and verify-step
++        // batch sizes, f16 and q8_0 KV, for the batch-invariant FA split cost measurement.
++        for (ggml_type tkv : {GGML_TYPE_F16, GGML_TYPE_Q8_0}) {
++            for (int64_t kv : {8192, 65536}) {
++                for (int64_t nb : {1, 4, 8}) {
++                    test_cases.emplace_back(new test_flash_attn_ext(256, 256, 4, {6, 1}, kv, nb, true, false, 0, 0, GGML_PREC_F32, tkv, tkv));
++                }
++            }
++        }
++        return test_cases;
++    }
++
+     // delta-net conv input: conv state followed by the transposed qkv of the ubatch
+     test_cases.emplace_back(new test_concat(GGML_TYPE_F32, {3, 8192, 1, 1}, 512, 0, 16));
+ 

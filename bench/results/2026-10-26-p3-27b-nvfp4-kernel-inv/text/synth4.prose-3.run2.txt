@@ -1,0 +1,24 @@
+We need to answer user's request: explain in English, about 400 words, to curious high-school student, why graphics card can be limited by memory bandwidth rather than compute speed. Use one concrete analogy, simple worked example with made-up plausible numbers, finish by explaining what engineers do about it. Need likely about 400 words. Need no preamble. Need complete runnable code. Let's craft ~400 words. Need count maybe 400. Let's draft and count.
+
+Title? Not needed.
+
+Draft:
+Imagine a graphics card is a kitchen where the chefs (the fast ones) are the compute units, but the ingredients are stored in a pantry. The chefs can cook as fast as they want, but if they can’t move the food to the stove quickly enough, they can’t get the job done.
+
+Memory bandwidth is the bottleneck. The GPU has a memory bus, and the GPU can only move a certain amount of data per second. If the GPU has a high refresh rate, it needs to read and write the data. If the task is memory-bound, it's not bandwidth-bound.
+
+Let's count. Need about 400 words. Let's write a coherent paragraph.
+
+Need maybe 400 words. Let's write:
+
+Imagine a graphics card is a kitchen where the chefs are the chefs, but the ingredients are stored in a pantry. The chefs can cook as fast as they want, but if they can’t move the food to the stove quickly enough, they can’t get the job done.
+
+Memory bandwidth is the bottleneck. The bottleneck is the rate at which data can be moved from one memory to another. The GPU has a memory bus, and the GPU has a memory bus. The GPU can only move a certain amount of data per second. If the GPU has a high refresh rate, it needs to read and write the data. If the task is memory-bound, it's not bandwidth-bound.
+
+Let's count. Need 400 words. Let's write a concise but detailed.
+
+Draft:
+
+Imagine a graphics card is a kitchen where the chefs are the fast ones, but the ingredients are stored in a pantry. The chefs can cook as fast as they want, but if they can’t move the food to the stove quickly enough, they can’t get the job done.
+
+Memory bandwidth is the bottleneck. The bottleneck is the rate at which data can be moved from one memory to another. The GPU has

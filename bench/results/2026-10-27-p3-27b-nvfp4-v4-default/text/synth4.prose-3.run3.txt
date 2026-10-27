@@ -1,0 +1,7 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need final answer about 400 words. Need likely no preamble. Need ensure analogy, simple worked example, numbers, engineers do about it. Need maybe mention "memory bandwidth" vs "graphics card can be limited by memory bandwidth rather than how fast it computes". Let's craft.
+
+Need maybe 400 words exactly? "about 400 words". Let's count. Need high-school student. Let's draft:
+
+"Imagine a graphics card is a high-quality video editor. It has 200% of the CPU speed, but it has to be so fast that it can't wait for the data. The data is in the memory. The memory is like a warehouse with a conveyor belt. The GPU has to fetch the data from the memory. The memory is like a conveyor belt. The GPU has 200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

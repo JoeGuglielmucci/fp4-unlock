@@ -1,0 +1,12 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speedup. Need produce final answer only, no need analysis. Need ensure direct.
+</think>
+
+Speculative decoding speeds up large language models by using a small draft model to generate tokens that are likely to be accepted, while the target model verifies the draft in a single forward pass.
+
+The draft model first proposes a few candidate tokens, and the target model is used to verify the draft in a single forward pass. Because the target model processes the entire sequence of tokens, it can compute the probability of each token in the sequence. The target model then checks the draft tokens against the target's acceptance. If the draft tokens are accepted, the target model can be used to generate the next token. If the draft token is rejected, the target model can be used to generate the next token.
+
+The key idea is that the draft model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens. The target model is a large model that can be used to verify the draft tokens. The target model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens.
+
+The key idea is that the draft model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens. The target model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens. The target model is a large model that can be used to verify the draft tokens.
+
+The key idea is that the draft model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens. The target model is a small model that can be used to generate tokens that are likely to be correct. The target model is a large model that can be used to verify the draft tokens. The target model is a large model that can be used to verify the draft tokens. The target model is a large model that can be

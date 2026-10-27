@@ -1,0 +1,19 @@
+We need to answer user's request: summarize in about 300 words for speculative decoding speeds up LLM inference. Need include draft model, target model verification, why output distribution identical, practical speedup. End with two most common reasons speedup smaller than hoped. Need final about 300 words. Need likely concise. Ensure no preamble. Let's draft.
+
+Need maybe mention: draft model proposes gamma tokens, verify, verify, top-K, rejection sampling. Need count words. Let's draft:
+
+"Speculative decoding accelerates LLM inference by using a small draft model to generate a few tokens, then verify it with a larger target model in one forward pass. The draft model is cheap and can be run sequentially, often with few tokens, so it produces a candidate sequence. The target model is responsible for quality. The target model is fed the token prefix plus the draft tokens, and the verifier takes the logits at each token, so it can evaluate all draft positions in parallel. The target model is responsible for quality.
+
+For each token, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each token, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each token, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each token, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each token, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each time, the verifier compares the target's logits to the draft's logits. The target model is given the prefix plus the draft tokens. The target model is responsible for quality.
+
+The verifier takes the logit at each token, and for each token, the

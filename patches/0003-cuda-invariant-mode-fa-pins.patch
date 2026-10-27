@@ -1,0 +1,161 @@
+diff --git a/ggml/src/ggml-cuda/fattn-common.cuh b/ggml/src/ggml-cuda/fattn-common.cuh
+index 41d948335..62d1f6359 100644
+--- a/ggml/src/ggml-cuda/fattn-common.cuh
++++ b/ggml/src/ggml-cuda/fattn-common.cuh
+@@ -10,6 +10,26 @@
+ #define HALF_MAX_HALF         __float2half(65504.0f/2) // Use neg. of this instead of -INFINITY to initialize KQ max vals to avoid NaN upon subtraction.
+ #define SOFTMAX_FTZ_THRESHOLD -20.0f                   // Softmax exp. of values smaller than this are flushed to zero to avoid NaNs.
+ 
++// fp4-unlock batch-invariant small-M mode (FP4_UNLOCK_INVARIANT=1): for Q->ne[1] <= 8 FlashAttention uses one kernel
++// family, one ncols1 tile configuration and a KV split at fixed FATTN_KQ_STRIDE boundaries, so the result for a token
++// is bitwise identical whether it is computed alone (M == 1) or as part of a batch of up to 8 (speculative verify).
++#include "fp4-unlock.cuh"   // fp4_unlock_invariant_enabled()
++static inline bool fp4_unlock_invariant_small_m(const int64_t ne01) {
++    return ne01 <= 8 && fp4_unlock_invariant_enabled();
++}
++// ne01 used for the ncols1 tile choice: FP4_UNLOCK_FA_TIER=16 picks the tile stock uses at M == 8, otherwise (8) the
++// tile stock uses at M == 1, so the single-token kernel is unchanged and M in 5..8 runs two tiles instead of one.
++static inline int64_t fp4_unlock_invariant_ne01_tile(const int64_t ne01) {
++    if (!fp4_unlock_invariant_small_m(ne01)) {
++        return ne01;
++    }
++    static const int64_t ne01_tile = [] {
++        const char * e = getenv("FP4_UNLOCK_FA_TIER");
++        return (e != nullptr && atoi(e) == 16) ? 8 : 1;
++    }();
++    return ne01_tile;
++}
++
+ // log(2) = 0.6931, by adding this to the KQ maximum used for the softmax the numerical range representable
+ //     by the VKQ accumulators is effectively being shifted up by a factor of 2.
+ // This reduces issues with numerical overflow but also causes larger values to be flushed to zero.
+@@ -1183,6 +1203,13 @@ void launch_fattn(
+                 : nblocks_stream_k_raw;
+ 
+             blocks_num.x = nblocks_stream_k;
++            // fp4-unlock invariant mode: one block per (output tile, FATTN_KQ_STRIDE positions of KV). The kernel's
++            // kbc split is then exact (nblocks divides the work) and every block's KV range starts at a multiple of
++            // FATTN_KQ_STRIDE, independent of Q->ne[1] and of the padded KV length, so the per-token combine order is fixed.
++            if (fp4_unlock_invariant_small_m(Q->ne[1]) && !use_sparse && FATTN_KQ_STRIDE % nbatch_fa == 0 &&
++                    ntiles_KV % (FATTN_KQ_STRIDE/nbatch_fa) == 0) {
++                blocks_num.x = ntiles_dst * (ntiles_KV / (FATTN_KQ_STRIDE/nbatch_fa));
++            }
+         }
+ 
+         if (ntiles_dst % blocks_num.x != 0) { // Fixup is only needed if the SMs work on fractional tiles.
+diff --git a/ggml/src/ggml-cuda/fattn-mma-f16.cuh b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+index 296aa2b34..3cd023818 100644
+--- a/ggml/src/ggml-cuda/fattn-mma-f16.cuh
++++ b/ggml/src/ggml-cuda/fattn-mma-f16.cuh
+@@ -2056,7 +2056,7 @@ void ggml_cuda_flash_attn_ext_mma_f16_case(ggml_backend_cuda_context & ctx, ggml
+         constexpr bool use_logit_softcap = false;
+ #if !defined(GGML_USE_HIP) && !defined(GGML_USE_MUSA)
+         if constexpr (ggml_cuda_flash_attn_ext_mma_f16_may_use_sparse(DKQ, DV, ncols1, ncols2)) {
+-            if (ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(cc, dst, ncols1, ncols2)) {
++            if (!fp4_unlock_invariant_small_m(dst->src[0]->ne[1]) && ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(cc, dst, ncols1, ncols2)) {
+                 constexpr bool use_sparse_kernel = true;
+                 fattn_kernel = flash_attn_ext_f16<DKQ, DV, ncols1, ncols2, use_logit_softcap, V_is_K_view, use_sparse_kernel>;
+                 use_sparse = true;
+diff --git a/ggml/src/ggml-cuda/fattn.cu b/ggml/src/ggml-cuda/fattn.cu
+index 1515572fe..ee9d89830 100644
+--- a/ggml/src/ggml-cuda/fattn.cu
++++ b/ggml/src/ggml-cuda/fattn.cu
+@@ -155,12 +155,14 @@ template <int DKQ, int DV, int ncols2>
+ static void ggml_cuda_flash_attn_ext_mma_f16_switch_ncols1(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     const int cc = ggml_cuda_info().devices[ggml_cuda_get_device()].cc;
+     const ggml_tensor * Q = dst->src[0];
++    const int64_t ne01_t = fp4_unlock_invariant_ne01_tile(Q->ne[1]); // fp4-unlock: fixed tile for M <= 8
+ 
+ #if !defined(GGML_USE_HIP) && !defined(GGML_USE_MUSA)
+     if constexpr (ggml_cuda_flash_attn_ext_mma_f16_may_use_sparse(DKQ, DV, 1, ncols2)) {
+         // a sparse variant at the full tile width gathers the union of its queries once, prefer it for large batches
+         constexpr bool has_wide_sparse = ggml_cuda_flash_attn_ext_mma_f16_may_use_sparse(DKQ, DV, 64/ncols2, ncols2);
+-        if (!(has_wide_sparse && Q->ne[1] > 32/ncols2) && ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(cc, dst, 1, ncols2)) {
++        if (!fp4_unlock_invariant_small_m(Q->ne[1]) && !(has_wide_sparse && Q->ne[1] > 32/ncols2) &&
++                ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(cc, dst, 1, ncols2)) {
+             ggml_cuda_flash_attn_ext_mma_f16_case<DKQ, DV, 1, ncols2>(ctx, dst);
+             return;
+         }
+@@ -168,20 +170,20 @@ static void ggml_cuda_flash_attn_ext_mma_f16_switch_ncols1(ggml_backend_cuda_con
+ #endif // !defined(GGML_USE_HIP) && !defined(GGML_USE_MUSA)
+ 
+     if constexpr (ncols2 <= 8) {
+-        if (turing_mma_available(cc) && Q->ne[1] <= 8/ncols2) {
++        if (turing_mma_available(cc) && ne01_t <= 8/ncols2) {
+             ggml_cuda_flash_attn_ext_mma_f16_case<DKQ, DV, 8/ncols2, ncols2>(ctx, dst);
+             return;
+         }
+     }
+ 
+     if constexpr (ncols2 <= 16) {
+-        if (Q->ne[1] <= 16/ncols2) {
++        if (ne01_t <= 16/ncols2) {
+             ggml_cuda_flash_attn_ext_mma_f16_case<DKQ, DV, 16/ncols2, ncols2>(ctx, dst);
+             return;
+         }
+     }
+ 
+-    if (Q->ne[1] <= 32/ncols2 || (GGML_CUDA_CC_IS_NVIDIA(cc) && ggml_cuda_highest_compiled_arch(cc) == GGML_CUDA_CC_TURING) ||
++    if (ne01_t <= 32/ncols2 || (GGML_CUDA_CC_IS_NVIDIA(cc) && ggml_cuda_highest_compiled_arch(cc) == GGML_CUDA_CC_TURING) ||
+             (GGML_CUDA_CC_IS_AMD(cc) && DKQ > 256)) {
+         ggml_cuda_flash_attn_ext_mma_f16_case<DKQ, DV, 32/ncols2, ncols2>(ctx, dst);
+         return;
+@@ -633,6 +635,9 @@ static best_fattn_kernel ggml_cuda_get_best_fattn_kernel(const int device, const
+     // 192 satisfies % 64 == 0 but has no vec instance (DKQ != DV); force it onto the MMA path.
+     const bool can_use_vector_kernel = Q->ne[0] <= 256 && Q->ne[0] % 64 == 0 && Q->ne[0] != 192 && K->ne[1] % FATTN_KQ_STRIDE == 0;
+ 
++    // fp4-unlock invariant mode: choose the kernel family for M <= 8 as if M were 8, so M == 1 and the verify batch agree
++    const int64_t ne01_f = fp4_unlock_invariant_small_m(Q->ne[1]) ? 8 : Q->ne[1];
++
+     // If Turing tensor cores are available, use them:
+     if (turing_mma_available(cc) && Q->ne[0] != 40 && Q->ne[0] != 72) {
+         if (can_use_vector_kernel) {
+@@ -641,22 +646,22 @@ static best_fattn_kernel ggml_cuda_get_best_fattn_kernel(const int device, const
+                 const bool sparse_decode = gqa_opt_applies && gqa_ratio > 4 &&
+                     ggml_cuda_flash_attn_ext_mma_f16_may_use_sparse(K->ne[0], V->ne[0], 1, 8) &&
+                     ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(cc, dst, 1, 8);
+-                if (!sparse_decode && cc >= GGML_CUDA_CC_ADA_LOVELACE && Q->ne[1] == 1 && Q->ne[3] == 1 &&
++                if (!sparse_decode && cc >= GGML_CUDA_CC_ADA_LOVELACE && ne01_f == 1 && Q->ne[3] == 1 &&
+                         !(gqa_ratio > 4 && (Q->ne[0] >= 256 || K->ne[1] >= 8192))) {
+                     return BEST_FATTN_KERNEL_VEC;
+                 }
+             } else {
+                 if (cc >= GGML_CUDA_CC_ADA_LOVELACE) {
+-                    if (Q->ne[1] <= 2) {
++                    if (ne01_f <= 2) {
+                         return BEST_FATTN_KERNEL_VEC;
+                     }
+                 } else {
+-                    if (Q->ne[1] == 1) {
++                    if (ne01_f == 1) {
+                         return BEST_FATTN_KERNEL_VEC;
+                     }
+                 }
+             }
+-            if (!gqa_opt_applies && Q->ne[1] == 1) {
++            if (!gqa_opt_applies && ne01_f == 1) {
+                 return BEST_FATTN_KERNEL_VEC;
+             }
+         }
+diff --git a/ggml/src/ggml-cuda/fp4-unlock.cuh b/ggml/src/ggml-cuda/fp4-unlock.cuh
+new file mode 100644
+index 000000000..03e0f7dd1
+--- /dev/null
++++ b/ggml/src/ggml-cuda/fp4-unlock.cuh
+@@ -0,0 +1,16 @@
++#pragma once
++// fp4-unlock: runtime switches shared by the CUDA kernels of the fork (mmvq.cu routing, fattn-common.cuh tile pins).
++#include <cstdlib>
++
++#ifndef FP4_UNLOCK_INVARIANT_ENABLED_DEFINED
++#define FP4_UNLOCK_INVARIANT_ENABLED_DEFINED
++// FP4_UNLOCK_INVARIANT=1: batch-invariant small-M mode. Every op that a token's logits depend on must take the same
++// kernel and the same reduction order for ncols 1..8, so the speculative verify batch reproduces plain decode bitwise.
++static inline bool fp4_unlock_invariant_enabled() {
++    static const bool enabled = [] {
++        const char * e = getenv("FP4_UNLOCK_INVARIANT");
++        return e != nullptr && e[0] != '0';
++    }();
++    return enabled;
++}
++#endif

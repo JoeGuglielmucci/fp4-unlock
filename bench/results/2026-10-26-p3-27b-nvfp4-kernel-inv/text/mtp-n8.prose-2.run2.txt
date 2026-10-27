@@ -1,0 +1,17 @@
+We need to answer user: "Write a formal letter of about 350 words from a small software company to a hardware vendor requesting early access to a developer program for a new GPU. The letter should state what the company builds (an open-source inference engine), why access matters before launch, what the company offers in return (benchmarks, bug reports, a public write-up), and propose a specific next step. Use a neutral, professional tone and include placeholders only for names and dates."
+
+Need produce formal letter about 350 words. Placeholders only for names and dates. Need no other placeholders? Probably [Company Name], [Vendor Name], [Name], [Date], [GPU Name]? User says placeholders only for names and dates. That means can include placeholders for names and dates, but not for other details? We need maybe use [Company Name], [Vendor Name], [GPU Name]? GPU name is a name? It says names and dates, likely names of people/companies and dates. Could include [GPU Name] as name? Maybe acceptable. But to be safe, avoid placeholder for GPU? But need new GPU; can say "your upcoming GPU" without naming. Need specific next step: propose a 30-minute call on [Date] or submit NDA by [Date]. Placeholders only names/dates. Need about 350 words. Let's draft around 350. Count words.
+
+Formal letter:
+
+[Date]
+
+[Vendor Contact Name]
+[Vendor Company Name]
+[Address?] Address not name/date? Could omit address to avoid placeholders. Maybe just name.
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for deploying machine-learning models on modern accelerators. Our engine is designed to provide portable, low-latency inference across a range of hardware backends, and we are preparing a public release that will include support for your upcoming GPU.
+
+We are requesting early access to your developer program for the new GPU. Early access is important to us because our release schedule depends on stable driver support, accurate performance characteristics, and early validation of low-level programming interfaces. If we can evaluate the hardware before launch, we can identify compatibility issues, optimize kernels and memory paths, and provide our users with a reliable experience from day one. Without early access, we risk shipping an incomplete or poorly tuned backend, which would be disappointing for both our community and your customers

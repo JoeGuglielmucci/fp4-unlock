@@ -1,0 +1,67 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::get, put, erase, bool erase, size_t size const, O(1) average time for get/put. Use std::mutex. Protect every public method with std::mutex. Include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences.
+
+Need produce final answer. Need likely include code. Need be careful: header-only template. Need include <main> and <main> in main. Since header-only, template class in header. Need use std::mutex, std::mutex, std::list, std::unordered_map, std::optional.
+
+Need consider thread safety: std::mutex, std::list<mutex> not copyable. Need use std::list. Need map key to value. Use std::list<mutex> and std::unordered_map<mutex, std::list_iterator<mutex> -1.
+
+Need O(1) average time. Use std::list. Need use std::unordered_map.
+
+Need O(1) average time.
+
+Need include <mutex> and <mutex> and <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex> in main.
+
+Need include <mutex

@@ -1,0 +1,31 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical (same status codes, same response bodies). Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 {
+  w.WriteHeader(400)
+  w.Write([]byte(`{"error":"bad id"}`))
+  return
+ }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows {
+   w.WriteHeader(404)
+   w.Write([]byte(`{"error":"not found"}`))
+   return
+  }
+  w.WriteHeader(500)
+  w.Write([]byte(`{"error":"db"}`))
+  return
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical: same status codes, same response bodies. Important: original success response: Content-Type set after possible errors? For errors, no Content-Type set. Body exactly {"error":"bad id"} no newline. 404 body {"error":"not found"}. 500 body {"error":"db"}. Success: Content-Type application/json, body JSON encoded map: {"email":"...","name":"..."}? Go map encoding sorts keys alphabetically: email then name. json.Encoder adds trailing newline. Need preserve. If we use helper writeJSON? If we set Content-Type for all responses, external behavior changes (headers). User says same status codes, same response bodies, not necessarily headers? But keep external behavior identical likely includes headers? It explicitly says same status codes, same response bodies. Could still set Content-Type only on success to be safe. But if helper sets header always, error responses would have Content

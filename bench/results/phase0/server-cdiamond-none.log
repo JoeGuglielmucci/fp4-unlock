@@ -1,0 +1,33 @@
+0.00.078.996 I srv  llama_server: initializing ...
+0.00.079.008 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.079.293 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.081.532 I srv    load_model: loading model '/home/crockettgugg/models/cdiamond--Qwen3.8-27B-iMatrix-NVFP4-MTP-GGUF/Qwen3.8-27B-iMatrix-NVFP4-MTP.gguf'
+0.00.283.209 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
+0.00.283.214 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
+0.00.283.218 W model has unused tensor blk.64.attn_q.weight (size = 35389440 bytes) -- ignoring
+0.00.283.219 W model has unused tensor blk.64.attn_k.weight (size = 2949120 bytes) -- ignoring
+0.00.283.221 W model has unused tensor blk.64.attn_v.weight (size = 2949120 bytes) -- ignoring
+0.00.283.225 W model has unused tensor blk.64.attn_output.weight (size = 17694720 bytes) -- ignoring
+0.00.283.227 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.283.228 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.283.229 W model has unused tensor blk.64.ffn_gate.weight (size = 50135040 bytes) -- ignoring
+0.00.283.231 W model has unused tensor blk.64.ffn_down.weight (size = 50135040 bytes) -- ignoring
+0.00.283.232 W model has unused tensor blk.64.ffn_up.weight (size = 50135040 bytes) -- ignoring
+0.00.283.234 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 29491200 bytes) -- ignoring
+0.00.283.235 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring
+0.00.283.237 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring
+0.00.283.241 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring
+0.01.361.360 I cmn          init: llama threadpool init, n_threads = 16
+0.01.413.173 I srv    load_model: initializing, n_slots = 4, n_ctx_slot = 8192, kv_unified = 'true'
+0.01.415.820 W srv          init: chat template supports preserving reasoning, it is enabled by default (may use more tokens, disable via --no-reasoning-preserve)
+0.01.415.861 I srv  server_run_i: model loaded
+0.01.415.865 I srv  server_on_li: listening on http://127.0.0.1:8091
+0.01.983.563 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+0.01.983.603 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.02.831.056 I slot print_timing: id  0 | task 0 | prompt eval time =      78.91 ms /    12 tokens (    6.58 ms per token,   152.07 tokens per second)
+0.02.831.059 I slot print_timing: id  0 | task 0 |        eval time =     768.50 ms /    64 tokens (   12.20 ms per token,    81.98 tokens per second)
+0.02.831.060 I slot print_timing: id  0 | task 0 |       total time =     847.41 ms /    76 tokens
+0.02.831.063 I slot print_timing: id  0 | task 0 |    graphs reused =         63
+0.02.831.064 I slot print_timing: id  0 | task 0 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.02.831.085 I slot      release: id  0 | task 0 | stop processing: n_tokens = 75, truncated = 0
+0.26.573.259 I srv    operator(): operator(): cleaning up before exit...

@@ -1,0 +1,9 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than compute how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need answer in about 400 words. Need likely direct. Need maybe about 400 words. Need ensure no preamble. Need count words. Let's draft around 400 words.
+
+Need explain to curious high-school student. Use analogy: kitchen with large library, maybe 100 students? Maybe a library of 10000 books, one per page. Let's make analogy: kitchen with 100 students? Need concrete analogy: kitchen with 100 students? Maybe "a library of books, 100 readers, 100 pages per page, but each page can be read by one page at a time". Let's choose one analogy: "a kitchen with 100 students?" Hmm.
+
+Need analogy: "a library with 100000 books, one per page, and the library has 100 pages per page, but each page can be read by one page at a time." Need concrete analogy: "a kitchen with 100 students?" Let's think of a concrete analogy: "a library with 100000 books, one per page, one per page, and the library has 100 pages per page per page per page per page per page per page" maybe.
+
+Need analogy: "a kitchen with 100 students, 100 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages, 10 pages

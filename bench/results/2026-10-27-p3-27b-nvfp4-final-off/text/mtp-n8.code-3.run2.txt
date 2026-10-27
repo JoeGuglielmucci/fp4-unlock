@@ -1,0 +1,21 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical (same status codes, same response bodies). Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 { w.WriteHeader(400); w.Write([]byte(`{"error":"bad id"}`)); return }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows { 404 {"error":"not found"}; return }
+  500 {"error":"db"}; return
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical. Need full refactored file. Need likely define sentinel errors: errInvalidID, errUserNotFound, errDatabase? But external behavior same: 400 body exactly {"error":"bad id"} no Content-Type? Original error responses do not set Content-Type. Success sets Content-Type application/json and JSON encoder writes object plus newline. Need preserve exact bodies. For errors, no Content-Type set. If we use helper writeJSONError(w, status, message) that writes status and body exactly. It should not set Content-Type. For success, set Content-Type and encode. Need ensure JSON encoding of map: Go map[string]string marshals keys sorted? For single? map with name,email: encoding/json sorts keys alphabetically: {"email":...,"name":...}. Original uses map[string]string, so output sorted. If we define struct with fields Name, Email, output order would be Name then Email, not identical. Need keep map[string]string or custom marshal? To keep identical, use map[string]string{"name": name, "email": email}. JSON encoder adds trailing newline. Need preserve.

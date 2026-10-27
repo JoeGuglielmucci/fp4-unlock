@@ -1,0 +1,15 @@
+We need answer user's request: summarize in about 300 words for general technical audience how speculative decoding speeds up LLM inference: draft model, target verifies several tokens in one forward pass, why output distribution can be kept identical to normal decoding, what determines speedup in practice. End with two most common reasons speedup smaller than hoped.
+
+Need produce final about 300 words. Need likely exactly around 300? "about 300 words". Need no preamble. Need direct. Let's draft ~300 words. Count words.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a small, fast draft model to propose several future tokens before the large target model is run. The draft model generates a short candidate sequence, often greedily or with a simple sampling policy, in a few cheap forward passes. The target model then processes the original prompt plus the proposed tokens in one forward pass, computing logits for every position in the sequence. This lets it verify multiple draft tokens at once instead of generating them one by one.
+
+Verification uses a rejection-sampling rule that compares the target model’s distribution with the draft model’s distribution at each position. If the target model assigns enough probability to a draft token, it is accepted. If not, the token is rejected and a new token is sampled from a corrected distribution that favors the target model’s probabilities. The process stops at the first rejected token, then continues from the accepted prefix. Because the correction step exactly accounts for the difference between draft and target distributions, the final token distribution matches what the target model would produce in ordinary autoregressive decoding, assuming the same random seed and sampling parameters.
+
+In practice, speedup depends on how often the target model accepts draft tokens, the cost of running the target model on a longer sequence, and the relative cost of the draft model. If the draft model is well aligned with the target and the task is predictable, many tokens are accepted and the target’s parallel verification pays off. If the draft model is weak, the task is highly stochastic, or the target model’s batch/sequence overhead is large, fewer tokens are accepted and the extra computation can erase the gain.
+
+The two most common reasons the speedup is smaller than hoped are low draft-target agreement, causing frequent rejections, and high verification overhead, where the target model’s cost to check the proposed sequence is too large relative to the number of accepted tokens.
+
+Count words:
+Speculative1 decoding2 speeds3 up

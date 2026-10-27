@@ -1,0 +1,2 @@
+tree,model,path,batch,env,Mean    KLD,Median  KLD,99.9%   KLD,99.0%   KLD,Maximum KLD,Mean ln(PPL(Q)/PPL(base)),Same top p
+p3,27b-nvfp4,p3,-b 8 -ub 8,FP4_UNLOCK_KERNEL=1 FP4_UNLOCK_INVARIANT=1,0.042219,0.002067,2.688582,0.731553,8.764134,0.033580,95.354

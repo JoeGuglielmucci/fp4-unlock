@@ -1,0 +1,21 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical (same status codes, same response bodies). Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 { w.WriteHeader(400); w.Write([]byte(`{"error":"bad id"}`)); return }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows { 404 {"error":"not found"} }
+  500 {"error":"db"}
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical. Need full refactored file. Need likely define sentinel errors: errInvalidID, errUserNotFound, errDatabase? But external behavior same: 400 body exactly {"error":"bad id"} no Content-Type? Original error responses do not set Content-Type. Success sets Content-Type application/json and encodes map. JSON encoder adds newline. Need preserve exact response bodies? "same response bodies" likely exact bytes. For success, json.Encoder.Encode(map) produces {"email":"...","name":"..."}\n? Go map keys sorted alphabetically: email then name. Original uses map[string]string{"name": name, "email": email}; encoding/json sorts keys, so body is {"email":...,"name":...}\n. Need preserve. If we define struct with fields Name, Email, JSON output order depends struct field order. To keep identical, either use map[string]string in encode function or struct with Email first then Name? Original map sorted: email, name. If struct {Email string `json:"email"`; Name string `json:"name"`} output same. But if use map,

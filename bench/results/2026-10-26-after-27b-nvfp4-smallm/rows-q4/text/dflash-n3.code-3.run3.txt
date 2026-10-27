@@ -1,0 +1,31 @@
+We need answer user's request. Need refactor Go HTTP handler into testable functions with clear error handling, keep external behavior identical (same status codes, same response bodies). Return full refactored file, then list behaviors unit test should cover.
+
+Need think carefully. Original code:
+package main
+import database/sql, encoding/json, net/http, strconv
+var db *sql.DB
+func userHandler(w http.ResponseWriter, r *http.Request) {
+ idStr := r.URL.Query().Get("id")
+ id, err := strconv.Atoi(idStr)
+ if err != nil || id <= 0 {
+  w.WriteHeader(400)
+  w.Write([]byte(`{"error":"bad id"}`))
+  return
+ }
+ row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+ var name, email string
+ if err := row.Scan(&name, &email); err != nil {
+  if err == sql.ErrNoRows {
+   w.WriteHeader(404)
+   w.Write([]byte(`{"error":"not found"}`))
+   return
+  }
+  w.WriteHeader(500)
+  w.Write([]byte(`{"error":"db"}`))
+  return
+ }
+ w.Header().Set("Content-Type", "application/json")
+ json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email})
+}
+
+Need refactor: separate database access, input validation, JSON encoding into testable functions with clear error handling. Keep external behavior identical: same status codes, same response bodies. Need full refactored file. Need likely define sentinel errors: errInvalidID, errUserNotFound, errDatabase? But external bodies must be exact: 400 body {"error":"bad id"} no trailing newline? Original w.Write([]byte(`{"error":"bad id"}`)) no newline. 404 {"error":"not found"} no newline. 500 {"error":"db"} no newline. Success: Content-Type application/json, json.Encoder.Encode(map) produces {"email":"...","name":"..."}\n? JSON encoder sorts keys alphabetically: email then name, and appends newline. Need preserve exact success body? Original uses json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email}). That outputs {"email":"...","name":"..."}\n. If we refactor JSON encoding into function,

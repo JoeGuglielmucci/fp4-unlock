@@ -1,0 +1,11 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final answer in about 400 words. Need likely around 400 words. Let's craft.
+
+Need maybe 400 words. Let's draft:
+
+- Introduction: GPU has many compute, but memory bandwidth bottleneck.
+- analogy: a library/restaurant? Or a kitchen with many chefs but only one way to get data. Need concrete analogy. Maybe "a huge kitchen with many chefs and a very narrow hallway to the delivery room".
+- worked example: GPU has 1600 Gyr/s? No, 1600 GFLOPS? Let's use plausible: 1000 GFLOPS for 16-bit, memory bandwidth 128 GB/s = 128 GB/s. Each pixel needs 16 bits? 2 bytes = 16 GB. Need 10000000000000/0.002 = 1e12 ops? Let's compute.
+
+Need maybe 1000 GFLOPS = 1000 GFLOPS = 1000 GFLOPS? 1000 GFLOPS = 1000 GFLOPS? Actually 1000 GFLOPS = 1000 GFLOPS? Let's use 1000 GFLOPS = 1000 GFLOPS? Wait 1 GFLOP = 10^9 FLOPs. 1000 GFLOPS = 10^12 FLOPs/s. 128 GB/s = 128*10^8 = 12.8*10^9 bytes/s. If each byte can do 16 ops? That's 16 ops. Then 12.8*10^9*16 = 204.8*10^9 = 204.8 GFLOPS. So 1000 GFLOPS is 5x memory bandwidth. But if memory bandwidth 12

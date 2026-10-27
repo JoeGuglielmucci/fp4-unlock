@@ -1,0 +1,48 @@
+We need answer user's request. Need produce final answer with code only? User asks implement a thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> fixed capacity, with std::optional, methods, void, bool, size_t, O(1) average, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction order in two sentences after code.
+Need ensure C++17. Need include <mutex>, <optional>, <unordered_map>, <list>, <cstddef>, <utility>, <iostream> maybe.
+Need think about thread safety. Header-only.
+Need code complete runnable.
+Potential issues:
+- std::list and std::unordered_map.
+- Need avoid mutable? std::mutex is shared.
+- std::optional<Value> get returns Value.
+- Need copy constructor.
+- void put(const Key&, const Value&)
+- void put(const Key&, const Value&)
+- bool erase(const Key&)
+- size_t size() const.
+- Need protect every public method with std::mutex.
+- std::mutex can be locked.
+- Need include <iostream> for main.
+- Need avoid std::mutex.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need avoid using std::mutex.
+- Need avoid using std::mutex.
+- Need include <iostream>.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need include <algorithm>? no.
+- Need include <algorithm>? no.
+- Need include <iostream>.
+- Need include <

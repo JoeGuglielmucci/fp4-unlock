@@ -1,0 +1,51 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::list and std::unordered_map, get, put, erase, bool erase, size, O(1) average. Protect every public method with std::mutex. Include small main() demonstrating eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer with code only? User says "explain the eviction policy in two sentences after the code." So likely code block plus explanation. Need ensure C++17. Need no preamble. Need complete runnable code.
+
+Let's think design. Header-only template.
+
+Class template:
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <list>
+#include <mutex>
+#include <optional>
+#include <algorithm>
+#include <unordered_map>
+#include <utility>
+
+template <Key, Value>
+class LruCache {
+    size_t size() const { size_t size(); }
+    std::list<std::list<ItemType> and unordered_map<Key, Value> with iterator.
+
+Need ensure capacity. Use std::mutex mutable.
+
+Data structure:
+template <typename Key, typename Value>
+class LruCache {
+public:
+    std::list<int> and std::unordered_map<Key, std::unordered_map<Key, Value> with iterator.
+
+Need handle size_t size() const.
+
+Implementation:
+template <typename Key, typename Value>
+class LruCache {
+public:
+    explicit LRUCache<Key, Value>(size_t size_t size) = 0;
+    std::mutex m;
+    std::list<Key, Value> with iterator.
+    std::unordered_map<Key, Value> with iterator.
+    size_t size() const;
+    std::optional<Value> get(const Key&) &&;
+    std::optional<Value> get(const Key&) &&;
+    void put(const Key&, const Value&) &&;
+    bool erase(const Key&) &&;
+    size_t size() const;
+    std::optional<Value> get(const Key&) &&;
+    std::optional<Value> get(const Key&) &&;
+    void put(const Key&, const Value&) &&;
+    std::optional<Value> put(const Key&, const Value&) &&;
+    bool erase(const Key&) &&;

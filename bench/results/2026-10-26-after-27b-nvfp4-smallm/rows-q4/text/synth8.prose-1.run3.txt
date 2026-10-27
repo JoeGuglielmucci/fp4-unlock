@@ -1,0 +1,21 @@
+We need answer user's request: "Summarize, in about 300 words for a general technical audience, how speculative decoding speeds up large language model inference: what the draft model does, how the target model verifies several tokens in one forward pass, why the output distribution can be kept identical to normal decoding, and what determines the speedup in practice. End with the two most common reasons the speedup is smaller than hoped."
+
+Need produce final answer. Keep concise ~300 words. Need no preamble. Need ensure direct answer.
+- Start: speculative decoding speeds up large language model inference by using a small draft model and a target model.
+- Draft model: small fast model generates tokens, verifies target.
+- Target model verifies several tokens in one forward pass:
+  - Verify multiple tokens in parallel:
+  - Use a target model to verify multiple tokens in parallel, and check if the draft model's tokens match the target model's tokens.
+  - The target model verifies the draft model's tokens in a single forward pass, and if the draft model's tokens are correct, the target model accepts them.
+  - If the draft model's tokens are incorrect, the target model rejects them.
+  - The target model verifies the draft model's tokens in a single forward pass, and if the draft model's tokens are correct, the target model accepts them.
+  - If the draft model's tokens are incorrect, the target model rejects them.
+  - The target model verifies the draft model's tokens in a single forward pass, and if the draft model's tokens are correct, the target model accepts them.
+  - The target model verifies the draft model's tokens in a single forward pass, and if the draft model's tokens are correct, the target model accepts them.
+  - The output distribution can be kept identical to normal decoding, and what determines the speedup in practice.
+  - End with the two most common reasons the speedup is smaller than hoped.
+  - The output distribution can be kept identical to normal decoding, and what determines the speedup in practice.
+  - End with the two most common reasons the speedup is smaller than hoped.
+  - The output distribution can be kept identical to normal decoding, and what determines the speedup in practice.
+  - End with the two most common reasons the speedup is smaller than hoped.
+  - The output distribution can be kept identical to normal decoding, and what determines the

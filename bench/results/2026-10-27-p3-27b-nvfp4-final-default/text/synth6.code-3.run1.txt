@@ -1,0 +1,21 @@
+We need answer user's request. Need produce final full refactored Go file and list behaviors unit tests should cover. Need be careful. User asks: refactor Go HTTP handler so database access, input validation and JSON encoding separated into testable functions with clear error handling. Keep same status codes, same response bodies. Need full refactored file.
+
+Need think about exact behavior. Original:
+- Query id param.
+- If empty idStr.
+- strconv.Atoi.
+- If id <= 0 or error.
+- Write 400 with header.
+- Write []byte(`{"error":"bad id"}`)
+- Return.
+- No QueryRow.
+- If scan error:
+  - sql.ErrNoRows -> 404 {"error":"not found"}`.
+  - else 500 {"error":"db"}`.
+- Return.
+- Set Content-Type header.
+- Write header 200.
+- Encode map[string]string{"name": name, "email": "email"}.
+- Return.
+
+Need refactor. Need preserve external behavior identical. The original code writes 400 body without Content-Type header. The original 500 is written before header set. So 404/500/400 bodies are written without Content-Type header. So if we keep external behavior identical, we must not set Content-Type header on error responses. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 200 response has Content-Type header. The 2

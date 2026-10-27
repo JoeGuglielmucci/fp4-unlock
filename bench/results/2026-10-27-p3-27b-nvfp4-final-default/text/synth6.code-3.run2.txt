@@ -1,0 +1,35 @@
+We need answer user's request. Need produce final refactored Go file and list behaviors unit test should cover. Need be careful: external behavior identical, same status codes, same response bodies. Original code:
+- handler reads id from query.
+- id = strconv.Atoi(idStr); if err != nil return 400.
+- if err != nil || id <= 0 { return 400 }
+- if id <= 0 return 400.
+- row := db.QueryRow("SELECT name, email FROM users WHERE id = ?", id)
+- if err != nil { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500 }
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500 }
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500 }
+- if err == sql.ErrNoRows { return 404 }
+- if err == sql.ErrNoRows { return 400 }
+- if err == sql.ErrNoRows { return 404 }
+- return 500 }
+- if err ==

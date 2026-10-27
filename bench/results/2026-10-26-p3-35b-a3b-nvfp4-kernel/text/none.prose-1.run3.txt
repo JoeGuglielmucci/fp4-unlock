@@ -1,0 +1,25 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Topic:** Speculative decoding for LLM inference speedup
+   - **Audience:** General technical audience
+   - **Length:** About 300 words
+   - **Key Points to Cover:**
+     - What the draft model does
+     - How the target model verifies several tokens in one forward pass
+     - Why the output distribution can be kept identical to normal decoding
+     - What determines the speedup in practice
+   - **Ending:** Two most common reasons the speedup is smaller than hoped
+   - **Constraints:** Direct answer, no preamble, complete/runnable code not needed (it's a summary), careful senior engineer/technical writer tone.
+
+2.  **Deconstruct Key Points & Draft Content (Mental):**
+   - *Draft model:* A smaller, faster LLM generates a sequence of candidate tokens (e.g., 5-8) autoregressively. It's trained or fine-tuned to approximate the target model's distribution.
+   - *Target model verification:* The target model runs a single forward pass over the entire context plus the draft tokens. It computes logits for each position in the draft sequence simultaneously (parallel evaluation), rather than one-by-one.
+   - *Identical distribution:* Uses a rejection sampling step. For each draft token, the target model compares its probability to the draft model's probability. If the target's probability is higher, the token is accepted. If lower, it's rejected with probability proportional to the ratio, and a new token is sampled from the target's distribution. This ensures the final output exactly matches the target model's marginal distribution.
+   - *Speedup determinant:* The acceptance rate of draft tokens. If the draft model is highly accurate, most tokens are accepted, and the target model only needs to run once per batch of tokens. Speedup scales with the number of draft tokens accepted per target forward pass.
+   - *Two common reasons for smaller-than-hoped speedup:* 
+     1. Low acceptance rate due to distribution mismatch between draft and target models.
+     2. Memory/compute bottlenecks: The target model's forward pass is memory-bound or doesn't parallelize well over the draft tokens, so the theoretical FLOP reduction isn't realized in wall-clock time.
+
+3.  **Refine & Count Words (Target: ~300):**
+   Let's draft it carefully

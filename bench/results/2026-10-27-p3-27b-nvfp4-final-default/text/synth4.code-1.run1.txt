@@ -1,0 +1,21 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get std::optional<Value> get(const Key&), const void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average time for get and put. Use std::list and std::unordered_map, protect every public method with std::mutex, include a small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer with code only? User says answer directly, without preamble. When asked for code, give complete runnable code with no placeholders. When asked for code, give complete runnable code with no placeholders. Then explain eviction policy in two sentences after code. Need likely code block then explanation. Need ensure no placeholders. Need C++17. Header-only class template. Need include main() that exercises eviction order. Since complete runnable code, maybe include all in one file. Need maybe class template with mutex. Could use std::unordered_map. Need handle capacity 0? If capacity 0, get returns false, put returns false, put no-op? Actually if capacity 0, put should not store. Need avoid zero. Could implement size_t size_t capacity_0. Need thread-safe.
+
+Need think about LRU eviction policy. Standard: list stores keys in order, value most recently used at front? Or list head? Need map key->iterator. For O(1) get: use list, move to front. For put: if key exists, update value and move to front. If not exists, insert new key. If size > capacity, evict back.
+
+Need ensure std::optional<Value> get(const Key&) returns std::optional<Value>. If value is not copyable, default construct? We need copy value. Use std::optional<Value> opt; if value is not copyable, std::optional requires copy. But std::optional<Value> requires copyable. We can assume.
+
+Need include <main>.
+
+Need maybe use std::mutex and std::lock_guard.
+
+Need maybe use std::mutex and std::lock_guard.
+
+Need maybe use std::mutex and std::lock_guard.
+
+Need include <iostream> for main.
+
+Need maybe use std::list and std::unordered_map.
+
+Need maybe use std::list and std

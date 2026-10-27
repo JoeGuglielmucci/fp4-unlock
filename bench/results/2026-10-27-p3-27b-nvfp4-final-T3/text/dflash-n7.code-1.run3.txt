@@ -1,0 +1,13 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need thread-safe: mutex. But if class template has std::mutex, copy/move? We can delete copy/move or make non-copyable. Need maybe use std::mutex mutable for const size. Need list of pairs? Need map key to iterator. For LRU, front most recent or back? Choose front most recent. On get, move to front. On put, if exists update value and move front; else if capacity full erase back (least recently used) and its map entry, then push front. Need capacity 0? If capacity 0, put should not store? get returns nullopt. Need handle. Use size_t capacity. If capacity == 0, put no-op? Could still erase? Better if capacity_ == 0 return. Need avoid storing. For put with existing key when capacity 0? If no entries, no-op. If capacity 0 and somehow entries? no.
+
+Need include <optional>, <list>, <unordered_map>, <mutex>, <cstddef>, <utility>, <iostream> for main. Header-only class template. Could put in single file with main. User asks header-only class template and include small main. We can provide one .cpp? Header-only means class in header, but can show complete file. Maybe include #pragma once? Could just code block.
+
+Need ensure O(1) average. std::list splice O(1), unordered_map O(1) average.
+
+Thread safety: every public method with std::lock_guard<std::mutex> lock(mutex_); For const size, mutable mutex_.
+
+Potential issue: std::optional<Value> get(const Key&) returns copy. If Value not copyable? optional requires copy/move? It can hold move? We return by value, need Value copyable or movable. Could specify. Not necessary.
+
+Need main exercises eviction

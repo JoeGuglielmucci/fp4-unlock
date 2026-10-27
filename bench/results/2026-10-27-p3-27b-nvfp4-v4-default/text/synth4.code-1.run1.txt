@@ -1,0 +1,34 @@
+We need answer user's request. Need produce final answer with code, explanation in two sentences after code. Need ensure C++17 C++17, std::optional, header-only class template. Need implement thread-safe LRU cache with fixed capacity, std::list and std::unordered_map, erase, size, O(1) average. Use std::mutex. Include small main() demonstrating eviction order with capacity 3. Need explain eviction policy in two sentences after code.
+
+Need think about details:
+- Header-only template LRUCache<Key, Value>
+- capacity fixed at construction.
+- std::list and std::unordered_map.
+- Need protect every public method with std::mutex.
+- get and put O(1) average.
+- Need include main() that exercises eviction order.
+- Use std::optional<Value> (C++17).
+- Need maybe std::list and std::unordered_map.
+- Need handle capacity 0? If capacity 0, get returns 0, put no-op, erase returns nullopt.
+- Need include main() that exercises eviction order with capacity 3.
+- Need explain eviction policy in two sentences after the code.
+- Need no preamble.
+- Need maybe include <main> and <iostream> in header.
+- Need maybe include <iostream> and <optional> in header.
+- Need maybe include <list> and <unordered_map> and <mutex> and <string>.
+- Need maybe include <utility> and <cstddef>.
+- Need maybe include <algorithm> and <algorithm> for header.
+- Need maybe include <cstddef> and <algorithm> for size_t.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need maybe include <algorithm> for std::move.
+- Need

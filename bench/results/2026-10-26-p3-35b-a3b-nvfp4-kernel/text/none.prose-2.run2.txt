@@ -1,0 +1,50 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Sender:** Small software company
+   - **Recipient:** Hardware vendor
+   - **Purpose:** Request early access to a developer program for a new GPU
+   - **Length:** About 350 words
+   - **Key Content Requirements:**
+     - State what the company builds (open-source inference engine)
+     - Explain why early access matters before launch
+     - State what the company offers in return (benchmarks, bug reports, public write-up)
+     - Propose a specific next step
+   - **Tone:** Neutral, professional
+   - **Placeholders:** Only for names and dates (no other placeholders)
+   - **Format:** Formal letter
+
+2.  **Deconstruct Requirements & Plan Structure:**
+   - Header: Sender info, Date, Recipient info
+   - Salutation
+   - Opening: State purpose clearly
+   - Company Description: Open-source inference engine
+   - Why Early Access Matters: Pre-launch optimization, compatibility testing, community impact
+   - What We Offer: Benchmarks, bug reports, public write-up
+   - Next Step: Specific proposal (e.g., meeting, NDA, evaluation kit request)
+   - Closing: Professional sign-off
+   - Word count target: ~350 words
+
+3.  **Draft - Section by Section (Mental Refinement):**
+   [Header]
+   [Company Name]
+   [Company Address]
+   [City, State, ZIP]
+   [Date]
+   [Vendor Contact Name]
+   [Vendor Title]
+   [Vendor Company Name]
+   [Vendor Address]
+   [City, State, ZIP]
+
+   [Salutation]
+   Dear [Vendor Contact Name],
+
+   [Opening]
+   I am writing on behalf of [Company Name] to formally request early access to your upcoming developer program for the [GPU Model/Code Name]. Our team has followed your recent hardware announcements closely and believes a collaborative partnership would be mutually beneficial.
+
+   [Company Description]
+   We develop [Product Name], an open-source inference engine designed to optimize large language model and diffusion model execution across diverse hardware architectures. Our software is actively used by researchers, independent developers, and small-to-medium enterprises who rely on efficient, transparent, and community-driven AI tooling.
+
+   [Why Early Access Matters]
+   Securing early access prior to

@@ -1,0 +1,25 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Target Audience:** Curious high-school student
+   - **Length:** About 400 words
+   - **Topic:** Why a graphics card can be limited by memory bandwidth rather than compute speed
+   - **Requirements:**
+     - Use one concrete analogy
+     - Give a simple worked example with made-up but plausible numbers
+     - Finish by explaining what engineers do about it
+   - **Tone/Style:** Direct, careful, technical but accessible, no preamble
+
+2.  **Deconstruct the Core Concept:**
+   - GPUs have massive compute units (shaders/cores) but relatively modest memory bandwidth compared to their compute capacity.
+   - This creates a bottleneck: cores sit idle waiting for data from VRAM.
+   - Analogy needed: Something with fast workers but slow supply lines.
+   - Worked example: Plausible numbers for compute throughput vs memory bandwidth, showing the bottleneck.
+   - Engineer solutions: Caching, memory compression, wider buses, faster memory (GDDR6X), compute-first architectures, etc.
+
+3.  **Draft - Section by Section (Mental Refinement):**
+   *Analogy:* Imagine a factory with 100 incredibly fast assembly robots. Each robot can assemble a toy in 1 second. But the conveyor belt delivering parts only brings 10 parts per second. Even though the robots are fast, they spend 90% of their time waiting for parts. The bottleneck isn’t the robots’ speed; it’s the conveyor belt’s capacity.
+
+   *Worked Example:* A modern GPU might have 10,000 shader cores. Each core can process 100 pixels per millisecond, giving a theoretical compute throughput of 1,000,000 pixels/ms. However, rendering each pixel requires fetching texture data from VRAM. If the memory bus delivers data at 500 GB/s, and each pixel’s texture data weighs 0.5 MB, the memory can only supply 1,000 pixels/ms. The cores can handle 1,000,000, but the memory only feeds 1,000. The GPU is memory-bandwidth bound.
+
+   *Engineer Solutions:* Engineers tackle this by reducing how much data needs to travel. They add large on-chip caches so frequently used textures stay close to the

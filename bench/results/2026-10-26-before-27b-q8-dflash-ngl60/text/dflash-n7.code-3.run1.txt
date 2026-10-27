@@ -1,0 +1,14 @@
+We need answer user's request. Need produce final: full refactored Go file, then list behaviors unit test should cover. Need ensure external behavior identical: same status codes, same response bodies. Need consider original behavior details:
+- package main, var db *sql.DB
+- handler reads query id.
+- if strconv.Atoi error or id <=0: WriteHeader(400), Write body `{"error":"bad id"}`. No Content-Type set. Note Write after WriteHeader. Body exact no newline.
+- DB query: SELECT name, email FROM users WHERE id = ?
+- if scan err:
+  - sql.ErrNoRows: 404 body `{"error":"not found"}` no content type.
+  - other: 500 body `{"error":"db"}` no content type.
+- success: set Content-Type application/json, json.NewEncoder(w).Encode(map[string]string{"name": name, "email": email}). Encoder adds trailing newline. Status 200 implicit.
+Need refactor into testable functions with clear error handling. Keep external behavior identical. Need likely define sentinel errors: ErrInvalidID, ErrUserNotFound, ErrDB? But handler must map to status/body. Need separate database access, input validation, JSON encoding. Could define:
+type User struct { Name, Email string }
+func parseUserID(raw string) (int, error) { id, err := strconv.Atoi(raw); if err != nil || id <=0 { return 0, ErrInvalidID } return id, nil }
+func getUser(db *sql.DB, id int) (User, error) { row := db.QueryRow(...); var u User; err := row.Scan(&u.Name, &u.Email); if err != nil { if errors.Is(err, sql.ErrNoRows) { return User{}, ErrUserNotFound }; return User{}, err } return u, nil }
+func writeJSON(w http.ResponseWriter, status int, v interface{})? But original success sets Content-Type and encodes map. Error responses do not set Content-Type. If we use generic writeJSON for all, would change headers for errors. Need keep identical. Could have writeError(w, status, message) that writes exact body no content type. And writeUserJSON(w, u) sets content type and encodes map. But JSON encoding separated into testable function? Could define encodeUser(w, u) error? But to test JSON encoding maybe use htt

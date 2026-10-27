@@ -1,0 +1,31 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than by how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need produce final answer in about 400 words. Need likely around 400 words. Let's craft.
+
+Need maybe 400 words. Let's draft:
+
+- Introduction: GPU has many compute, but memory bandwidth bottleneck.
+- analogy: a factory/restaurant? Or a highway with many cars? Need concrete analogy. Maybe "a factory with 1000 workers but only 100% of ingredients can be delivered from a door". Need one concrete analogy. Maybe "a high school has a huge teacher with 1000 students but only one narrow hallway". Need concrete.
+
+Let's choose analogy: "a factory with 1000 workers, each can only see the conveyor belt in front of them; if the factory is only one door, workers can't do more than the door". Good.
+
+Worked example:
+- GPU has 10000 compute, 100000 operations per second.
+- Need memory bandwidth: 100 GB/s.
+- Each pixel needs 16 bytes.
+- 100000 operations per second * 16 bytes = 1.6 GB/s.
+- So 10000 ops/second * 16 = 160 GB/s.
+- So GPU can only do 16/160 = 10% of GPU.
+- Memory bandwidth is bottleneck.
+
+Need maybe plausible numbers: 10000 ops, 100 GB/s, 16 bytes per pixel.
+
+Need explain engineers do about it.
+
+Need final about 400 words. Let's count words.
+
+Draft:
+
+"Imagine a factory with 1000 workers, each working on a conveyor belt. The workers can do 1000 operations per second, but the factory only has one narrow door. If the factory is only one door, workers can only get 100 operations per second. The workers are not the factory's bottleneck; the door is.
+
+A graphics card is like

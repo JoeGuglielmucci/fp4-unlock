@@ -1,0 +1,1 @@
+docker: 2af6709f9eefb851da920e0012c3d9e2d9960fdd201bcffdd850f42df314ec67  args: --model unsloth/Qwen3.8-27B-NVFP4 --max-model-len 8192 --gpu-memory-utilization 0.90 --max-num-seqs 16 

@@ -1,0 +1,12 @@
+We need to answer user's request: summarize in about 300 words for general technical audience, how speculative decoding speeds up LLM inference. Need cover: what draft model does, how target verifies several tokens in one forward pass, why output distribution can be kept identical, output distribution can be kept identical, what determines speedup in practice. End with two most common reasons speedup smaller than hoped. Need direct final, no preamble. Need about 300 words. Let's draft around 300. Need ensure 300 words? "about 300 words". Count maybe 300.
+
+Draft:
+Speculative decoding speeds up large language model inference by using a draft model to propose several future tokens before the target model verifies them. The target model is usually the larger model, so it is expensive to run one token at a time. The draft model is smaller, often faster, and the same or similar architecture, so it can generate a short sequence of candidate tokens, one for each, with low cost.
+
+The target model verifies the draft tokens in a single forward pass. It takes the current prompt and the pre-filled draft tokens and computes logits for all tokens in the next positions. The target then takes the draft tokens and compares them to the target's own distribution. It can check whether the draft tokens are accepted. If the draft token is accepted, the target continues. If not, it rejects and resamples.
+
+The output distribution can be kept identical to normal decoding because the target uses a rejection sampling algorithm. For each draft token, the target's probability is computed. The algorithm is usually given by the target's probability of the draft token divided by the draft's probability, capped at 1. The algorithm is usually given by the target's probability of the draft token divided by the draft's probability, capped at 1. If the draft token is accepted, the target continues. If not, it rejects and resamples.
+
+The output distribution can be kept identical to normal decoding because the target uses a rejection sampling algorithm. For each draft token, the target's probability is computed. The algorithm is usually given by the target's probability of the draft token divided by the target's probability, capped at 1. The algorithm is usually given by the target's probability of the draft token divided by the target's probability, capped at 1.
+
+The output distribution can be kept identical to normal decoding because the target uses a rejection sampling algorithm. For each draft token, the

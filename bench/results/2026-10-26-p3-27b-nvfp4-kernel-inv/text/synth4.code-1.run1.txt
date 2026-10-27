@@ -1,0 +1,11 @@
+We need answer user's request. Need produce final answer with code and explanation in two sentences after code. Need implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get, put, erase, size, bool erase. O(1) average O(1) using std::list and std::unordered_map. Protect every public method with std::mutex. Include small main() demonstrating eviction order capacity 3. Need likely complete code. Need be careful: C++17, std::optional. Need include <main> and use std::cout. Need maybe thread-safe: mutex. Could use std::mutex and recursive? No, public methods not nested. Use std::mutex. Need list stores iterator of Value. For LRU, common: list stores pairs of Key and Value. Use unordered_map<Key, Value> with iterator of list. On get: move to front. On put: if exists, insert new. If size == capacity, evict last. Then pop front. Then insert. Need handle empty capacity? If capacity 0, remove default? Could support. Need ensure no exceptions. Need copy? get returns std::optional<Value> get(const Key&) - copy. If capacity 0, get returns std::nullopt. Need include <mutex> <list> <unordered_map> <map> <optional> <iostream> <algorithm> maybe. Need class template.
+
+Need think about thread safety: std::mutex. Use std::lock_guard.
+
+Potential issue: std::unordered_map and std::list iterators. Need copyable.
+
+Need include main() that exercises eviction order. Could use capacity 3. Example:
+put(1,100), (1,100), (2,200), (3,300). get(1) -> get(1) makes 1 most recent. put(4,400) -> 4 most recent, evict 3.
+get(1) -> 100, get(2) -> 200, get(3) -> 200, get(4) -> 400.
+put(5,500) -> 5 most recent, evict 2.
+get(1) -> 100, get(2) -> 200, get(3) -> 2

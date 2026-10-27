@@ -1,0 +1,13 @@
+We need to respond to user: "Write a formal letter of about 350 words from a small software company to a hardware vendor requesting early access to a developer program for a new GPU. The letter should state what the company builds (an open-source inference engine), why access matters before launch, what the company offers in return (benchmarks, bug reports, a public write-up), and propose a specific next step. Use a neutral, professional tone and include placeholders only for names and dates."
+
+Need produce final only letter. Need about 350 words. Need placeholders only for names and dates. So avoid placeholders for company names? It says include placeholders only for names and dates. Could use [Company Name]? That's a name placeholder. But "only for names and dates" means placeholders can be for names and dates, not other details. We can use [Your Name], [Date], [Vendor Name], [GPU Name]? GPU name is a name? Maybe product name. But maybe better to avoid product name placeholder? It says new GPU, can refer to "your upcoming GPU" without placeholder. Need formal letter. About 350 words. Let's draft around 350. Need count. Let's write with placeholders: [Date], [Vendor Contact Name], [Vendor Company Name], [Your Name], [Your Company Name]? Company name is a name. Maybe [Your Company Name] is placeholder for name. But user says from a small software company; could use [Company Name]. Need only names and dates placeholders. So no [GPU Model], [Program Name]. Use "your upcoming GPU" and "developer program".
+
+Need ensure word count about 350. Let's draft and count.
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for deploying machine learning models on heterogeneous hardware. We are requesting early access to the developer program for your upcoming GPU.
+
+Our engine provides a lightweight runtime, model compiler, and deployment tooling that allow developers to run inference workloads with minimal configuration. Because the project is open source, it is used by a growing community of researchers, startups, and independent developers who need reliable performance across multiple hardware platforms. Early access to your GPU would allow us to begin driver, runtime, and compiler integration before public launch, rather than after the product is widely available.
+
+This timing matters for several reasons. First, inference performance is highly sensitive to memory

@@ -1,0 +1,80 @@
+== KV f16: reference (spec off), two runs
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (none-f16-B vs none-f16-A)
+== KV f16: extmtp-n3 vs spec off
+  code-1: DIVERGED at token 254 (ref 512 / new 512 tokens); ref top-2 [[945, -0.7359530925750732], [4336, -0.7957999110221863]] gap 0.0598; new top-2 [[4336, -0.7644984722137451], [945, -0.7711665034294128]] gap 0.0067
+  code-2: DIVERGED at token 296 (ref 512 / new 512 tokens); ref top-2 [[48282, -0.7288488745689392], [1089, -0.7618669867515564]] gap 0.0330; new top-2 [[1089, -0.730170726776123], [48282, -0.7598051428794861]] gap 0.0296
+  code-3: DIVERGED at token 10 (ref 512 / new 512 tokens); ref top-2 [[25, -0.8938852548599243], [440, -0.9554659724235535]] gap 0.0616; new top-2 [[440, -0.9094153642654419], [25, -0.9380714297294617]] gap 0.0287
+  prose-1: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[271, -0.821635365486145], [6558, -0.8740531206130981]] gap 0.0524; new top-2 [[6558, -0.8487650752067566], [271, -0.8671156764030457]] gap 0.0184
+  prose-2: DIVERGED at token 127 (ref 512 / new 512 tokens); ref top-2 [[1040, -0.7220840454101562], [364, -0.7451705932617188]] gap 0.0231; new top-2 [[364, -0.7221598625183105], [1040, -0.7434821128845215]] gap 0.0213
+  prose-3: DIVERGED at token 96 (ref 512 / new 512 tokens); ref top-2 [[694, -1.1718254089355469], [11, -1.1854438781738281]] gap 0.0136; new top-2 [[11, -1.1387689113616943], [694, -1.2052935361862183]] gap 0.0665
+  divergence rate 6/6 (extmtp-n3-f16 vs none-f16-A)
+== KV f16: extmtp-n7 vs spec off
+  code-1: DIVERGED at token 454 (ref 512 / new 512 tokens); ref top-2 [[1132, -1.0068283081054688], [628, -1.1187992095947266]] gap 0.1120; new top-2 [[628, -1.042840838432312], [1132, -1.060632586479187]] gap 0.0178
+  code-2: DIVERGED at token 296 (ref 512 / new 512 tokens); ref top-2 [[48282, -0.7288488745689392], [1089, -0.7618669867515564]] gap 0.0330; new top-2 [[1089, -0.7373653650283813], [48282, -0.7514339089393616]] gap 0.0141
+  code-3: identical (512 tokens)
+  prose-1: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[271, -0.821635365486145], [6558, -0.8740531206130981]] gap 0.0524; new top-2 [[6558, -0.8478987812995911], [271, -0.8622381687164307]] gap 0.0143
+  prose-2: DIVERGED at token 273 (ref 512 / new 512 tokens); ref top-2 [[7931, -1.314460039138794], [43630, -1.4145042896270752]] gap 0.1000; new top-2 [[43630, -1.356485366821289], [7931, -1.382761001586914]] gap 0.0263
+  prose-3: DIVERGED at token 96 (ref 512 / new 512 tokens); ref top-2 [[694, -1.1718254089355469], [11, -1.1854438781738281]] gap 0.0136; new top-2 [[11, -1.1319459676742554], [694, -1.172080397605896]] gap 0.0401
+  divergence rate 5/6 (extmtp-n7-f16 vs none-f16-A)
+== KV f16: dflash-n3 vs spec off
+  code-1: DIVERGED at token 254 (ref 512 / new 512 tokens); ref top-2 [[945, -0.7359530925750732], [4336, -0.7957999110221863]] gap 0.0598; new top-2 [[4336, -0.7644984722137451], [945, -0.7711665034294128]] gap 0.0067
+  code-2: DIVERGED at token 296 (ref 512 / new 512 tokens); ref top-2 [[48282, -0.7288488745689392], [1089, -0.7618669867515564]] gap 0.0330; new top-2 [[1089, -0.730170726776123], [48282, -0.7598051428794861]] gap 0.0296
+  code-3: DIVERGED at token 10 (ref 512 / new 512 tokens); ref top-2 [[25, -0.8938852548599243], [440, -0.9554659724235535]] gap 0.0616; new top-2 [[440, -0.9094153642654419], [25, -0.9380714297294617]] gap 0.0287
+  prose-1: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[271, -0.821635365486145], [6558, -0.8740531206130981]] gap 0.0524; new top-2 [[6558, -0.8487650752067566], [271, -0.8671156764030457]] gap 0.0184
+  prose-2: DIVERGED at token 127 (ref 512 / new 512 tokens); ref top-2 [[1040, -0.7220840454101562], [364, -0.7451705932617188]] gap 0.0231; new top-2 [[364, -0.7221598625183105], [1040, -0.7434821128845215]] gap 0.0213
+  prose-3: DIVERGED at token 96 (ref 512 / new 512 tokens); ref top-2 [[694, -1.1718254089355469], [11, -1.1854438781738281]] gap 0.0136; new top-2 [[11, -1.1387689113616943], [694, -1.2052935361862183]] gap 0.0665
+  divergence rate 6/6 (dflash-n3-f16 vs none-f16-A)
+== KV f16: dflash-n7 vs spec off
+  code-1: DIVERGED at token 454 (ref 512 / new 512 tokens); ref top-2 [[1132, -1.0068283081054688], [628, -1.1187992095947266]] gap 0.1120; new top-2 [[628, -1.042840838432312], [1132, -1.060632586479187]] gap 0.0178
+  code-2: DIVERGED at token 296 (ref 512 / new 512 tokens); ref top-2 [[48282, -0.7288488745689392], [1089, -0.7618669867515564]] gap 0.0330; new top-2 [[1089, -0.7373653650283813], [48282, -0.7514339089393616]] gap 0.0141
+  code-3: identical (512 tokens)
+  prose-1: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[271, -0.821635365486145], [6558, -0.8740531206130981]] gap 0.0524; new top-2 [[6558, -0.8478987812995911], [271, -0.8622381687164307]] gap 0.0143
+  prose-2: DIVERGED at token 273 (ref 512 / new 512 tokens); ref top-2 [[7931, -1.314460039138794], [43630, -1.4145042896270752]] gap 0.1000; new top-2 [[43630, -1.356485366821289], [7931, -1.382761001586914]] gap 0.0263
+  prose-3: DIVERGED at token 96 (ref 512 / new 512 tokens); ref top-2 [[694, -1.1718254089355469], [11, -1.1854438781738281]] gap 0.0136; new top-2 [[11, -1.1319459676742554], [694, -1.172080397605896]] gap 0.0401
+  divergence rate 5/6 (dflash-n7-f16 vs none-f16-A)
+== KV q8_0: reference (spec off), two runs
+  code-1: identical (512 tokens)
+  code-2: identical (512 tokens)
+  code-3: identical (512 tokens)
+  prose-1: identical (512 tokens)
+  prose-2: identical (512 tokens)
+  prose-3: identical (512 tokens)
+  divergence rate 0/6 (none-q8_0-B vs none-q8_0-A)
+== KV q8_0: extmtp-n3 vs spec off
+  code-1: DIVERGED at token 323 (ref 512 / new 512 tokens); ref top-2 [[3646, -2.9066262245178223], [2336, -2.979250431060791]] gap 0.0726; new top-2 [[2336, -2.9420485496520996], [3646, -2.9519896507263184]] gap 0.0099
+  code-2: DIVERGED at token 359 (ref 512 / new 512 tokens); ref top-2 [[21814, -1.2524440288543701], [9584, -1.2872644662857056]] gap 0.0348; new top-2 [[9584, -1.270975947380066], [21814, -1.3228044509887695]] gap 0.0518
+  code-3: DIVERGED at token 60 (ref 512 / new 512 tokens); ref top-2 [[3134, -0.7388004064559937], [850, -0.7479766607284546]] gap 0.0092; new top-2 [[850, -0.7318681478500366], [3134, -0.7507929801940918]] gap 0.0189
+  prose-1: DIVERGED at token 162 (ref 512 / new 512 tokens); ref top-2 [[14989, -1.2252446413040161], [8754, -1.2426015138626099]] gap 0.0174; new top-2 [[8754, -1.1748992204666138], [14989, -1.2585288286209106]] gap 0.0836
+  prose-2: DIVERGED at token 330 (ref 512 / new 512 tokens); ref top-2 [[491, -0.9453837275505066], [14072, -0.9477640986442566]] gap 0.0024; new top-2 [[14072, -0.9239172339439392], [491, -0.9453691244125366]] gap 0.0215
+  prose-3: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[5639, -1.0112751722335815], [15, -1.0468089580535889]] gap 0.0355; new top-2 [[15, -0.9969485998153687], [5639, -1.0328868627548218]] gap 0.0359
+  divergence rate 6/6 (extmtp-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: extmtp-n7 vs spec off
+  code-1: DIVERGED at token 254 (ref 512 / new 512 tokens); ref top-2 [[4336, -0.7307199835777283], [945, -0.7931170463562012]] gap 0.0624; new top-2 [[945, -0.7300447821617126], [4336, -0.8053641319274902]] gap 0.0753
+  code-2: DIVERGED at token 293 (ref 512 / new 512 tokens); ref top-2 [[16, -0.8822276592254639], [18, -0.9190986752510071]] gap 0.0369; new top-2 [[18, -0.8727770447731018], [16, -0.926243782043457]] gap 0.0535
+  code-3: DIVERGED at token 223 (ref 512 / new 512 tokens); ref top-2 [[25, -1.2847501039505005], [440, -1.3369715213775635]] gap 0.0522; new top-2 [[440, -1.295530915260315], [25, -1.3822695016860962]] gap 0.0867
+  prose-1: DIVERGED at token 86 (ref 512 / new 512 tokens); ref top-2 [[10029, -0.9530714750289917], [1534, -0.9993419051170349]] gap 0.0463; new top-2 [[1534, -0.977846622467041], [10029, -0.9924778342247009]] gap 0.0146
+  prose-2: DIVERGED at token 330 (ref 512 / new 512 tokens); ref top-2 [[491, -0.9453837275505066], [14072, -0.9477640986442566]] gap 0.0024; new top-2 [[14072, -0.9053921699523926], [491, -0.937082827091217]] gap 0.0317
+  prose-3: DIVERGED at token 54 (ref 512 / new 512 tokens); ref top-2 [[13, -1.0879427194595337], [11, -1.126299500465393]] gap 0.0384; new top-2 [[11, -1.0969051122665405], [13, -1.1411479711532593]] gap 0.0442
+  divergence rate 6/6 (extmtp-n7-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n3 vs spec off
+  code-1: DIVERGED at token 323 (ref 512 / new 512 tokens); ref top-2 [[3646, -2.9066262245178223], [2336, -2.979250431060791]] gap 0.0726; new top-2 [[2336, -2.9420485496520996], [3646, -2.9519896507263184]] gap 0.0099
+  code-2: DIVERGED at token 359 (ref 512 / new 512 tokens); ref top-2 [[21814, -1.2524440288543701], [9584, -1.2872644662857056]] gap 0.0348; new top-2 [[9584, -1.270975947380066], [21814, -1.3228044509887695]] gap 0.0518
+  code-3: DIVERGED at token 60 (ref 512 / new 512 tokens); ref top-2 [[3134, -0.7388004064559937], [850, -0.7479766607284546]] gap 0.0092; new top-2 [[850, -0.7318681478500366], [3134, -0.7507929801940918]] gap 0.0189
+  prose-1: DIVERGED at token 162 (ref 512 / new 512 tokens); ref top-2 [[14989, -1.2252446413040161], [8754, -1.2426015138626099]] gap 0.0174; new top-2 [[8754, -1.1748992204666138], [14989, -1.2585288286209106]] gap 0.0836
+  prose-2: DIVERGED at token 330 (ref 512 / new 512 tokens); ref top-2 [[491, -0.9453837275505066], [14072, -0.9477640986442566]] gap 0.0024; new top-2 [[14072, -0.9239172339439392], [491, -0.9453691244125366]] gap 0.0215
+  prose-3: DIVERGED at token 113 (ref 512 / new 512 tokens); ref top-2 [[5639, -1.0112751722335815], [15, -1.0468089580535889]] gap 0.0355; new top-2 [[15, -0.9969485998153687], [5639, -1.0328868627548218]] gap 0.0359
+  divergence rate 6/6 (dflash-n3-q8_0 vs none-q8_0-A)
+== KV q8_0: dflash-n7 vs spec off
+  code-1: DIVERGED at token 254 (ref 512 / new 512 tokens); ref top-2 [[4336, -0.7307199835777283], [945, -0.7931170463562012]] gap 0.0624; new top-2 [[945, -0.7300447821617126], [4336, -0.8053641319274902]] gap 0.0753
+  code-2: DIVERGED at token 293 (ref 512 / new 512 tokens); ref top-2 [[16, -0.8822276592254639], [18, -0.9190986752510071]] gap 0.0369; new top-2 [[18, -0.8727770447731018], [16, -0.926243782043457]] gap 0.0535
+  code-3: DIVERGED at token 223 (ref 512 / new 512 tokens); ref top-2 [[25, -1.2847501039505005], [440, -1.3369715213775635]] gap 0.0522; new top-2 [[440, -1.295530915260315], [25, -1.3822695016860962]] gap 0.0867
+  prose-1: DIVERGED at token 86 (ref 512 / new 512 tokens); ref top-2 [[10029, -0.9530714750289917], [1534, -0.9993419051170349]] gap 0.0463; new top-2 [[1534, -0.977846622467041], [10029, -0.9924778342247009]] gap 0.0146
+  prose-2: DIVERGED at token 330 (ref 512 / new 512 tokens); ref top-2 [[491, -0.9453837275505066], [14072, -0.9477640986442566]] gap 0.0024; new top-2 [[14072, -0.9053921699523926], [491, -0.937082827091217]] gap 0.0317
+  prose-3: DIVERGED at token 54 (ref 512 / new 512 tokens); ref top-2 [[13, -1.0879427194595337], [11, -1.126299500465393]] gap 0.0384; new top-2 [[11, -1.0969051122665405], [13, -1.1411479711532593]] gap 0.0442
+  divergence rate 6/6 (dflash-n7-q8_0 vs none-q8_0-A)

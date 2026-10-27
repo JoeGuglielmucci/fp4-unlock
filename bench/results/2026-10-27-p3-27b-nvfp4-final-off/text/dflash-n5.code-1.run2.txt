@@ -1,0 +1,11 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need thread-safe. Need consider const methods with mutex: mutable std::mutex. Need list of pairs? Need map key to iterator. For get: lock, find, if found move to front, return value copy. For put: lock, if key exists update value and move front; else if capacity full evict back, insert front. Need capacity maybe 0? If capacity 0, put should not store? Need handle. size returns map size. erase: find, remove list, map erase, return true.
+
+Need include <optional>, <list>, <unordered_map>, <mutex>, <cstddef>, <utility>, <iostream> for main.
+
+Potential issue: std::optional<Value> requires Value copyable/movable? get returns copy. put takes const Value&. Need Key hashable, equality. list node type std::pair<const Key, Value>. But pair<const Key, Value> in list? std::list<std::pair<const Key, Value>> works? Yes, pair with const first. But when emplace_front, need construct. Could use using Node = std::pair<const Key, Value>; list<Node> items; map<Key, typename list<Node>::iterator> positions;
+
+In put: if key exists: auto it = positions.find(key); if found: it->second->second = value; items.splice(items.begin(), items, it->second); return. Else if capacity == 0 return? If capacity > 0 and size == capacity: evict = items.back(); positions.erase(evict.first); items.pop_back(); Then items.emplace_front(key, value); positions.emplace(key, items.begin()); Need careful: emplace_front(key, value) constructs pair<const Key, Value> from key and value. OK.
+
+Need O(1) average. std::list splice O(1). unordered_map average O(1

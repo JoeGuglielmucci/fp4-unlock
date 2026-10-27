@@ -1,0 +1,9 @@
+We need to respond to user: "Explain to a curious high-school student, in about 400 words, why a graphics card can be limited by memory bandwidth rather than compute how fast it computes. Use one concrete analogy, give a simple worked example with made-up but plausible numbers, and finish by explaining what engineers do about it."
+
+Need answer in about 400 words. Need likely direct. Need maybe about 400 words. Let's craft around 400 words. Need ensure analogy, simple worked example, high-school student. Need maybe mention GPU memory bandwidth.
+
+Let's draft:
+- Title: ~400 words.
+- Count: Need 400 words. Let's count roughly.
+- "A graphics card can't be limited by memory bandwidth rather than how fast it computes"
+  "Imagine a graphics card is a 3D kitchen. The GPU is a 200-chef chef who can cook fast. The VRAM is a pantry. The memory is a 10-foot wide aisle. The memory bandwidth is the rate at which food can be moved between the pantry and the kitchen. The memory is a 10-foot wide aisle. The memory bandwidth is the rate at which food can be moved between the pantry and the kitchen. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle. The memory is a 10-foot wide aisle

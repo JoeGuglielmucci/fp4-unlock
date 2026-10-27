@@ -1,0 +1,27 @@
+Here's a thinking process:
+
+1.  **Understand User Requirements:**
+   - **Language:** C++17
+   - **Type:** Header-only class template `LruCache<Key, Value>`
+   - **Features:**
+     - Fixed capacity given at construction
+     - `std::optional<Value> get(const Key&)`
+     - `void put(const Key&, const Value&)`
+     - `bool erase(const Key&)`
+     - `size_t size() const`
+     - O(1) average time for `get` and `put`
+     - Use `std::list` and `std::unordered_map`
+     - Protect every public method with a `std::mutex`
+     - Include a small `main()` that exercises eviction order with capacity 3
+     - Explain the eviction policy in two sentences after the code.
+   - **Constraints:** Direct answer, no preamble, complete runnable code, no placeholders.
+
+2.  **Design the LRU Cache:**
+   - **Data Structures:**
+     - `std::list<std::pair<Key, Value>>` or `std::list<Key>` with a separate map to values? Actually, storing `std::pair<Key, Value>` in the list is fine, but we need to update the value in the map when `put` is called with an existing key. Alternatively, store iterators in the map: `std::unordered_map<Key, std::list<std::pair<Key, Value>>::iterator>`.
+     - Let's use `std::list<std::pair<Key, Value>> cache_list;` and `std::unordered_map<Key, std::list<std::pair<Key, Value>>::iterator> cache_map;`
+   - **Capacity:** `size_t capacity_;`
+   - **Mutex:** `mutable std::mutex mtx_;` (mutable because `size()` and other methods might be const, but we need to lock. Actually, `std::mutex` can be locked in const methods if declared `mutable`. Alternatively, use `std::shared_mutex` for C++17, but the prompt says `std::mutex`. I'll stick with `std::mutex` and make it `mutable`.)
+   - **Methods:**
+     - `get(const Key&)`: Lock mutex, check map, if found, move to front of list, return value. Else return `std::nullopt`.
+     - `put(const Key

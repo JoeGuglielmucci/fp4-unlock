@@ -1,0 +1,34 @@
+We need answer user's request. Need produce final answer with code only? User asks implement a thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> fixed capacity, with std::optional, methods, size_t size const, O(1) std::list and std::unordered_map, protect every public method with std::mutex, include std::main() that exercises eviction order. Explain eviction policy in two sentences after code. Need likely no preamble. Need include complete runnable code. Need consider header-only class template. Need C++17. Need maybe use std::mutex, std::shared_mutex, std::optional, std::lock, std::list_iterator, std::unordered_map. Need thread-safe. Could use std::mutex and std::lock_guard<std::mutex>. Need ensure size() const.
+
+Need think about details:
+- std::list and std::unordered_map.
+- Need O(1) average.
+- Need store key and value.
+- Need map<Key, Value> and store iterator.
+- Need avoid std::mutex in std::mutex? Yes.
+- Need include <optional> and use std::optional.
+- Need maybe use std::list_iterator, std::unordered_map.
+- Need include <list> and <unordered_map> for std::list and std::unordered_map.
+- Need include <mutex> for std::mutex.
+- Need include <cstddef> for program.
+- Need include <algorithm> for main.
+- Need include <iostream> for main.
+- Need include <algorithm> for main.
+- Need include <cassert> for main.
+- Need include <utility> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <algorithm> for main.
+- Need include <

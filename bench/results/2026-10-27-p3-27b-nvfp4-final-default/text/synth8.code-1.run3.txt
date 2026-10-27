@@ -1,0 +1,70 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity. It must support std::get, put, erase, bool erase, size_t size const, O(1) average time for get/put. Use std::mutex. Protect every public method with std::mutex. Include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences.
+
+Need produce final answer. Need likely include code. Need be careful: header-only template. Need include main. Could use std::mutex, std::lock_guard, std::list, std::unordered_map, std::optional. Need thread-safe.
+
+Need consider thread-safe. C++17.
+
+Design:
+class LruCache {
+public:
+    template <K,V>
+    explicit LruCache<K,V>(size_t size_t capacity) : size_t capacity(){}
+    : size_t capacity(){}
+    std::optional<Value> get(const Key&)
+    void put(const Key&, const Value&)
+    bool erase(const Key&)
+    size_t size() const
+    };
+};
+
+Need ensure O(1) average. Use std::list and std::unordered_map.
+
+Need thread-safe. C++17.
+
+Need include < <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm>
+  <algorithm

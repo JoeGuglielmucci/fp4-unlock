@@ -1,0 +1,19 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter only, no preamble. Need about 350 words. Need ensure placeholders only for names and dates. Could include [Company Name]? User says placeholders only for names and dates. So use [Name] for names, [Date] for dates. Maybe company name is a name? It says from a small software company to hardware vendor. Placeholders only for names and dates. We can use [Company Name], [Vendor Name], [Contact Name], [Date]. Are those names? Yes. Need no other placeholders. Need about 350 words. Let's draft around 350. Count words. Need formal letter.
+
+Draft:
+
+[Date]
+
+[Vendor Contact Name]
+[Vendor Name]
+[Address?] Wait address is not name/date. Avoid address placeholder. Could omit address. Formal letter can have date, recipient name, company. No address.
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name], a small software company that develops an open-source inference engine for deploying machine-learning models on heterogeneous hardware. Our engine is designed to provide a portable, low-level runtime for model execution, with particular focus on performance, memory efficiency, and developer usability. We are writing to request early access to the developer program for [New GPU Name]? That's a name? New GPU name is a name? It says placeholders only for names and dates. Could use [New GPU Name] as name. But maybe avoid product name? It's a name. OK.
+
+Need why access matters before launch: We need to validate driver/runtime behavior, optimize kernels, identify compatibility issues, ensure our open-source project is ready when GPU launches. Early access allows us to test against silicon, not just documentation, and reduce post-launch support burden.
+
+What offers in return: structured benchmarks, detailed bug reports with reproducible cases, public write-up (maybe after NDA? public write-up). Need neutral.
+
+Propose specific next step: request a 30-minute call on [Date] or within two weeks? Specific next step: schedule a 30

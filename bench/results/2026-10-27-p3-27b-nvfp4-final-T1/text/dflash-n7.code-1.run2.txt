@@ -1,0 +1,17 @@
+We need answer user's request. Need implement thread-safe LRU cache C++17 header-only class template LruCache<Key, Value> fixed capacity. Methods: std::optional<Value> get(const Key&), void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average. Use std::list and std::unordered_map, protect every public method with std::mutex. Include small main() exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final with code and two sentences. Need ensure C++17, header-only. Need thread-safe. Need consider const Key& with unordered_map requires hash/equality. list stores pairs? Need map from Key to iterator to list node. For LRU, list front most recently used, back least recently used. get: lock, find, if found move node to front, return value copy. put: lock, if key exists update value and move to front; else if capacity full and size == capacity, evict back: get key from back, erase map, pop_back; then push_front, map insert. If capacity 0? Fixed capacity given at construction. If capacity 0, put should not store? Need handle. size() const lock. erase: lock find, if found remove list node and map, return true.
+
+Need thread-safe: std::mutex mutable? size() const needs lock, so mutex must be mutable. Use std::lock_guard.
+
+Potential issue: std::optional<Value> requires C++17. Need include <optional>, <list>, <unordered_map>, <mutex>, <cstddef>.
+
+Need main exercises eviction order capacity 3. Could print results. Need deterministic. Example:
+LruCache<int,int> cache(3);
+cache.put(1,10); cache.put(2,20); cache.put(3,30);
+auto a = cache.get(1); // 10, order 1,3,2? Actually after get 1, LRU order front 1, then 3, then 2.
+cache.put(4,40); // evict 2
+print get(2) nullopt, get(1) 10, get(3) 30, get(4) 40.
+Maybe also erase. Need exercise eviction order. Could use std::cout.
+
+Need ensure main

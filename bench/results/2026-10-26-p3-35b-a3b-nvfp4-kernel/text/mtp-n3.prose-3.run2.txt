@@ -1,0 +1,24 @@
+Here's a thinking process:
+
+1.  **Analyze User Input:**
+   - **Target Audience:** Curious high-school student
+   - **Length:** About 400 words
+   - **Topic:** Why a graphics card can be limited by memory bandwidth rather than compute speed
+   - **Requirements:** 
+     - Use one concrete analogy
+     - Give a simple worked example with made-up but plausible numbers
+     - Finish by explaining what engineers do about it
+   - **Tone/Style:** Direct, careful, technical but accessible, no preamble
+
+2.  **Deconstruct the Core Concept:**
+   - GPUs have massive compute units (shaders/cores) but relatively modest memory bandwidth compared to their compute capacity.
+   - This creates a bottleneck: cores sit idle waiting for data from VRAM.
+   - Analogy needed: Something with fast workers but slow supply lines.
+   - Worked example: Plausible numbers for compute throughput vs memory bandwidth, showing the bottleneck.
+   - Engineer solutions: Caching, memory compression, wider buses, HBM, algorithmic optimizations, etc.
+
+3.  **Draft - Section by Section (Mental Refinement):**
+   *Analogy:* Imagine a factory with 100 incredibly fast assembly robots. Each robot can assemble a toy in 1 second. But the conveyor belt delivering parts only brings one part every 10 seconds. The robots spend 9 seconds waiting. The bottleneck isn't the robots' speed; it's the supply line.
+   
+   *Worked Example:* A modern GPU might have 10,000 shader cores. Each can process 100 pixels per second, giving a theoretical compute rate of 1,000,000 pixels/sec. But to draw those pixels, the GPU needs texture data from VRAM. If the memory bus is 256 bits wide and runs at 14 Gbps, that’s roughly 448 GB/s. If each pixel needs 4 bytes of texture data, the memory can only feed 112,000,000 bytes/sec ÷ 4 = 28,000,000 pixels/sec. Wait, that's actually higher than compute. Let me adjust numbers to make memory the bottleneck.
+   Let's try: 10,000 cores, each processes 100 pixels/sec → 1,00

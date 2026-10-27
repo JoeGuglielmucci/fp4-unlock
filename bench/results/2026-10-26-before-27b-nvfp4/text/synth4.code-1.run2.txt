@@ -1,0 +1,19 @@
+We need answer user's request: implement thread-safe LRU cache in C++17 header-only class template LruCache<Key, Value> with fixed capacity given at construction. Must support std::get std::optional<Value> get(const Key&), const void put(const Key&, const Value&), bool erase(const Key&), size_t size() const, O(1) average get and put. Use std::list and std::unordered_map, protect every public method with std::mutex, include small main() that exercises eviction order with capacity 3. Explain eviction policy in two sentences after code.
+
+Need produce final answer. Need think about requirements. Header-only class template. Need include main? The user says "include a small main() that exercises eviction order with capacity 3". Since class template, maybe header-only. But they ask include main. Could provide a single file with #pragma once? Or a header-only file. Need maybe include <iostream>, <optional>, <list>, <unordered_map>, <mutex>, <cstddef>. Need C++17.
+
+Potential pitfalls:
+- std::optional<Value> is std::optional, so include <optional>.
+- Thread-safe LRU: std::list<std::list<list<int>::iterator> or std::pair<list<int>::iterator, std::pair<list<int>>>::pair, const Key&> and std::unordered_map<std::pair<list<int>::iterator, const Key&>, std::pair<list<int>::iterator, std::pair<list<int>>>>.
+- Need O(1) average.
+- Use std::list and std::unordered_map.
+- Need handle capacity 0? If capacity 0, store size() returns 0, get returns nullopt, put returns nullopt, erase returns false. Need avoid O(1) with list front? Actually if capacity 0, no need to evict.
+- Need protect every public method with std::mutex.
+- Need include <mutex> and use std::mutex.
+- Need include <optional> and use std::optional.
+- Need include <cstddef> for size_t.
+- Need include <iostream> for main.
+- Need include <utility> for std::move.
+- Need include <algorithm> for std::move? Not needed.
+- Need include <algorithm> for std::move? Not needed.
+- Need include <algorithm> for std::move?

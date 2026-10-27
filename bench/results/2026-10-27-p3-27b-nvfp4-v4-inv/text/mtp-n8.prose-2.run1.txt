@@ -1,0 +1,21 @@
+We need answer user's request: write formal letter about 350 words from small software company to hardware vendor requesting early access to developer program for new GPU. State what company builds (open-source inference engine), why access matters before launch, what offers in return (benchmarks, bug reports, public write-up), propose specific next step. Neutral professional tone, placeholders only for names and dates. Need likely produce letter around 350 words. Need ensure placeholders only for names and dates. Could include [Company Name]? User says placeholders only for names and dates. So use [Name] for names, [Date] for dates. Maybe no other placeholders. Need about 350 words. Let's draft and count. Need formal letter.
+
+Potential:
+
+[Date]
+
+[Vendor Contact Name]
+[Vendor Company Name]
+[Address]
+
+Dear [Vendor Contact Name],
+
+I am writing on behalf of [Company Name] to request early access to your developer program for the new GPU. [Company Name] is a small software company that builds an open-source inference engine designed to run machine-learning models efficiently on modern accelerators. Our engine supports a range of model architectures and is used by developers who need transparent, reproducible performance across hardware platforms.
+
+Early access before launch is important to us because our roadmap depends on understanding the GPU’s architecture, memory behavior, and software stack at an early stage. If we can begin integration work now, we can identify compatibility issues, optimize kernels, and provide a stable experience when the product becomes generally available. Without early access, we risk delaying support, publishing incomplete guidance, or missing opportunities to align our optimizations with your intended use cases.
+
+In return for early access, we are prepared to provide concrete value to your team. We will share detailed performance benchmarks for representative inference workloads, including latency, throughput, memory usage, and power efficiency. We will submit structured bug reports with reproducible steps, logs, and environment details, and we will work with your engineers to validate fixes. We will also prepare a public write-up describing our experience with the GPU, including practical integration notes and performance results, with your review before publication.
+
+We believe this collaboration would benefit both parties. Your team would receive early feedback from an independent software project that cares about correctness and performance, while our users would gain reliable support for a new accelerator. We are committed to maintaining confidentiality, following your program terms, and keeping communication focused and actionable.
+
+As a next step, we propose a 

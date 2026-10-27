@@ -1,0 +1,59 @@
+0.00.236.505 W model has unused tensor blk.40.attn_norm.weight (size = 8192 bytes) -- ignoring
+0.00.236.510 W model has unused tensor blk.40.post_attention_norm.weight (size = 8192 bytes) -- ignoring
+0.00.236.514 W model has unused tensor blk.40.attn_q.weight (size = 9437184 bytes) -- ignoring
+0.00.236.516 W model has unused tensor blk.40.attn_k.weight (size = 589824 bytes) -- ignoring
+0.00.236.517 W model has unused tensor blk.40.attn_v.weight (size = 589824 bytes) -- ignoring
+0.00.236.522 W model has unused tensor blk.40.attn_output.weight (size = 4718592 bytes) -- ignoring
+0.00.236.524 W model has unused tensor blk.40.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.236.525 W model has unused tensor blk.40.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.236.527 W model has unused tensor blk.40.ffn_gate_inp.weight (size = 557056 bytes) -- ignoring
+0.00.236.528 W model has unused tensor blk.40.ffn_down_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.236.531 W model has unused tensor blk.40.ffn_gate_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.236.533 W model has unused tensor blk.40.ffn_up_exps.weight (size = 150994944 bytes) -- ignoring
+0.00.236.535 W model has unused tensor blk.40.ffn_gate_inp_shexp.weight (size = 8192 bytes) -- ignoring
+0.00.236.536 W model has unused tensor blk.40.ffn_gate_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.236.537 W model has unused tensor blk.40.ffn_up_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.236.539 W model has unused tensor blk.40.ffn_down_shexp.weight (size = 589824 bytes) -- ignoring
+0.00.236.541 W model has unused tensor blk.40.nextn.eh_proj.weight (size = 4718592 bytes) -- ignoring
+0.00.236.543 W model has unused tensor blk.40.nextn.enorm.weight (size = 8192 bytes) -- ignoring
+0.00.236.545 W model has unused tensor blk.40.nextn.hnorm.weight (size = 8192 bytes) -- ignoring
+0.00.236.549 W model has unused tensor blk.40.nextn.shared_head_norm.weight (size = 8192 bytes) -- ignoring
+0.00.237.541 W model has unused tensor blk.40.attn_q.scale (size = 4 bytes) -- ignoring
+0.00.237.543 W model has unused tensor blk.40.attn_k.scale (size = 4 bytes) -- ignoring
+0.00.237.545 W model has unused tensor blk.40.attn_v.scale (size = 4 bytes) -- ignoring
+0.00.237.547 W model has unused tensor blk.40.attn_output.scale (size = 4 bytes) -- ignoring
+0.00.237.554 W model has unused tensor blk.40.ffn_gate_shexp.scale (size = 4 bytes) -- ignoring
+0.00.237.556 W model has unused tensor blk.40.ffn_down_shexp.scale (size = 4 bytes) -- ignoring
+0.00.237.558 W model has unused tensor blk.40.ffn_up_shexp.scale (size = 4 bytes) -- ignoring
+0.00.237.560 W model has unused tensor blk.40.ffn_gate_exps.scale (size = 1024 bytes) -- ignoring
+0.00.237.561 W model has unused tensor blk.40.ffn_down_exps.scale (size = 1024 bytes) -- ignoring
+0.00.237.563 W model has unused tensor blk.40.ffn_up_exps.scale (size = 1024 bytes) -- ignoring
+0.00.237.570 W model has unused tensor blk.40.nextn.eh_proj.scale (size = 4 bytes) -- ignoring
+0.00.237.573 W model has unused tensor blk.40.attn_q.input_scale (size = 4 bytes) -- ignoring
+0.00.237.574 W model has unused tensor blk.40.attn_k.input_scale (size = 4 bytes) -- ignoring
+0.00.237.576 W model has unused tensor blk.40.attn_v.input_scale (size = 4 bytes) -- ignoring
+0.00.237.577 W model has unused tensor blk.40.attn_output.input_scale (size = 4 bytes) -- ignoring
+0.00.237.585 W model has unused tensor blk.40.ffn_gate_exps.input_scale (size = 1024 bytes) -- ignoring
+0.00.237.587 W model has unused tensor blk.40.ffn_down_exps.input_scale (size = 1024 bytes) -- ignoring
+0.00.237.589 W model has unused tensor blk.40.ffn_up_exps.input_scale (size = 1024 bytes) -- ignoring
+0.00.237.591 W model has unused tensor blk.40.ffn_gate_shexp.input_scale (size = 4 bytes) -- ignoring
+0.00.237.593 W model has unused tensor blk.40.ffn_down_shexp.input_scale (size = 4 bytes) -- ignoring
+0.00.237.595 W model has unused tensor blk.40.ffn_up_shexp.input_scale (size = 4 bytes) -- ignoring
+0.00.237.601 W model has unused tensor blk.40.nextn.eh_proj.input_scale (size = 4 bytes) -- ignoring
+0.01.479.862 W llama_context: n_ctx is not divisible by n_seq_max - rounding down to 49152
+
+llama_batched_bench: n_kv_max = 49152, n_batch = 2048, n_ubatch = 512, flash_attn = 1, is_pp_shared = 0, is_tg_separate = 0, n_gpu_layers = 99, n_threads = 16, n_threads_batch = 16
+
+|    PP |     TG |    B |   N_KV |   T_PP s | S_PP t/s |   T_TG s | S_TG t/s |      T s |    S t/s |
+|-------|--------|------|--------|----------|----------|----------|----------|----------|----------|
+|   512 |    128 |    1 |    640 |    0.105 |  4881.82 |    0.445 |   287.34 |    0.550 |  1162.91 |
+|   512 |    128 |    2 |   1280 |    0.073 | 14048.76 |    0.540 |   474.10 |    0.613 |  2088.56 |
+|   512 |    128 |    3 |   1920 |    0.119 | 12919.40 |    0.631 |   608.14 |    0.750 |  2558.91 |
+|   512 |    128 |    4 |   2560 |    0.142 | 14469.41 |    0.684 |   749.02 |    0.825 |  3102.65 |
+|   512 |    128 |    6 |   3840 |    0.213 | 14446.41 |    0.839 |   915.31 |    1.052 |  3651.21 |
+|   512 |    128 |    8 |   5120 |    0.281 | 14588.19 |    0.917 |  1116.78 |    1.198 |  4274.88 |
+|   512 |    128 |   12 |   7680 |    0.420 | 14644.96 |    1.370 |  1121.11 |    1.790 |  4291.45 |
+|   512 |    128 |   16 |  10240 |    0.558 | 14677.32 |    1.541 |  1328.99 |    2.099 |  4878.14 |
+|   512 |    128 |   32 |  20480 |    1.116 | 14685.69 |    2.162 |  1894.59 |    3.278 |  6248.50 |
+|   512 |    128 |   64 |  40960 |    2.227 | 14717.02 |    3.611 |  2268.50 |    5.838 |  7016.42 |
+
